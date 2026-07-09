@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviewer Hub — Pick a Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300..900;1,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#111114;--panel:#1A1A1F;--line:#2A2A32;--text:#EFEDE6;--muted:#8E8D96;
+  --a:#C4552D;--b:#E3A84E;--c:#0031E3;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Archivo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:46px 26px 80px}
+.wrap{max-width:1240px;margin:0 auto}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+h1{font-weight:800;font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;line-height:1.05;margin-bottom:12px}
+.sub{color:var(--muted);font-size:15.5px;max-width:640px;line-height:1.6;margin-bottom:10px}
+.sub b{color:var(--text)}
+.mix{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:12px;
+  border:1px solid var(--line);border-radius:999px;padding:7px 16px;color:var(--muted);
+  margin:8px 0 42px;
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:26px}
+.opt{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,border-color .2s}
+.opt:hover{transform:translateY(-4px)}
+.opt.a:hover{border-color:var(--a)}
+.opt.b:hover{border-color:var(--b)}
+.opt.c:hover{border-color:var(--c)}
+.frame{position:relative;aspect-ratio:4/3;overflow:hidden;background:#000}
+.frame iframe{
+  width:334%;height:334%;transform:scale(.3);transform-origin:0 0;border:none;pointer-events:none;
+}
+.frame a.cover{position:absolute;inset:0;z-index:2}
+.body{padding:22px 22px 24px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tagrow{display:flex;align-items:center;gap:10px}
+.letter{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.1em;
+  padding:4px 10px;border-radius:4px;color:#fff;
+}
+.a .letter{background:var(--a)} .b .letter{background:var(--b);color:#241A0C} .c .letter{background:var(--c)}
+.name{font-weight:800;font-size:22px;letter-spacing:-.01em}
+.desc{color:var(--muted);font-size:13.5px;line-height:1.6;flex:1}
+.desc b{color:var(--text);font-weight:600}
+.openbtn{
+  display:flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:12px;color:var(--text);
+  font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+  transition:background .15s,border-color .15s;
+}
+.a .openbtn:hover{background:var(--a);border-color:var(--a)}
+.b .openbtn:hover{background:var(--b);border-color:var(--b);color:#241A0C}
+.c .openbtn:hover{background:var(--c);border-color:var(--c)}
+.foot{margin-top:42px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);letter-spacing:.06em;line-height:2}
+@media (max-width:720px){body{padding:30px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Reviewer Hub · Prototype Round 1 · July 9, 2026</div>
+  <h1>Three directions.<br>Pick one — or franken-mix them.</h1>
+  <p class="sub">Each one is the <b>same app</b> — library, upload, viewer, notes — wearing a completely different personality. All three are fully clickable: open a reviewer, toggle the notes panel, type in it (notes even persist). Each carries a <b>candidate app name</b> so you can pick a vibe and a name in one go.</p>
+  <span class="mix">mix &amp; match welcome — e.g. "B's layout, C's typography, keep the name Repaso"</span>
+
+  <div class="grid">
+    <div class="opt a">
+      <div class="frame">
+        <iframe src="prototype-a-repaso.html" title="Repaso preview" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+        <a class="cover" href="prototype-a-repaso.html" aria-label="Open Repaso"></a>
+      </div>
+      <div class="body">
+        <div class="tagrow"><span class="letter">DIRECTION A</span><span class="name">Repaso</span></div>
+        <p class="desc"><b>Warm paper desk.</b> Cream + ink + terracotta, editorial serif, your reviewers as tactile index cards with washi tape. Feels like a cozy, organized study desk — handmade, personal, calm in daylight.</p>
+        <a class="openbtn" href="prototype-a-repaso.html">Open full prototype →</a>
+      </div>
+    </div>
+
+    <div class="opt b">
+      <div class="frame">
+        <iframe src="prototype-b-aral.html" title="Aral preview" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+        <a class="cover" href="prototype-b-aral.html" aria-label="Open Aral"></a>
+      </div>
+      <div class="body">
+        <div class="tagrow"><span class="letter">DIRECTION B</span><span class="name">Aral</span></div>
+        <p class="desc"><b>Night library.</b> Deep ink + lamplight amber, refined serif, reviewers shelved as book spines in a sidebar layout. Calm and quiet for late-night sessions — dark done with restraint, zero gamer energy.</p>
+        <a class="openbtn" href="prototype-b-aral.html">Open full prototype →</a>
+      </div>
+    </div>
+
+    <div class="opt c">
+      <div class="frame">
+        <iframe src="prototype-c-studyo.html" title="STUDYO preview" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+        <a class="cover" href="prototype-c-studyo.html" aria-label="Open STUDYO"></a>
+      </div>
+      <div class="body">
+        <div class="tagrow"><span class="letter">DIRECTION C</span><span class="name">STUDYO</span></div>
+        <p class="desc"><b>Swiss utility.</b> Off-white, hard black rules, one electric blue, expanded grotesque type, numbered index rows that invert on hover. A precision tool — sharp, fast, zero decoration that doesn't work for a living.</p>
+        <a class="openbtn" href="prototype-c-studyo.html">Open full prototype →</a>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">
+    HOW TO JUDGE: open each full-screen → click a reviewer card/row → toggle NOTES → resize the window narrow to feel the phone layout.<br>
+    NAMES ARE SWAPPABLE — any name can go on any design.
+  </p>
+</div>
+</body>
+</html>

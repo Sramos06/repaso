@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repaso — Direction A: Warm Paper Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7EFE2;
+  --paper-deep:#F0E4D0;
+  --card:#FFFDF6;
+  --ink:#2B2118;
+  --ink-soft:#6B5D4F;
+  --terra:#C4552D;
+  --terra-deep:#A03E1C;
+  --sage:#7A8B6F;
+  --gold:#D9A441;
+  --rule:#E4D5BC;
+  --shadow:0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Karla',sans-serif;
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.12), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.10), transparent 55%),
+    var(--paper);
+  color:var(--ink);
+  min-height:100vh;
+}
+/* faint paper grain */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.app{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:28px 22px 90px}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:8px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand h1{
+  font-family:'Fraunces',serif;font-weight:640;font-size:clamp(30px,5vw,42px);
+  letter-spacing:-.02em;font-variation-settings:"opsz" 100;
+}
+.brand h1 em{color:var(--terra);font-style:italic}
+.brand .tag{
+  font-family:'Caveat',cursive;font-size:19px;color:var(--ink-soft);transform:rotate(-2deg);
+}
+.avatar{
+  width:40px;height:40px;border-radius:50%;background:var(--sage);color:#fff;
+  display:grid;place-items:center;font-weight:700;letter-spacing:.5px;
+  border:2px solid var(--card);box-shadow:var(--shadow);flex:none;
+}
+.greet{font-size:15px;color:var(--ink-soft);margin:2px 0 30px}
+.greet strong{color:var(--ink)}
+
+/* ---------- upload desk ---------- */
+.upload{
+  position:relative;border:2px dashed var(--terra);border-radius:14px;
+  background:rgba(255,253,246,.65);
+  padding:26px 22px;display:flex;align-items:center;gap:18px;
+  margin-bottom:44px;cursor:pointer;transition:background .2s,transform .2s;
+}
+.upload:hover{background:var(--card);transform:translateY(-1px)}
+.upload .stampbox{
+  width:52px;height:52px;flex:none;border-radius:10px;background:var(--terra);
+  display:grid;place-items:center;transform:rotate(-4deg);
+  box-shadow:var(--shadow);
+}
+.upload .stampbox svg{width:26px;height:26px;stroke:#FFF4E8}
+.upload h2{font-family:'Fraunces',serif;font-weight:560;font-size:19px;margin-bottom:2px}
+.upload p{font-size:14px;color:var(--ink-soft)}
+.upload .hint{
+  position:absolute;top:-12px;right:18px;font-family:'Caveat',cursive;
+  background:var(--gold);color:#3A2C10;padding:2px 12px;border-radius:999px;
+  font-size:16px;transform:rotate(2deg);box-shadow:var(--shadow);
+}
+
+/* ---------- section label ---------- */
+.seclabel{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.seclabel h3{
+  font-family:'Fraunces',serif;font-style:italic;font-weight:520;font-size:22px;
+}
+.seclabel .line{flex:1;height:1px;background:var(--rule)}
+.seclabel .count{
+  font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--ink-soft);
+}
+
+/* ---------- index cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:26px 22px}
+.card{
+  position:relative;background:var(--card);border-radius:6px;
+  box-shadow:var(--shadow);padding:20px 18px 16px;cursor:pointer;
+  transition:transform .22s cubic-bezier(.2,.9,.3,1.4),box-shadow .22s;
+  background-image:repeating-linear-gradient(transparent,transparent 26px,var(--rule) 27px);
+  border-top:14px solid transparent;
+}
+.card:nth-child(3n+1){transform:rotate(-.7deg)}
+.card:nth-child(3n+2){transform:rotate(.5deg)}
+.card:nth-child(3n){transform:rotate(-.3deg)}
+.card:hover{transform:rotate(0) translateY(-5px);box-shadow:0 2px 4px rgba(43,33,24,.1),0 16px 30px -8px rgba(43,33,24,.28);z-index:2}
+.card::before{ /* washi tape */
+  content:"";position:absolute;top:-11px;left:50%;width:74px;height:20px;
+  transform:translateX(-50%) rotate(-2deg);border-radius:2px;
+  background:linear-gradient(rgba(122,139,111,.55),rgba(122,139,111,.55));
+  opacity:.85;
+}
+.card:nth-child(2n)::before{background:rgba(217,164,65,.55);transform:translateX(-50%) rotate(1.5deg)}
+.card:nth-child(3n)::before{background:rgba(196,85,45,.45)}
+.card .subject{
+  display:inline-block;font-size:11px;font-weight:800;letter-spacing:.14em;
+  color:var(--terra-deep);border:1.5px solid currentColor;border-radius:3px;
+  padding:2px 7px;margin-bottom:12px;text-transform:uppercase;
+  background:rgba(255,253,246,.9);
+}
+.card h4{
+  font-family:'Fraunces',serif;font-weight:600;font-size:19px;line-height:1.25;
+  margin-bottom:14px;min-height:48px;background:var(--card);
+}
+.card .meta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-soft);background:var(--card)}
+.card .meta .open{
+  font-weight:700;color:var(--terra);display:flex;align-items:center;gap:4px;
+}
+.card .meta .open svg{width:13px;height:13px;transition:transform .2s}
+.card:hover .meta .open svg{transform:translateX(3px)}
+
+/* ---------- scratchpad fab ---------- */
+.fab{
+  position:fixed;right:22px;bottom:22px;z-index:50;
+  background:var(--ink);color:var(--paper);border:none;cursor:pointer;
+  font-family:'Karla',sans-serif;font-weight:700;font-size:14px;
+  padding:14px 20px;border-radius:999px;display:flex;align-items:center;gap:9px;
+  box-shadow:0 10px 25px -6px rgba(43,33,24,.45);transition:transform .2s,background .2s;
+}
+.fab:hover{transform:translateY(-3px);background:#40321F}
+.fab svg{width:17px;height:17px}
+
+/* ---------- viewer ---------- */
+.viewer{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;background:var(--paper)}
+.viewer.on{display:flex}
+.vbar{
+  display:flex;align-items:center;gap:14px;padding:12px 18px;
+  background:var(--card);border-bottom:1px solid var(--rule);flex:none;
+}
+.vbar .back{
+  background:none;border:1.5px solid var(--ink);border-radius:999px;cursor:pointer;
+  font-family:'Karla',sans-serif;font-weight:700;font-size:13px;color:var(--ink);
+  padding:7px 15px;display:flex;align-items:center;gap:6px;transition:background .2s,color .2s;
+}
+.vbar .back:hover{background:var(--ink);color:var(--paper)}
+.vbar .vtitle{font-family:'Fraunces',serif;font-weight:600;font-size:16px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbar .notesbtn{
+  background:var(--terra);border:none;color:#FFF4E8;border-radius:999px;cursor:pointer;
+  font-family:'Karla',sans-serif;font-weight:700;font-size:13px;padding:8px 16px;
+  display:flex;align-items:center;gap:7px;transition:background .2s;
+}
+.vbar .notesbtn:hover{background:var(--terra-deep)}
+.vbody{flex:1;display:flex;min-height:0}
+.vdoc{flex:1;overflow:auto;padding:26px;display:flex;justify-content:center}
+.docpage{
+  background:#fff;max-width:760px;width:100%;height:max-content;border-radius:4px;
+  box-shadow:var(--shadow);padding:44px 48px;line-height:1.65;font-size:15.5px;
+}
+.docpage h1{font-family:'Fraunces',serif;font-size:28px;margin-bottom:4px}
+.docpage .doc-sub{color:var(--ink-soft);font-size:13px;margin-bottom:26px;letter-spacing:.05em}
+.docpage h2{font-family:'Fraunces',serif;font-size:20px;margin:26px 0 10px;color:var(--terra-deep)}
+.docpage ol{padding-left:22px}
+.docpage li{margin-bottom:6px}
+.docpage .formula{
+  font-family:Georgia,serif;font-style:italic;text-align:center;font-size:18px;
+  background:var(--paper);border-radius:8px;padding:16px;margin:14px 0;
+}
+.docpage table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+.docpage th,.docpage td{border:1px solid var(--rule);padding:8px 10px;text-align:left}
+.docpage th{background:var(--paper)}
+/* notes drawer */
+.notes{
+  width:340px;flex:none;background:var(--paper-deep);border-left:1px solid var(--rule);
+  display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s ease;
+  position:relative;
+}
+.notes.on{transform:none}
+.vbody.notes-open .vdoc{display:flex}
+.notes header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 10px;margin:0;
+}
+.notes header h5{font-family:'Caveat',cursive;font-size:24px;font-weight:600;color:var(--ink)}
+.notes header .save{font-size:11px;color:var(--sage);font-weight:700;letter-spacing:.08em}
+.notes textarea{
+  flex:1;margin:0 14px 14px;border:none;resize:none;border-radius:8px;
+  background:var(--card);padding:16px;font-family:'Karla',sans-serif;font-size:14.5px;
+  line-height:1.7;color:var(--ink);box-shadow:inset 0 1px 3px rgba(43,33,24,.1);
+}
+.notes textarea:focus{outline:2px solid var(--gold)}
+
+/* ---------- responsive ---------- */
+@media (max-width:760px){
+  .app{padding:20px 16px 90px}
+  .cards{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px 14px}
+  .card h4{font-size:16px;min-height:40px}
+  .upload{padding:18px 16px;gap:13px}
+  .docpage{padding:26px 20px}
+  .vdoc{padding:12px}
+  .notes{
+    position:fixed;left:0;right:0;bottom:0;width:auto;height:55vh;
+    border-left:none;border-top:2px solid var(--rule);border-radius:18px 18px 0 0;
+    transform:translateY(100%);box-shadow:0 -12px 30px rgba(43,33,24,.25);
+  }
+  .notes.on{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="app" id="library">
+  <header>
+    <div class="brand">
+      <h1>Repa<em>so</em></h1>
+      <span class="tag">your reviewers, kept safe ✦</span>
+    </div>
+    <div class="avatar">S</div>
+  </header>
+  <p class="greet">Good evening, <strong>Shawn</strong> — 6 reviewers on your desk.</p>
+
+  <div class="upload" title="Prototype: upload is visual only">
+    <div class="stampbox">
+      <svg fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 17V4m0 0l-5 5m5-5l5 5"/><path d="M4 20h16"/>
+      </svg>
+    </div>
+    <div>
+      <h2>Drop a reviewer here</h2>
+      <p>or tap to pick — .html files, saved forever</p>
+    </div>
+    <span class="hint">drag &amp; drop!</span>
+  </div>
+
+  <div class="seclabel">
+    <h3>On the desk</h3>
+    <div class="line"></div>
+    <span class="count">6 FILES</span>
+  </div>
+
+  <div class="cards" id="cards"></div>
+</div>
+
+<button class="fab" onclick="openViewer('Scratchpad','scratch')" title="Open global scratchpad">
+  <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+  </svg>
+  Scratchpad
+</button>
+
+<!-- viewer -->
+<div class="viewer" id="viewer">
+  <div class="vbar">
+    <button class="back" onclick="closeViewer()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l6 6m-6-6l6-6"/></svg>
+      Desk
+    </button>
+    <span class="vtitle" id="vtitle"></span>
+    <button class="notesbtn" onclick="toggleNotes()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Notes
+    </button>
+  </div>
+  <div class="vbody" id="vbody">
+    <div class="vdoc">
+      <div class="docpage" id="docpage"></div>
+    </div>
+    <aside class="notes" id="notes">
+      <header><h5>margin notes</h5><span class="save" id="savestate">SAVED ✓</span></header>
+      <textarea id="notepad" placeholder="Write anything — it autosaves…"></textarea>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ------- sample data (prototype) -------
+const reviewers=[
+  {s:"STAT 023",t:"Hypothesis Testing — Complete Reviewer",d:"Jul 2"},
+  {s:"STAT 023",t:"Regression & Correlation",d:"Jun 28"},
+  {s:"QMMS",t:"Module 5 — Decision Analysis",d:"Jun 25"},
+  {s:"INTE 202",t:"Python Data Analysis Notes",d:"Jun 20"},
+  {s:"COMP 008",t:"Data Structures — Midterms",d:"Jun 12"},
+  {s:"GEED 020",t:"Ethics — Finals Reviewer",d:"Jun 5"},
+];
+const doc=`
+<h1>Hypothesis Testing</h1>
+<div class="doc-sub">STAT 023 · UPLOADED JUL 2 · OPENED FROM YOUR LIBRARY</div>
+<p>This is a preview of how an <b>uploaded reviewer</b> renders inside the app — your actual HTML file, shown full-page, exactly as you built it.</p>
+<h2>The 5 Steps</h2>
+<ol>
+  <li>State H₀ and H₁</li>
+  <li>Set the significance level α</li>
+  <li>Choose the test statistic</li>
+  <li>Compute and compare to the critical value</li>
+  <li>Decide: reject or fail to reject H₀</li>
+</ol>
+<h2>Z-test statistic</h2>
+<div class="formula">z = (x̄ − μ₀) / (σ / √n)</div>
+<h2>Decision rule</h2>
+<table>
+  <tr><th>Condition</th><th>Decision</th></tr>
+  <tr><td>p-value &lt; α</td><td><b>Reject H₀</b></td></tr>
+  <tr><td>p-value ≥ α</td><td>Fail to reject H₀</td></tr>
+</table>`;
+
+// ------- library -------
+const cardsEl=document.getElementById('cards');
+reviewers.forEach(r=>{
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML=`<span class="subject">${r.s}</span><h4>${r.t}</h4>
+    <div class="meta"><span>${r.d}</span>
+    <span class="open">Open <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg></span></div>`;
+  c.onclick=()=>openViewer(r.t,r.s);
+  cardsEl.appendChild(c);
+});
+
+// ------- viewer + notes -------
+const viewer=document.getElementById('viewer'),notes=document.getElementById('notes'),
+      pad=document.getElementById('notepad'),save=document.getElementById('savestate');
+let key='';
+function openViewer(title,id){
+  key='repaso-note-'+id;
+  document.getElementById('vtitle').textContent=title;
+  document.getElementById('docpage').innerHTML= id==='scratch'
+    ? '<h1>Scratchpad</h1><div class="doc-sub">GLOBAL · NOT TIED TO A REVIEWER</div><p>Open your notes panel → this is your everywhere-notebook.</p>'
+    : doc;
+  pad.value=localStorage.getItem(key)||'';
+  viewer.classList.add('on');
+  if(id==='scratch')notes.classList.add('on');
+}
+function closeViewer(){viewer.classList.remove('on');notes.classList.remove('on')}
+function toggleNotes(){notes.classList.toggle('on')}
+let t;
+pad.addEventListener('input',()=>{
+  save.textContent='SAVING…';clearTimeout(t);
+  t=setTimeout(()=>{localStorage.setItem(key,pad.value);save.textContent='SAVED ✓'},500);
+});
+</script>
+</body>
+</html>

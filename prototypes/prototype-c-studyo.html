@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STUDYO — Direction C: Swiss Utility</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Archivo+Expanded:wght@400..900&family=IBM+Plex+Mono:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F1EC;
+  --ink:#141414;
+  --blue:#0031E3;
+  --blue-ink:#FFFFFF;
+  --grey:#7A796F;
+  --line:#141414;
+  --card:#FBFAF7;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+::selection{background:var(--blue);color:#fff}
+body{
+  font-family:'Archivo',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;
+}
+.mono{font-family:'IBM Plex Mono',monospace}
+.app{max-width:1140px;margin:0 auto;padding:0 24px 110px}
+
+/* ---------- masthead ---------- */
+.mast{
+  display:flex;align-items:stretch;justify-content:space-between;
+  border-bottom:3px solid var(--line);padding:26px 0 18px;margin-bottom:0;
+}
+.mast h1{
+  font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:900;
+  font-size:clamp(34px,6vw,54px);letter-spacing:-.03em;line-height:.9;text-transform:uppercase;
+}
+.mast h1 .o{color:var(--blue)}
+.mast .side{
+  text-align:right;display:flex;flex-direction:column;justify-content:space-between;
+}
+.mast .side .mono{font-size:11px;letter-spacing:.08em;color:var(--grey);text-transform:uppercase}
+.mast .side .user{
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  display:flex;align-items:center;gap:8px;justify-content:flex-end;
+}
+.mast .side .user::before{content:"";width:9px;height:9px;background:var(--blue);border-radius:50%}
+
+/* ---------- stat strip ---------- */
+.strip{
+  display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--line);
+}
+.strip div{padding:14px 2px;border-right:1px solid var(--line)}
+.strip div:last-child{border-right:none}
+.strip .n{font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:800;font-size:26px}
+.strip .l{font-size:10px;letter-spacing:.16em;color:var(--grey);text-transform:uppercase;margin-top:2px}
+
+/* ---------- upload bar ---------- */
+.upload{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  border:1px solid var(--line);margin:34px 0 44px;padding:0;cursor:pointer;
+  background:var(--card);transition:background .15s;position:relative;overflow:hidden;
+}
+.upload:hover{background:#fff}
+.upload .lbl{padding:20px 22px}
+.upload .lbl b{
+  font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:800;font-size:16px;
+  text-transform:uppercase;letter-spacing:.02em;display:block;
+}
+.upload .lbl span{font-size:12.5px;color:var(--grey)}
+.upload .btn{
+  align-self:stretch;display:flex;align-items:center;gap:10px;background:var(--blue);
+  color:var(--blue-ink);font-weight:700;font-size:13px;text-transform:uppercase;
+  letter-spacing:.1em;padding:0 26px;transition:background .15s;
+}
+.upload:hover .btn{background:var(--ink)}
+.upload .btn svg{width:16px;height:16px}
+
+/* ---------- index list ---------- */
+.idx-head{
+  display:grid;grid-template-columns:64px 1fr 130px 90px;gap:14px;
+  padding:0 0 9px;border-bottom:2px solid var(--line);
+  font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--grey);text-transform:uppercase;
+}
+.item{
+  display:grid;grid-template-columns:64px 1fr 130px 90px;gap:14px;align-items:center;
+  padding:19px 0;border-bottom:1px solid rgba(20,20,20,.25);cursor:pointer;
+  transition:background .12s;position:relative;
+}
+.item:hover{background:var(--ink);color:var(--bg)}
+.item:hover .sub, .item:hover .dt{color:var(--bg);opacity:.7}
+.item:hover .num{color:var(--blue)}
+.item .num{
+  font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:900;font-size:22px;
+  color:rgba(20,20,20,.28);transition:color .12s;
+}
+.item .t b{
+  font-size:17.5px;font-weight:700;display:block;line-height:1.2;letter-spacing:-.01em;
+}
+.item .sub{font-size:11px;letter-spacing:.14em;color:var(--grey);text-transform:uppercase;margin-top:3px}
+.item .dt{font-size:11.5px;color:var(--grey);letter-spacing:.05em;text-transform:uppercase}
+.item .open{
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;justify-content:flex-end;
+}
+.item .open svg{width:14px;height:14px;transition:transform .15s}
+.item:hover .open svg{transform:translateX(4px)}
+
+/* ---------- scratch fab ---------- */
+.fab{
+  position:fixed;right:0;bottom:90px;z-index:50;border:none;cursor:pointer;
+  background:var(--blue);color:#fff;font-family:'Archivo',sans-serif;font-weight:700;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  padding:16px 14px;writing-mode:vertical-rl;
+  transition:background .15s,padding .15s;
+}
+.fab:hover{background:var(--ink);padding-right:22px}
+
+/* ---------- viewer ---------- */
+.viewer{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;background:var(--bg)}
+.viewer.on{display:flex}
+.vbar{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;
+  border-bottom:3px solid var(--line);flex:none;background:var(--bg);
+}
+.vbar .back{
+  background:none;border:none;border-right:1px solid var(--line);cursor:pointer;
+  font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink);padding:16px 20px;
+  display:flex;align-items:center;gap:9px;transition:background .15s,color .15s;
+}
+.vbar .back:hover{background:var(--ink);color:var(--bg)}
+.vbar .vtitle{
+  font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:800;font-size:15px;
+  text-transform:uppercase;letter-spacing:.01em;align-self:center;padding:0 18px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.vbar .notesbtn{
+  background:var(--blue);border:none;color:#fff;cursor:pointer;
+  font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;padding:16px 24px;display:flex;align-items:center;gap:9px;
+  transition:background .15s;
+}
+.vbar .notesbtn:hover{background:var(--ink)}
+.vbody{flex:1;display:flex;min-height:0}
+.vdoc{flex:1;overflow:auto;padding:28px;display:flex;justify-content:center}
+.docpage{
+  background:#fff;border:1px solid var(--line);max-width:760px;width:100%;height:max-content;
+  padding:46px 50px;line-height:1.65;font-size:15.5px;
+}
+.docpage h1{font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:900;font-size:26px;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:4px}
+.docpage .doc-sub{font-family:'IBM Plex Mono',monospace;color:var(--grey);font-size:11.5px;letter-spacing:.06em;margin-bottom:26px;text-transform:uppercase}
+.docpage h2{font-weight:800;font-size:17px;margin:26px 0 10px;text-transform:uppercase;letter-spacing:.04em;color:var(--blue)}
+.docpage ol{padding-left:22px}
+.docpage li{margin-bottom:6px}
+.docpage .formula{font-family:'IBM Plex Mono',monospace;text-align:center;font-size:16px;border:1px solid var(--line);padding:16px;margin:14px 0;background:var(--bg)}
+.docpage table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+.docpage th,.docpage td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+.docpage th{background:var(--bg);text-transform:uppercase;font-size:11px;letter-spacing:.1em}
+/* notes */
+.notes{
+  width:360px;flex:none;background:var(--card);border-left:3px solid var(--line);
+  display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;
+}
+.notes.on{transform:none}
+.notes header{
+  display:flex;align-items:center;justify-content:space-between;padding:16px 18px;
+  border-bottom:1px solid var(--line);
+}
+.notes header h5{
+  font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:.05em;text-transform:uppercase;
+}
+.notes header .save{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--blue);letter-spacing:.08em}
+.notes textarea{
+  flex:1;border:none;resize:none;background:transparent;padding:18px;
+  font-family:'IBM Plex Mono',monospace;font-size:13.5px;line-height:1.8;color:var(--ink);
+}
+.notes textarea:focus{outline:none;background:#fff}
+
+/* footer rule */
+.baseline{
+  position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;padding:9px 24px;display:flex;justify-content:space-between;z-index:40;
+}
+.baseline .b{color:var(--blue);filter:brightness(1.6)}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  /* vertical tab overlaps row labels on narrow screens — switch to a compact pill */
+  .fab{
+    writing-mode:horizontal-tb;right:14px;bottom:56px;border-radius:999px;
+    padding:13px 18px;
+  }
+  .fab:hover{padding:13px 18px}
+}
+@media (max-width:760px){
+  .app{padding:0 16px 110px}
+  .strip .n{font-size:20px}
+  .idx-head{display:none}
+  .item{grid-template-columns:44px 1fr 70px;gap:10px}
+  .item .dt{display:none}
+  .item .num{font-size:17px}
+  .item .t b{font-size:15.5px}
+  .upload{flex-direction:column;align-items:stretch;gap:0}
+  .upload .lbl{padding:16px 18px}
+  .upload .btn{padding:14px 18px;justify-content:center}
+  .docpage{padding:28px 20px}
+  .vdoc{padding:12px}
+  .vbar .vtitle{font-size:12px}
+  .notes{
+    position:fixed;left:0;right:0;bottom:0;width:auto;height:55vh;
+    border-left:none;border-top:3px solid var(--line);
+    transform:translateY(100%);
+  }
+  .notes.on{transform:none}
+  .fab{bottom:120px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="library">
+  <div class="mast">
+    <h1>STUDY<span class="o">O</span></h1>
+    <div class="side">
+      <span class="mono">Personal reviewer index — est. 2026</span>
+      <span class="user">Shawn / signed in</span>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div><div class="n">06</div><div class="l">Reviewers stored</div></div>
+    <div><div class="n">04</div><div class="l">Subjects covered</div></div>
+    <div><div class="n">JUL 02</div><div class="l">Last upload</div></div>
+  </div>
+
+  <div class="upload" title="Prototype: upload is visual only">
+    <div class="lbl">
+      <b>Add to the index</b>
+      <span>Drop .html files anywhere on this page — max 5 MB each</span>
+    </div>
+    <div class="btn">
+      Upload
+      <svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17V4m0 0l-5 5m5-5l5 5"/><path d="M4 20h16"/></svg>
+    </div>
+  </div>
+
+  <div class="idx-head"><span>No.</span><span>Reviewer</span><span>Uploaded</span><span style="text-align:right">Action</span></div>
+  <div id="list"></div>
+</div>
+
+<button class="fab" onclick="openViewer('Scratchpad','scratch')">Scratchpad ✎</button>
+
+<div class="viewer" id="viewer">
+  <div class="vbar">
+    <button class="back" onclick="closeViewer()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l6 6m-6-6l6-6"/></svg>
+      Index
+    </button>
+    <span class="vtitle" id="vtitle"></span>
+    <button class="notesbtn" onclick="toggleNotes()">Notes ✎</button>
+  </div>
+  <div class="vbody">
+    <div class="vdoc"><div class="docpage" id="docpage"></div></div>
+    <aside class="notes" id="notes">
+      <header><h5>Field Notes</h5><span class="save" id="savestate">[SAVED]</span></header>
+      <textarea id="notepad" placeholder="// notes autosave as you type"></textarea>
+    </aside>
+  </div>
+</div>
+
+<div class="baseline">
+  <span>STUDYO — REVIEWER INDEX</span>
+  <span><span class="b">●</span> SYNCED TO CLOUD</span>
+</div>
+
+<script>
+const reviewers=[
+  {s:"STAT 023",t:"Hypothesis Testing — Complete Reviewer",d:"JUL 02"},
+  {s:"STAT 023",t:"Regression & Correlation",d:"JUN 28"},
+  {s:"QMMS",t:"Module 5 — Decision Analysis",d:"JUN 25"},
+  {s:"INTE 202",t:"Python Data Analysis Notes",d:"JUN 20"},
+  {s:"COMP 008",t:"Data Structures — Midterms",d:"JUN 12"},
+  {s:"GEED 020",t:"Ethics — Finals Reviewer",d:"JUN 05"},
+];
+const doc=`
+<h1>Hypothesis Testing</h1>
+<div class="doc-sub">STAT 023 // uploaded JUL 02 // rendered from your file</div>
+<p>This is a preview of how an <b>uploaded reviewer</b> renders inside the app — your actual HTML file, full-page, exactly as you built it.</p>
+<h2>The 5 Steps</h2>
+<ol><li>State H₀ and H₁</li><li>Set the significance level α</li><li>Choose the test statistic</li><li>Compute and compare to the critical value</li><li>Decide: reject or fail to reject H₀</li></ol>
+<h2>Z-test statistic</h2>
+<div class="formula">z = (x̄ − μ₀) / (σ / √n)</div>
+<h2>Decision rule</h2>
+<table><tr><th>Condition</th><th>Decision</th></tr>
+<tr><td>p-value &lt; α</td><td><b>Reject H₀</b></td></tr>
+<tr><td>p-value ≥ α</td><td>Fail to reject H₀</td></tr></table>`;
+
+const list=document.getElementById('list');
+reviewers.forEach((r,i)=>{
+  const el=document.createElement('div');el.className='item';
+  el.innerHTML=`<span class="num">${String(i+1).padStart(2,'0')}</span>
+    <span class="t"><b>${r.t}</b><span class="sub">${r.s}</span></span>
+    <span class="dt mono">${r.d}</span>
+    <span class="open">Open <svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg></span>`;
+  el.onclick=()=>openViewer(r.t,r.s);
+  list.appendChild(el);
+});
+
+const viewer=document.getElementById('viewer'),notes=document.getElementById('notes'),
+      pad=document.getElementById('notepad'),save=document.getElementById('savestate');
+let key='';
+function openViewer(title,id){
+  key='studyo-note-'+id;
+  document.getElementById('vtitle').textContent=title;
+  document.getElementById('docpage').innerHTML= id==='scratch'
+    ? '<h1>Scratchpad</h1><div class="doc-sub">GLOBAL // not tied to a reviewer</div><p>Your everywhere-notebook. Open the notes panel and type.</p>'
+    : doc;
+  pad.value=localStorage.getItem(key)||'';
+  viewer.classList.add('on');
+  if(id==='scratch')notes.classList.add('on');
+}
+function closeViewer(){viewer.classList.remove('on');notes.classList.remove('on')}
+function toggleNotes(){notes.classList.toggle('on')}
+let t;
+pad.addEventListener('input',()=>{
+  save.textContent='[SAVING]';clearTimeout(t);
+  t=setTimeout(()=>{localStorage.setItem(key,pad.value);save.textContent='[SAVED]'},500);
+});
+</script>
+</body>
+</html>

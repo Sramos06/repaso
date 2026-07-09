@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aral — Direction B: Night Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Albert+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#12141B;
+  --night-2:#181B24;
+  --panel:#1E222E;
+  --line:#2A2F3D;
+  --text:#EAE3D2;
+  --muted:#8B8FA0;
+  --amber:#E3A84E;
+  --amber-soft:rgba(227,168,78,.14);
+  --green:#8FB58A;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Albert Sans',sans-serif;color:var(--text);min-height:100vh;
+  background:
+    radial-gradient(900px 480px at 78% -8%, rgba(227,168,78,.09), transparent 60%),
+    radial-gradient(700px 500px at 0% 100%, rgba(58,72,110,.18), transparent 55%),
+    var(--night);
+}
+body::before{ /* grain */
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.4;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .025 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.shell{position:relative;z-index:1;display:flex;min-height:100vh}
+
+/* ---------- sidebar ---------- */
+.side{
+  width:230px;flex:none;border-right:1px solid var(--line);
+  padding:30px 22px;display:flex;flex-direction:column;gap:6px;
+  background:rgba(24,27,36,.6);
+}
+.logo{display:flex;align-items:center;gap:11px;margin-bottom:34px}
+.logo .lamp{
+  width:38px;height:38px;border-radius:11px;background:var(--amber-soft);
+  display:grid;place-items:center;color:var(--amber);
+}
+.logo .lamp svg{width:20px;height:20px}
+.logo h1{font-family:'Newsreader',serif;font-weight:500;font-size:26px;letter-spacing:.01em}
+.logo h1 span{color:var(--amber);font-style:italic}
+.nav-label{font-size:10.5px;font-weight:700;letter-spacing:.18em;color:var(--muted);margin:10px 0 8px}
+.nav a{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;
+  color:var(--muted);text-decoration:none;font-size:14.5px;font-weight:500;
+  transition:background .18s,color .18s;
+}
+.nav a svg{width:16px;height:16px;flex:none}
+.nav a.active,.nav a:hover{background:var(--amber-soft);color:var(--amber)}
+.side .user{
+  margin-top:auto;display:flex;align-items:center;gap:10px;padding-top:18px;
+  border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);
+}
+.side .user .dot{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#B9773A);color:#241A0C;font-weight:700;display:grid;place-items:center;font-size:13px}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0;padding:38px 44px 100px}
+.head{margin-bottom:34px}
+.head .kicker{font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--amber);margin-bottom:10px}
+.head h2{font-family:'Newsreader',serif;font-weight:400;font-size:clamp(28px,4vw,40px);line-height:1.15}
+.head h2 em{color:var(--amber)}
+.head p{color:var(--muted);margin-top:10px;font-size:15px;font-weight:300}
+
+/* upload strip */
+.upload{
+  display:flex;align-items:center;gap:16px;margin-bottom:40px;cursor:pointer;
+  border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  background:linear-gradient(120deg, rgba(227,168,78,.06), transparent 55%);
+  transition:border-color .2s,background .2s;
+}
+.upload:hover{border-color:var(--amber);background:var(--amber-soft)}
+.upload .plus{
+  width:44px;height:44px;border-radius:50%;border:1.5px dashed var(--amber);
+  color:var(--amber);display:grid;place-items:center;flex:none;font-size:22px;font-weight:300;
+}
+.upload b{font-size:15px;font-weight:600;display:block;margin-bottom:2px}
+.upload span{font-size:13px;color:var(--muted);font-weight:300}
+
+/* shelf */
+.shelf-label{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.shelf-label h3{font-family:'Newsreader',serif;font-style:italic;font-weight:400;font-size:21px}
+.shelf-label small{color:var(--muted);font-size:12.5px;letter-spacing:.1em}
+.shelf{display:flex;flex-direction:column}
+.row{
+  display:grid;grid-template-columns:8px 1fr auto auto;align-items:center;gap:18px;
+  padding:17px 16px 17px 0;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:background .18s,padding-left .18s;border-radius:4px;
+}
+.row:hover{background:rgba(227,168,78,.05);padding-left:8px}
+.row .spine{width:4px;height:38px;border-radius:3px;background:var(--amber);opacity:.85}
+.row:nth-child(2) .spine{background:#8FB58A}
+.row:nth-child(3) .spine{background:#A48ADB}
+.row:nth-child(4) .spine{background:#6FA8C9}
+.row:nth-child(5) .spine{background:#C97B6F}
+.row:nth-child(6) .spine{background:#C9B36F}
+.row .info b{
+  font-family:'Newsreader',serif;font-weight:500;font-size:18.5px;display:block;line-height:1.25;
+}
+.row .info span{font-size:12.5px;color:var(--muted);letter-spacing:.06em}
+.row .date{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.row .go{
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  display:grid;place-items:center;color:var(--muted);transition:all .18s;
+}
+.row .go svg{width:14px;height:14px}
+.row:hover .go{border-color:var(--amber);color:var(--amber);transform:translateX(3px)}
+
+/* scratchpad fab */
+.fab{
+  position:fixed;right:26px;bottom:26px;z-index:50;border:none;cursor:pointer;
+  background:var(--amber);color:#241A0C;font-family:'Albert Sans',sans-serif;
+  font-weight:700;font-size:14px;padding:15px 22px;border-radius:999px;
+  display:flex;align-items:center;gap:9px;
+  box-shadow:0 12px 30px -6px rgba(227,168,78,.45);transition:transform .2s;
+}
+.fab:hover{transform:translateY(-3px)}
+.fab svg{width:16px;height:16px}
+
+/* ---------- viewer ---------- */
+.viewer{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;background:var(--night)}
+.viewer.on{display:flex}
+.vbar{
+  display:flex;align-items:center;gap:16px;padding:13px 20px;flex:none;
+  background:var(--night-2);border-bottom:1px solid var(--line);
+}
+.vbar .back{
+  background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer;
+  font-family:'Albert Sans',sans-serif;font-size:13px;font-weight:600;
+  border-radius:999px;padding:8px 16px;display:flex;align-items:center;gap:7px;
+  transition:all .18s;
+}
+.vbar .back:hover{border-color:var(--amber);color:var(--amber)}
+.vbar .vtitle{font-family:'Newsreader',serif;font-size:17px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbar .notesbtn{
+  background:var(--amber);border:none;color:#241A0C;cursor:pointer;border-radius:999px;
+  font-family:'Albert Sans',sans-serif;font-weight:700;font-size:13px;padding:9px 18px;
+  display:flex;align-items:center;gap:7px;transition:filter .18s;
+}
+.vbar .notesbtn:hover{filter:brightness(1.1)}
+.vbody{flex:1;display:flex;min-height:0}
+.vdoc{flex:1;overflow:auto;padding:30px;display:flex;justify-content:center}
+.docpage{
+  background:#FDFBF6;color:#26221C;max-width:740px;width:100%;height:max-content;
+  border-radius:6px;padding:46px 50px;line-height:1.65;font-size:15.5px;
+  box-shadow:0 20px 60px -15px rgba(0,0,0,.6);
+}
+.docpage h1{font-family:'Newsreader',serif;font-size:30px;font-weight:500;margin-bottom:4px}
+.docpage .doc-sub{color:#8A8272;font-size:12.5px;letter-spacing:.08em;margin-bottom:26px}
+.docpage h2{font-family:'Newsreader',serif;font-size:21px;font-weight:500;margin:26px 0 10px;color:#9C6B24}
+.docpage ol{padding-left:22px}
+.docpage li{margin-bottom:6px}
+.docpage .formula{font-family:Georgia,serif;font-style:italic;text-align:center;font-size:18px;background:#F2EDE0;border-radius:8px;padding:16px;margin:14px 0}
+.docpage table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+.docpage th,.docpage td{border:1px solid #E2DACB;padding:8px 10px;text-align:left}
+.docpage th{background:#F2EDE0}
+/* notes */
+.notes{
+  width:350px;flex:none;background:var(--night-2);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s ease;
+}
+.notes.on{transform:none}
+.notes header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px}
+.notes header h5{font-family:'Newsreader',serif;font-style:italic;font-weight:400;font-size:20px;color:var(--amber)}
+.notes header .save{font-size:10.5px;color:var(--green);font-weight:700;letter-spacing:.12em}
+.notes textarea{
+  flex:1;margin:0 16px 16px;border:1px solid var(--line);resize:none;border-radius:10px;
+  background:var(--night);padding:16px;font-family:'Albert Sans',sans-serif;font-size:14.5px;
+  font-weight:300;line-height:1.75;color:var(--text);
+}
+.notes textarea:focus{outline:none;border-color:var(--amber)}
+
+/* ---------- responsive ---------- */
+@media (max-width:860px){
+  .side{display:none}
+  main{padding:26px 18px 100px}
+  .row{grid-template-columns:6px 1fr auto;gap:13px}
+  .row .date{display:none}
+  .row .info b{font-size:16.5px}
+  .docpage{padding:28px 22px}
+  .vdoc{padding:14px}
+  .notes{
+    position:fixed;left:0;right:0;bottom:0;width:auto;height:55vh;
+    border-left:none;border-top:1px solid var(--amber);border-radius:20px 20px 0 0;
+    transform:translateY(100%);
+  }
+  .notes.on{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="logo">
+      <div class="lamp">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.6.55 1 1.3 1 2.5h6c0-1.2.4-1.95 1-2.5A6 6 0 0012 3z"/>
+        </svg>
+      </div>
+      <h1>Ar<span>al</span></h1>
+    </div>
+    <div class="nav-label">LIBRARY</div>
+    <nav class="nav">
+      <a href="#" class="active">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4a2 2 0 00-2-2H6.5A2.5 2.5 0 004 4.5v15z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg>
+        All reviewers
+      </a>
+      <a href="#">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Scratchpad
+      </a>
+    </nav>
+    <div class="nav-label" style="margin-top:18px">SOON</div>
+    <nav class="nav">
+      <a href="#" style="opacity:.45;pointer-events:none">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        Search
+      </a>
+      <a href="#" style="opacity:.45;pointer-events:none">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Exam countdown
+      </a>
+    </nav>
+    <div class="user"><div class="dot">S</div>Shawn · signed in</div>
+  </aside>
+
+  <main id="library">
+    <div class="head">
+      <div class="kicker">TUES · 9:42 PM · 6 REVIEWERS SHELVED</div>
+      <h2>Late-night session, <em>Shawn?</em></h2>
+      <p>Everything you've uploaded is here — safe, synced, one tap away.</p>
+    </div>
+
+    <div class="upload" title="Prototype: upload is visual only">
+      <div class="plus">+</div>
+      <div><b>Shelve a new reviewer</b><span>drag an .html file anywhere, or tap to browse</span></div>
+    </div>
+
+    <div class="shelf-label"><h3>The shelf</h3><small>RECENTLY ADDED FIRST</small></div>
+    <div class="shelf" id="shelf"></div>
+  </main>
+</div>
+
+<button class="fab" onclick="openViewer('Scratchpad','scratch')">
+  <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  Scratchpad
+</button>
+
+<div class="viewer" id="viewer">
+  <div class="vbar">
+    <button class="back" onclick="closeViewer()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l6 6m-6-6l6-6"/></svg>
+      Shelf
+    </button>
+    <span class="vtitle" id="vtitle"></span>
+    <button class="notesbtn" onclick="toggleNotes()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Notes
+    </button>
+  </div>
+  <div class="vbody">
+    <div class="vdoc"><div class="docpage" id="docpage"></div></div>
+    <aside class="notes" id="notes">
+      <header><h5>notes in the margin</h5><span class="save" id="savestate">SAVED ✓</span></header>
+      <textarea id="notepad" placeholder="Thoughts, mnemonics, things you keep forgetting…"></textarea>
+    </aside>
+  </div>
+</div>
+
+<script>
+const reviewers=[
+  {s:"STAT 023",t:"Hypothesis Testing — Complete Reviewer",d:"Jul 2"},
+  {s:"STAT 023",t:"Regression & Correlation",d:"Jun 28"},
+  {s:"QMMS",t:"Module 5 — Decision Analysis",d:"Jun 25"},
+  {s:"INTE 202",t:"Python Data Analysis Notes",d:"Jun 20"},
+  {s:"COMP 008",t:"Data Structures — Midterms",d:"Jun 12"},
+  {s:"GEED 020",t:"Ethics — Finals Reviewer",d:"Jun 5"},
+];
+const doc=`
+<h1>Hypothesis Testing</h1>
+<div class="doc-sub">STAT 023 · UPLOADED JUL 2 · RENDERED FROM YOUR FILE</div>
+<p>This is a preview of how an <b>uploaded reviewer</b> renders inside the app — your actual HTML file, full-page, exactly as you built it.</p>
+<h2>The 5 Steps</h2>
+<ol><li>State H₀ and H₁</li><li>Set the significance level α</li><li>Choose the test statistic</li><li>Compute and compare to the critical value</li><li>Decide: reject or fail to reject H₀</li></ol>
+<h2>Z-test statistic</h2>
+<div class="formula">z = (x̄ − μ₀) / (σ / √n)</div>
+<h2>Decision rule</h2>
+<table><tr><th>Condition</th><th>Decision</th></tr>
+<tr><td>p-value &lt; α</td><td><b>Reject H₀</b></td></tr>
+<tr><td>p-value ≥ α</td><td>Fail to reject H₀</td></tr></table>`;
+
+const shelf=document.getElementById('shelf');
+reviewers.forEach(r=>{
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML=`<div class="spine"></div>
+    <div class="info"><b>${r.t}</b><span>${r.s}</span></div>
+    <span class="date">${r.d}</span>
+    <span class="go"><svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg></span>`;
+  row.onclick=()=>openViewer(r.t,r.s);
+  shelf.appendChild(row);
+});
+
+const viewer=document.getElementById('viewer'),notes=document.getElementById('notes'),
+      pad=document.getElementById('notepad'),save=document.getElementById('savestate');
+let key='';
+function openViewer(title,id){
+  key='aral-note-'+id;
+  document.getElementById('vtitle').textContent=title;
+  document.getElementById('docpage').innerHTML= id==='scratch'
+    ? '<h1>Scratchpad</h1><div class="doc-sub">GLOBAL · NOT TIED TO A REVIEWER</div><p>Your everywhere-notebook. Open the notes panel and write.</p>'
+    : doc;
+  pad.value=localStorage.getItem(key)||'';
+  viewer.classList.add('on');
+  if(id==='scratch')notes.classList.add('on');
+}
+function closeViewer(){viewer.classList.remove('on');notes.classList.remove('on')}
+function toggleNotes(){notes.classList.toggle('on')}
+let t;
+pad.addEventListener('input',()=>{
+  save.textContent='SAVING…';clearTimeout(t);
+  t=setTimeout(()=>{localStorage.setItem(key,pad.value);save.textContent='SAVED ✓'},500);
+});
+</script>
+</body>
+</html>
