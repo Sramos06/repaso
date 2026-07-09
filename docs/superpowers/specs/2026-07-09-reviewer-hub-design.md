@@ -8,11 +8,11 @@
 
 A personal study app for Shawn: upload single-file HTML reviewers, have them stored permanently in the cloud, open any of them instantly from an app icon on phone or laptop, and keep notes. Single user. **₱0/month is a hard requirement.**
 
-## 2. Non-goals (v1)
+## 2. Non-goals (v1) — with upgrade paths
 
-- No multi-user accounts or sharing
+- **No multi-user accounts or sharing** — but the design must not block it. Everything is already keyed by `user_id` and the only single-user mechanism is the `ALLOWED_EMAIL` allow-list; going public later = remove the allow-list, add sign-up onboarding, and revisit rate limiting + quotas. (Possible future: public app, ads/monetization.)
+- **No file types other than `.html`/`.htm`** — but keep the door open. All file handling goes through one upload/validation module and one viewer component, so adding PDF/images later = extend those two places plus a `content_type` column; no restructuring.
 - No subjects/tags, search, exam countdowns, pins, or export (deferred to v1.5 shelf)
-- No file types other than `.html`/`.htm`
 - No native mobile app — PWA installability covers the "app icon" requirement
 
 ## 3. v1 Scope
@@ -25,7 +25,7 @@ A personal study app for Shawn: upload single-file HTML reviewers, have them sto
 6. **PWA** — web manifest + icons + minimal service worker for shell caching; installable on Android/iOS ("Add to Home Screen") and desktop.
 
 ### v1.5 shelf (post-launch, each independently small)
-Subjects/tags · full-text search · exam countdowns · pins · export/import backup file · rename/delete management UI · Player Two theme option.
+Subjects/tags · full-text search · exam countdowns · pins · export/import backup file · rename/delete management UI. (Visual theme is decided at the prototype stage — no preset theme.)
 
 ## 4. Stack
 
