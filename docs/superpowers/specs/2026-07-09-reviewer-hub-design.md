@@ -2,7 +2,8 @@
 
 **Date:** 2026-07-09
 **Status:** Approved design, pre-implementation
-**Working name:** `reviewer-hub` (repo/code name; display name will be chosen at the prototype stage and does not affect architecture)
+**App name:** **Repaso** (chosen 2026-07-09 with Direction A prototype; repo stays `reviewer-hub`)
+**Visual direction:** **Direction A — "Warm Paper Desk"** (`prototypes/prototype-a-repaso.html`): cream/ink/terracotta palette, Fraunces + Karla + Caveat type, index-card library with washi-tape accents, ruled-paper card texture, warm paper grain. Shawn's read: homey, Google Keep-like warmth, Apple-level sleekness — build to that bar.
 
 ## 1. Goal
 
@@ -25,7 +26,7 @@ A personal study app for Shawn: upload single-file HTML reviewers, have them sto
 6. **PWA** — web manifest + icons + minimal service worker for shell caching; installable on Android/iOS ("Add to Home Screen") and desktop.
 
 ### v1.5 shelf (post-launch, each independently small)
-Subjects/tags · full-text search · exam countdowns · pins · export/import backup file · rename/delete management UI. (Visual theme is decided at the prototype stage — no preset theme.)
+Subjects/tags · full-text search · exam countdowns · pins · export/import backup file · rename/delete management UI · settings screen with alternate UI themes (Shawn's idea — the unpicked prototype directions, Aral and STUDYO, become ready-made theme candidates).
 
 ## 4. Stack
 
