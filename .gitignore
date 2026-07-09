@@ -1,0 +1,14 @@
+# dependencies / build
+node_modules/
+.next/
+out/
+
+# env — secrets never enter git
+.env
+.env.local
+.env*.local
+
+# misc
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
