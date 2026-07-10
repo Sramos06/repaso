@@ -6,28 +6,67 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
   const [text, setText] = useState("");
   const [state, setState] = useState<"loading" | "saved" | "saving" | "offline">("loading");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Tracks whether the user has typed since mount, so the in-flight mount GET
+  // knows to discard its result instead of clobbering newer keystrokes.
+  const dirtyRef = useRef(false);
+
+  // Shared by the debounced keystroke save and the mount-time draft resync —
+  // only clears the localStorage draft once the server has actually confirmed it.
+  async function save(v: string) {
+    try {
+      const res = await fetch("/api/notes", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewerId, contentMd: v }),
+      });
+      if (res.ok) { localStorage.removeItem(key); setState("saved"); }
+      else setState("offline");
+    } catch { setState("offline"); }
+  }
 
   useEffect(() => {
-    fetch(`/api/notes?reviewerId=${reviewerId ?? "scratchpad"}`)
-      .then((r) => r.json())
-      .then((d) => { setText(localStorage.getItem(key) ?? d.contentMd); setState("saved"); })
-      .catch(() => { setText(localStorage.getItem(key) ?? ""); setState("offline"); });
-  }, [reviewerId, key]);
+    let cancelled = false;
+
+    async function load() {
+      const draft = localStorage.getItem(key);
+      let ok = false;
+      let contentMd = "";
+      try {
+        const res = await fetch(`/api/notes?reviewerId=${reviewerId ?? "scratchpad"}`);
+        ok = res.ok;
+        // Only trust the body on 2xx — on 4xx/5xx it's shaped { error }, and
+        // reading contentMd off that would silently seed state with undefined.
+        if (ok) contentMd = (await res.json()).contentMd ?? "";
+      } catch {
+        ok = false;
+      }
+
+      // The user already typed (and may have already saved) while this GET
+      // was in flight — never let a late-arriving response overwrite it.
+      if (cancelled || dirtyRef.current) return;
+
+      if (draft != null) {
+        // A leftover draft is unsynced by definition — show it, but don't
+        // call it "saved" until we've actually round-tripped it to the server.
+        setText(draft);
+        setState("saving");
+        await save(draft);
+        return;
+      }
+
+      if (ok) { setText(contentMd); setState("saved"); }
+      else { setText(""); setState("offline"); }
+    }
+
+    load();
+    return () => { cancelled = true; clearTimeout(timer.current); };
+  }, [reviewerId]);
 
   function onChange(v: string) {
+    dirtyRef.current = true;
     setText(v); setState("saving");
     localStorage.setItem(key, v); // draft survives session expiry / network loss
     clearTimeout(timer.current);
-    timer.current = setTimeout(async () => {
-      try {
-        const res = await fetch("/api/notes", {
-          method: "PUT", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reviewerId, contentMd: v }),
-        });
-        if (res.ok) { localStorage.removeItem(key); setState("saved"); }
-        else setState("offline");
-      } catch { setState("offline"); }
-    }, 500);
+    timer.current = setTimeout(() => { save(v); }, 500);
   }
 
   return (
