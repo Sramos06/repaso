@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const rejected: { name: string; reason: string }[] = [];
     for (const file of files) {
       if (file.size > MAX_BYTES) {
-        rejected.push({ name: file.name, reason: "File is over the 5 MB limit." });
+        rejected.push({ name: file.name, reason: "File is over the 4 MB limit." });
         continue;
       }
       try {

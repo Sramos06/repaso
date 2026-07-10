@@ -10,16 +10,32 @@ export default function UploadZone() {
 
   async function send(files: FileList | File[]) {
     if (busy) return;
-    const fd = new FormData();
-    [...files].forEach((f) => fd.append("files", f));
     setBusy(true); setMsg(null);
+    // Vercel caps request bodies (~4.5 MB) — one file per request so a
+    // batch drop of many files keeps working even though each is capped.
+    const created: { id: string; title: string }[] = [];
+    const rejected: { name: string; reason: string }[] = [];
     try {
-      const res = await fetch("/api/reviewers", { method: "POST", body: fd });
-      const data = await res.json();
-      if (data.error) setMsg(data.error);
-      if (data.rejected?.length) setMsg(data.rejected.map((r: any) => `${r.name}: ${r.reason}`).join(" · "));
-      if (data.created?.length) router.refresh();
-    } catch (e) {
+      for (const file of [...files]) {
+        const fd = new FormData();
+        fd.append("files", file);
+        try {
+          const res = await fetch("/api/reviewers", { method: "POST", body: fd });
+          if (res.status === 413) {
+            rejected.push({ name: file.name, reason: "Too large to upload." });
+            continue;
+          }
+          const data = await res.json();
+          if (data.error) rejected.push({ name: file.name, reason: data.error });
+          if (data.rejected?.length) rejected.push(...data.rejected);
+          if (data.created?.length) created.push(...data.created);
+        } catch {
+          rejected.push({ name: file.name, reason: "Could not reach the server — check your connection and try again." });
+        }
+      }
+      if (rejected.length) setMsg(rejected.map((r) => `${r.name}: ${r.reason}`).join(" · "));
+      if (created.length) router.refresh();
+    } catch {
       setMsg("Could not reach the server — check your connection and try again.");
     } finally {
       setBusy(false);
