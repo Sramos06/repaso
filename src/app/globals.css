@@ -193,6 +193,28 @@ header { display: flex; align-items: flex-end; justify-content: space-between; g
 }
 .notes textarea:focus { outline: 2px solid var(--gold); }
 
+/* ---------- signin ---------- */
+.signin-wrap {
+  position: relative; z-index: 1; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.signin-card {
+  background: var(--card); box-shadow: var(--shadow); border-radius: 14px;
+  padding: 48px 44px; max-width: 380px; width: 100%; text-align: center;
+}
+.signin-card h1 {
+  font-family: var(--font-display); font-weight: 640; font-size: clamp(30px,5vw,42px);
+  letter-spacing: -.02em; font-variation-settings: "opsz" 100; margin-bottom: 10px;
+}
+.signin-card h1 em { color: var(--terra); font-style: italic; }
+.signin-card p { font-size: 14.5px; color: var(--ink-soft); margin-bottom: 30px; }
+.google-btn {
+  width: 100%; background: var(--terra); color: #FFF4E8; border: none; cursor: pointer;
+  font-family: var(--font-body); font-weight: 700; font-size: 15px;
+  padding: 13px 20px; border-radius: 999px; transition: background .2s;
+}
+.google-btn:hover { background: var(--terra-deep); }
+
 /* ---------- responsive ---------- */
 @media (max-width: 760px) {
   .app { padding: 20px 16px 90px; }
