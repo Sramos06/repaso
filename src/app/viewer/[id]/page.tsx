@@ -11,16 +11,14 @@ export default async function Viewer({ params }: { params: Promise<{ id: string 
   const { id } = await params;
   const isScratch = id === "scratchpad";
   let title = "Scratchpad";
-  let html: string | null = null;
 
   if (!isScratch) {
     const row = await db.query.reviewers.findFirst({
       where: and(eq(reviewers.id, id), eq(reviewers.userId, user.id)),
-      columns: { title: true, htmlContent: true },
+      columns: { title: true },
     });
     if (!row) notFound();
     title = row.title;
-    html = row.htmlContent;
   }
 
   return (
@@ -29,7 +27,7 @@ export default async function Viewer({ params }: { params: Promise<{ id: string 
         <Link href="/" className="back">← Desk</Link>
         <span className="vtitle">{title}</span>
       </div>
-      <ViewerFrame html={html} reviewerId={isScratch ? null : id} />
+      <ViewerFrame reviewerId={isScratch ? null : id} />
     </div>
   );
 }
