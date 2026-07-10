@@ -157,6 +157,15 @@ a.back { color: inherit; text-decoration: none; display: inline-flex; }
   display: flex; align-items: center; gap: 7px; transition: background .2s;
 }
 .vbar .notesbtn:hover { background: var(--terra-deep); }
+/* ViewerFrame is a client component mounted below the (server) .vbar, so the
+   toggle button floats above it instead of living inside .vbar's flexbox. */
+.notesbtn-floating {
+  position: fixed; top: 10px; right: 14px; z-index: 110;
+  background: var(--terra); border: none; color: #FFF4E8; border-radius: 999px; cursor: pointer;
+  font-family: var(--font-body); font-weight: 700; font-size: 13px; padding: 8px 16px;
+  display: flex; align-items: center; gap: 7px; transition: background .2s;
+}
+.notesbtn-floating:hover { background: var(--terra-deep); }
 .vbody { flex: 1; display: flex; min-height: 0; }
 .vdoc { flex: 1; overflow: auto; padding: 26px; display: flex; flex-direction: column; align-items: center; min-height: 0; }
 .reviewer-frame { width: 100%; height: 100%; border: none; background: #fff; border-radius: 4px; box-shadow: var(--shadow); }
