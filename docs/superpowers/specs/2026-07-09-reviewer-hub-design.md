@@ -20,7 +20,7 @@ A personal study app for Shawn: upload single-file HTML reviewers, have them sto
 
 1. **Google sign-in, once per device** — Auth.js with Google provider; session lifetime 90 days, refreshed on use. After first sign-in the app opens directly into the library.
 2. **Library screen** — uploaded reviewers in a grid, newest first. Shows title and upload date.
-3. **Upload** — drag-and-drop zone + tap-to-pick; multiple files per drop. Client and server both validate: `.html`/`.htm` only, ≤ 5 MB per file. Title defaults to the file's `<title>` or filename, editable inline.
+3. **Upload** — drag-and-drop zone + tap-to-pick; multiple files per drop. Client and server both validate: `.html`/`.htm` only, ≤ 4 MB per file (Vercel request-payload headroom). Title defaults to the file's `<title>` or filename, editable inline.
 4. **Viewer** — reviewer rendered full-screen in a sandboxed iframe (`sandbox="allow-scripts"`, no same-origin) so uploaded content cannot access the app's session or DOM. Slide-out notes panel alongside.
 5. **Notes** — markdown with live preview, autosave (debounced). One note per reviewer + one global scratchpad reachable from the library.
 6. **PWA** — web manifest + icons + minimal service worker for shell caching; installable on Android/iOS ("Add to Home Screen") and desktop.
@@ -78,7 +78,7 @@ notes      id · user_id → users · reviewer_id → reviewers (nullable; null 
 ## 8. Security
 
 - Auth.js session (http-only, secure cookie); every API route verifies session and `ALLOWED_EMAIL`
-- Upload validation server-side: extension + MIME + 5 MB cap; content stored as inert text
+- Upload validation server-side: extension + MIME + 4 MB cap; content stored as inert text
 - Sandboxed iframe isolates uploaded HTML from app origin/session
 - Parameterized queries via ORM; secrets only in Vercel env vars (never in git)
 - Rate limiting deferred: single allow-listed user; revisit if sharing is ever added

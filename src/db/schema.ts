@@ -1,0 +1,33 @@
+import { pgTable, text, timestamp, integer, uuid, unique } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  googleSub: text("google_sub").notNull().unique(),
+  email: text("email").notNull(),
+  name: text("name"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const reviewers = pgTable("reviewers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  htmlContent: text("html_content").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  lastOpenedAt: timestamp("last_opened_at"),
+});
+
+export const notes = pgTable(
+  "notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    // null reviewerId = the global scratchpad
+    reviewerId: uuid("reviewer_id").references(() => reviewers.id, { onDelete: "cascade" }),
+    contentMd: text("content_md").notNull().default(""),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [unique("notes_user_reviewer_idx").on(t.userId, t.reviewerId).nullsNotDistinct()]
+);
