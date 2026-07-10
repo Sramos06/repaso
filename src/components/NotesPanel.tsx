@@ -9,22 +9,33 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
   // Tracks whether the user has typed since mount, so the in-flight mount GET
   // knows to discard its result instead of clobbering newer keystrokes.
   const dirtyRef = useRef(false);
+  // Monotonic counter — each save's completion checks it's still the latest
+  // in-flight save before touching localStorage/state, so a stale save (from
+  // the draft-resync or an earlier debounce) can't clobber a newer one.
+  const saveSeq = useRef(0);
 
   // Shared by the debounced keystroke save and the mount-time draft resync —
   // only clears the localStorage draft once the server has actually confirmed it.
-  async function save(v: string) {
+  async function save(v: string, seq: number) {
     try {
       const res = await fetch("/api/notes", {
         method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reviewerId, contentMd: v }),
       });
+      if (seq !== saveSeq.current) return;
       if (res.ok) { localStorage.removeItem(key); setState("saved"); }
       else setState("offline");
-    } catch { setState("offline"); }
+    } catch {
+      if (seq !== saveSeq.current) return;
+      setState("offline");
+    }
   }
 
   useEffect(() => {
     let cancelled = false;
+    dirtyRef.current = false;
+    setText("");
+    setState("loading");
 
     async function load() {
       const draft = localStorage.getItem(key);
@@ -49,7 +60,8 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
         // call it "saved" until we've actually round-tripped it to the server.
         setText(draft);
         setState("saving");
-        await save(draft);
+        const seq = ++saveSeq.current;
+        await save(draft, seq);
         return;
       }
 
@@ -66,7 +78,7 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
     setText(v); setState("saving");
     localStorage.setItem(key, v); // draft survives session expiry / network loss
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => { save(v); }, 500);
+    timer.current = setTimeout(() => { const seq = ++saveSeq.current; save(v, seq); }, 500);
   }
 
   return (
@@ -75,7 +87,7 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
         <h5>margin notes</h5>
         <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", offline: "KEPT LOCALLY — will sync" }[state]}</span>
       </header>
-      <textarea value={text} onChange={(e) => onChange(e.target.value)} placeholder="Write anything — it autosaves…" />
+      <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading"} placeholder="Write anything — it autosaves…" />
     </aside>
   );
 }
