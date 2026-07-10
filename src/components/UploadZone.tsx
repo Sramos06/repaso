@@ -9,22 +9,29 @@ export default function UploadZone() {
   const [msg, setMsg] = useState<string | null>(null);
 
   async function send(files: FileList | File[]) {
+    if (busy) return;
     const fd = new FormData();
     [...files].forEach((f) => fd.append("files", f));
     setBusy(true); setMsg(null);
-    const res = await fetch("/api/reviewers", { method: "POST", body: fd });
-    const data = await res.json();
-    setBusy(false);
-    if (data.rejected?.length) setMsg(data.rejected.map((r: any) => `${r.name}: ${r.reason}`).join(" · "));
-    if (data.created?.length) router.refresh();
+    try {
+      const res = await fetch("/api/reviewers", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.error) setMsg(data.error);
+      if (data.rejected?.length) setMsg(data.rejected.map((r: any) => `${r.name}: ${r.reason}`).join(" · "));
+      if (data.created?.length) router.refresh();
+    } catch (e) {
+      setMsg("Could not reach the server — check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <div
       className="upload"
-      onClick={() => input.current?.click()}
+      onClick={() => !busy && input.current?.click()}
       onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files.length) send(e.dataTransfer.files); }}
+      onDrop={(e) => { e.preventDefault(); if (!busy && e.dataTransfer.files.length) send(e.dataTransfer.files); }}
     >
       <div className="stampbox">↑</div>
       <div>
