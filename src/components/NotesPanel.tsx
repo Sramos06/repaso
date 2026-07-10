@@ -34,6 +34,7 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
   useEffect(() => {
     let cancelled = false;
     dirtyRef.current = false;
+    saveSeq.current++;
     setText("");
     setState("loading");
 
@@ -75,10 +76,11 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
 
   function onChange(v: string) {
     dirtyRef.current = true;
+    const seq = ++saveSeq.current; // keystroke immediately invalidates any in-flight save
     setText(v); setState("saving");
     localStorage.setItem(key, v); // draft survives session expiry / network loss
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => { const seq = ++saveSeq.current; save(v, seq); }, 500);
+    timer.current = setTimeout(() => { save(v, seq); }, 500);
   }
 
   return (
