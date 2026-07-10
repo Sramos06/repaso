@@ -33,12 +33,13 @@ export async function PUT(req: NextRequest) {
     if (typeof body.contentMd !== "string" || body.contentMd.length > 100_000)
       return NextResponse.json({ error: "Invalid note content." }, { status: 400 });
 
-    const existing = await db.query.notes.findFirst({ where: whereFor(user.id, target.reviewerId) });
-    if (existing) {
-      await db.update(notes).set({ contentMd: body.contentMd, updatedAt: new Date() }).where(eq(notes.id, existing.id));
-    } else {
-      await db.insert(notes).values({ userId: user.id, reviewerId: target.reviewerId, contentMd: body.contentMd });
-    }
+    await db
+      .insert(notes)
+      .values({ userId: user.id, reviewerId: target.reviewerId, contentMd: body.contentMd })
+      .onConflictDoUpdate({
+        target: [notes.userId, notes.reviewerId],
+        set: { contentMd: body.contentMd, updatedAt: new Date() },
+      });
     return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof Response) return e;
