@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repaso R2-C — Command Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7EFE2; --paper-deep:#F0E4D0; --card:#FFFDF6; --ink:#2B2118; --ink-soft:#6B5D4F;
+  --terra:#C4552D; --terra-deep:#A03E1C; --sage:#7A8B6F; --gold:#D9A441; --rule:#E4D5BC;
+  --shadow:0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;color:var(--ink);min-height:100vh;
+  background:radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.12), transparent 60%),
+             radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.10), transparent 55%), var(--paper);}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");}
+.shell{position:relative;z-index:1;display:flex;min-height:100vh}
+
+/* ---- sidebar ---- */
+.side{width:240px;flex:none;background:rgba(255,253,246,.7);border-right:1px solid var(--rule);
+  padding:22px 16px;display:flex;flex-direction:column;gap:4px}
+.side .logo{font-family:'Fraunces',serif;font-weight:640;font-size:26px;margin-bottom:22px;padding:0 8px}
+.side .logo em{color:var(--terra);font-style:italic}
+.grp{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--ink-soft);margin:14px 8px 7px}
+.side a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--ink);text-decoration:none;
+  font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.side a:hover{background:var(--paper-deep)}
+.side a.on{background:var(--terra);color:#FFF4E8}
+.side a .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.side a .n{margin-left:auto;font-size:11.5px;color:inherit;opacity:.55;font-weight:700}
+.side a svg{width:15px;height:15px;stroke:currentColor;flex:none}
+.side .exam-mini{background:var(--card);border-radius:11px;box-shadow:var(--shadow);padding:11px 13px;margin:6px 4px;
+  display:flex;align-items:center;gap:10px}
+.side .exam-mini b{font-family:'Fraunces',serif;font-size:20px;color:var(--terra)}
+.side .exam-mini span{font-size:11.5px;color:var(--ink-soft);line-height:1.3}
+.side .bottom{margin-top:auto;border-top:1px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px}
+.side .bottom .av{width:34px;height:34px;border-radius:50%;background:var(--sage);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.side .bottom .who{flex:1;min-width:0}
+.side .bottom .who b{display:block;font-size:13px}
+.side .bottom .who span{font-size:10.5px;color:var(--ink-soft)}
+.side .bottom .gear{background:none;border:none;cursor:pointer;font-size:16px;padding:6px;border-radius:8px}
+.side .bottom .gear:hover{background:var(--paper-deep)}
+
+/* ---- main ---- */
+main{flex:1;min-width:0;padding:22px 28px 60px;display:flex;flex-direction:column}
+.cmd{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--rule);border-radius:12px;
+  padding:11px 16px;box-shadow:var(--shadow);margin-bottom:24px}
+.cmd:focus-within{border-color:var(--terra)}
+.cmd svg{width:16px;height:16px;stroke:var(--ink-soft)}
+.cmd input{border:none;outline:none;background:none;font-family:'Karla',sans-serif;font-size:14.5px;width:100%}
+.cmd kbd{font-family:'Karla',sans-serif;font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--paper);
+  border:1px solid var(--rule);border-radius:5px;padding:2px 7px;white-space:nowrap}
+.crumb{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px}
+.crumb b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:18px}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;cursor:pointer;position:relative;
+  transition:transform .18s,box-shadow .18s;border-left:5px solid var(--terra)}
+.card:nth-child(2){border-left-color:var(--sage)}.card:nth-child(3){border-left-color:var(--gold)}
+.card:nth-child(4){border-left-color:#8A79B8}.card:nth-child(5){border-left-color:#6FA0B8}.card:nth-child(6){border-left-color:#B87979}
+.card:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(43,33,24,.1),0 16px 30px -8px rgba(43,33,24,.28)}
+.card .subject{font-size:10px;font-weight:800;letter-spacing:.13em;color:var(--ink-soft);margin-bottom:8px;display:block}
+.card h4{font-family:'Fraunces',serif;font-weight:600;font-size:16.5px;line-height:1.3;margin-bottom:12px;min-height:42px}
+.card .meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft)}
+.card .more{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--ink-soft);
+  font-size:16px;font-weight:800;padding:2px 7px;border-radius:6px;opacity:0;transition:opacity .15s}
+.card:hover .more{opacity:1}
+.card .more:hover{background:var(--paper)}
+
+/* ---- split viewer ---- */
+.viewer{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;background:var(--paper)}
+.viewer.on{display:flex}
+.vbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--rule)}
+.vbar .back{background:none;border:1.5px solid var(--ink);border-radius:999px;cursor:pointer;font-weight:700;font-size:13px;
+  padding:6px 14px;font-family:'Karla',sans-serif}
+.vbar .back:hover{background:var(--ink);color:var(--paper)}
+.vbar .vtitle{font-family:'Fraunces',serif;font-weight:600;font-size:15.5px;flex:1}
+.vbar .lay{display:flex;background:var(--paper);border-radius:999px;padding:3px}
+.vbar .lay button{border:none;background:none;cursor:pointer;font-size:11px;font-weight:800;letter-spacing:.05em;
+  font-family:'Karla',sans-serif;color:var(--ink-soft);padding:5px 13px;border-radius:999px}
+.vbar .lay button.on{background:var(--terra);color:#FFF4E8}
+.split{flex:1;display:flex;min-height:0}
+.split .doc{flex:1.4;overflow:auto;padding:20px;display:flex;justify-content:center}
+.docpage{background:#fff;max-width:640px;width:100%;height:max-content;border-radius:4px;box-shadow:var(--shadow);
+  padding:32px 36px;line-height:1.65;font-size:14.5px}
+.docpage h1{font-family:'Fraunces',serif;font-size:23px;margin-bottom:4px}
+.docpage .sub{color:var(--ink-soft);font-size:12px;margin-bottom:18px}
+.docpage h2{font-family:'Fraunces',serif;font-size:17px;margin:18px 0 8px;color:var(--terra-deep)}
+.docpage .formula{font-family:Georgia,serif;font-style:italic;text-align:center;font-size:16px;background:var(--paper);border-radius:8px;padding:12px;margin:10px 0}
+.split .gutter{width:5px;background:var(--rule);cursor:col-resize;flex:none}
+.split .np{flex:1;min-width:260px;background:var(--paper-deep);display:flex;flex-direction:column;padding:16px}
+.split .np h5{font-family:'Caveat',cursive;font-size:22px;margin-bottom:10px}
+.split .np textarea{flex:1;border:none;resize:none;border-radius:10px;background:var(--card);padding:16px;
+  font-family:'Karla',sans-serif;font-size:14px;line-height:1.75;box-shadow:inset 0 1px 3px rgba(43,33,24,.1)}
+.split .np textarea:focus{outline:2px solid var(--gold)}
+.split .np .save{font-size:10.5px;color:var(--sage);font-weight:800;letter-spacing:.1em;padding-top:9px}
+.split.focus .np,.split.focus .gutter{display:none}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(90px);background:var(--ink);color:var(--paper);
+  border-radius:999px;padding:10px 22px;font-size:13.5px;z-index:120;transition:transform .3s}
+.toast.on{transform:translateX(-50%)}
+
+@media (max-width:860px){
+  .side{width:64px;padding:18px 9px}
+  .side .logo{font-size:0;position:relative;height:34px}
+  .side .logo::after{content:"R";font-family:'Fraunces',serif;font-size:26px;color:var(--terra);position:absolute;left:50%;transform:translateX(-50%)}
+  .side a span.lbl,.side .grp,.side a .n,.side .exam-mini span,.side .bottom .who{display:none}
+  .side a{justify-content:center}
+  .side .exam-mini{justify-content:center;padding:8px}
+  main{padding:16px 14px 60px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .card h4{font-size:14.5px;min-height:38px}
+  .split{flex-direction:column}
+  .split .gutter{display:none}
+  .split .np{min-width:0;max-height:45vh}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="logo">Repa<em>so</em></div>
+    <nav>
+      <a class="on"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4a2 2 0 00-2-2H6.5A2.5 2.5 0 004 4.5v15z"/></svg><span class="lbl">All reviewers</span><span class="n">6</span></a>
+      <a onclick="toast('Filters to pinned (demo)')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.8L5.8 21 7 14.1 2 9.3l7-1L12 2l3 6.3 7 1-5 4.8 1.2 6.9z"/></svg><span class="lbl">Pinned</span><span class="n">1</span></a>
+      <a onclick="toast('Opens scratchpad (demo)')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Scratchpad</span></a>
+    </nav>
+    <div class="grp">SUBJECTS</div>
+    <nav>
+      <a onclick="toast('Filters: STAT 023 (demo)')"><span class="dot" style="background:var(--terra)"></span><span class="lbl">STAT 023</span><span class="n">2</span></a>
+      <a onclick="toast('Filters: QMMS (demo)')"><span class="dot" style="background:var(--gold)"></span><span class="lbl">QMMS</span><span class="n">1</span></a>
+      <a onclick="toast('Filters: INTE 202 (demo)')"><span class="dot" style="background:#8A79B8"></span><span class="lbl">INTE 202</span><span class="n">1</span></a>
+      <a onclick="toast('Filters: COMP 008 (demo)')"><span class="dot" style="background:#6FA0B8"></span><span class="lbl">COMP 008</span><span class="n">1</span></a>
+      <a onclick="toast('Filters: GEED 020 (demo)')"><span class="dot" style="background:#B87979"></span><span class="lbl">GEED 020</span><span class="n">1</span></a>
+    </nav>
+    <div class="grp">NEXT EXAM</div>
+    <div class="exam-mini"><b>14d</b><span>STAT 023 Finals<br>Jul 24</span></div>
+    <div class="bottom">
+      <div class="av">S</div>
+      <div class="who"><b>Shawn</b><span>signed in</span></div>
+      <button class="gear" onclick="toast('Settings: export · logout · themes-someday (demo)')" title="Settings">⚙</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="cmd">
+      <svg fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7" stroke="currentColor" fill="none"/><path d="M21 21l-4.3-4.3" stroke="currentColor"/></svg>
+      <input placeholder="Search everything — reviewers, notes, even inside reviewer content…" oninput="toast('Full-text results dropdown (demo)')">
+      <kbd>Ctrl K</kbd>
+    </div>
+    <div class="crumb">Library / <b>All reviewers</b> · newest first</div>
+    <div class="grid">
+      <div class="card" onclick="openViewer('Hypothesis Testing — Complete Reviewer')"><button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button>
+        <span class="subject">STAT 023 · 📌 PINNED</span><h4>Hypothesis Testing — Complete Reviewer</h4><div class="meta"><span>Jul 2</span><span>✎ notes</span></div></div>
+      <div class="card" onclick="openViewer('Regression & Correlation')"><button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button>
+        <span class="subject">STAT 023</span><h4>Regression &amp; Correlation</h4><div class="meta"><span>Jun 28</span></div></div>
+      <div class="card" onclick="openViewer('Module 5 — Decision Analysis')"><button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button>
+        <span class="subject">QMMS</span><h4>Module 5 — Decision Analysis</h4><div class="meta"><span>Jun 25</span><span>✎ notes</span></div></div>
+      <div class="card" onclick="openViewer('Python Data Analysis Notes')"><button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button>
+        <span class="subject">INTE 202</span><h4>Python Data Analysis Notes</h4><div class="meta"><span>Jun 20</span></div></div>
+      <div class="card" onclick="openViewer('Data Structures — Midterms')"><button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button>
+        <span class="subject">COMP 008</span><h4>Data Structures — Midterms</h4><div class="meta"><span>Jun 12</span></div></div>
+      <div class="card" onclick="openViewer('Ethics — Finals Reviewer')"><button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button>
+        <span class="subject">GEED 020</span><h4>Ethics — Finals Reviewer</h4><div class="meta"><span>Jun 5</span></div></div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- split viewer -->
+<div class="viewer" id="viewer">
+  <div class="vbar">
+    <button class="back" onclick="viewer.classList.remove('on')">← Library</button>
+    <span class="vtitle" id="vtitle"></span>
+    <div class="lay">
+      <button id="lay-split" class="on" onclick="lay('split')">SPLIT</button>
+      <button id="lay-focus" onclick="lay('focus')">FOCUS</button>
+    </div>
+  </div>
+  <div class="split" id="split">
+    <div class="doc">
+      <div class="docpage">
+        <h1>Hypothesis Testing</h1><div class="sub">STAT 023 · YOUR UPLOADED FILE</div>
+        <p>Reviewer on the left, notes always beside it — study and jot without toggling anything.</p>
+        <h2>Z-test statistic</h2><div class="formula">z = (x̄ − μ₀) / (σ / √n)</div>
+        <h2>Decision rule</h2><p>p-value &lt; α → <b>reject H₀</b>; otherwise fail to reject.</p>
+      </div>
+    </div>
+    <div class="gutter" title="Drag to resize (demo)"></div>
+    <div class="np">
+      <h5>margin notes</h5>
+      <textarea>## Things I keep forgetting
+- reject H₀ when p < α
+- z-test needs σ known!</textarea>
+      <div class="save">SAVED ✓</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const viewer=document.getElementById('viewer');
+function openViewer(t){document.getElementById('vtitle').textContent=t;viewer.classList.add('on')}
+function lay(m){document.getElementById('split').classList.toggle('focus',m==='focus');
+  document.getElementById('lay-split').classList.toggle('on',m==='split');
+  document.getElementById('lay-focus').classList.toggle('on',m==='focus')}
+let tt;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1900)}
+</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repaso R2-B — Binder Tabs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7EFE2; --paper-deep:#F0E4D0; --card:#FFFDF6; --ink:#2B2118; --ink-soft:#6B5D4F;
+  --terra:#C4552D; --terra-deep:#A03E1C; --sage:#7A8B6F; --gold:#D9A441; --rule:#E4D5BC;
+  --shadow:0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;color:var(--ink);min-height:100vh;
+  background:radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.12), transparent 60%),
+             radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.10), transparent 55%), var(--paper);}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");}
+.app{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:22px 18px 110px}
+
+.brand{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
+.brand h1{font-family:'Fraunces',serif;font-weight:640;font-size:28px}
+.brand h1 em{color:var(--terra);font-style:italic}
+.brand .hi{font-family:'Caveat',cursive;font-size:18px;color:var(--ink-soft)}
+
+/* views */
+.view{display:none}.view.on{display:block}
+
+/* ---- DESK view ---- */
+.search{display:flex;align-items:center;gap:9px;background:var(--card);border:1.5px solid var(--rule);border-radius:999px;
+  padding:10px 16px;box-shadow:var(--shadow);margin-bottom:20px}
+.search:focus-within{border-color:var(--terra)}
+.search svg{width:16px;height:16px;stroke:var(--ink-soft)}
+.search input{border:none;outline:none;background:none;font-family:'Karla',sans-serif;font-size:15px;width:100%}
+.upl{border:2px dashed var(--terra);border-radius:14px;background:rgba(255,253,246,.6);padding:16px;text-align:center;
+  color:var(--terra-deep);font-weight:700;font-size:14px;margin-bottom:22px;cursor:pointer}
+.upl:hover{background:var(--card)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.rcard{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);
+  padding:14px 16px;cursor:pointer;transition:transform .15s;position:relative}
+.rcard:hover{transform:translateX(4px)}
+.rcard .tab{width:8px;align-self:stretch;border-radius:4px;background:var(--terra);flex:none}
+.rcard:nth-child(2) .tab{background:var(--sage)}.rcard:nth-child(3) .tab{background:var(--gold)}
+.rcard:nth-child(4) .tab{background:#8A79B8}.rcard:nth-child(5) .tab{background:#6FA0B8}.rcard:nth-child(6) .tab{background:#B87979}
+.rcard .in{flex:1;min-width:0}
+.rcard .in b{font-family:'Fraunces',serif;font-weight:600;font-size:16.5px;display:block;line-height:1.25}
+.rcard .in span{font-size:12px;color:var(--ink-soft);letter-spacing:.05em}
+.rcard .pin{font-size:14px;opacity:.85}
+.rcard .more{background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:17px;font-weight:800;padding:4px 8px;border-radius:8px}
+.rcard .more:hover{background:var(--paper)}
+
+/* ---- NOTES view ---- */
+.nsec{font-family:'Fraunces',serif;font-style:italic;font-size:19px;margin:6px 0 12px}
+.note{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:15px 17px;margin-bottom:12px;cursor:pointer;
+  border-left:5px solid var(--gold);transition:transform .15s}
+.note:hover{transform:translateX(4px)}
+.note.rev{border-left-color:var(--sage)}
+.note .link{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--terra-deep);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.note p{font-size:14px;line-height:1.6;color:var(--ink)}
+.note .when{font-size:11.5px;color:var(--ink-soft);margin-top:8px}
+
+/* ---- EXAMS view ---- */
+.exam-big{display:flex;align-items:center;gap:18px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);
+  padding:18px 20px;margin-bottom:14px}
+.exam-big .d{font-family:'Fraunces',serif;font-weight:700;font-size:40px;color:var(--terra);line-height:.9;text-align:center}
+.exam-big .d small{display:block;font-family:'Karla',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--ink-soft);margin-top:4px}
+.exam-big .t b{font-family:'Fraunces',serif;font-size:19px;font-weight:600;display:block}
+.exam-big .t span{font-size:13px;color:var(--ink-soft)}
+.exam-big .t .revlink{display:inline-block;margin-top:8px;font-size:12px;font-weight:700;color:var(--terra);cursor:pointer}
+.addexam{border:2px dashed var(--rule);border-radius:14px;padding:16px;text-align:center;color:var(--ink-soft);font-size:14px;cursor:pointer}
+.addexam:hover{border-color:var(--terra);color:var(--terra)}
+
+/* ---- SETTINGS view ---- */
+.set{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+.set .row{display:flex;align-items:center;gap:13px;padding:15px 18px;border-bottom:1px solid var(--rule);cursor:pointer;font-size:14.5px}
+.set .row:last-child{border-bottom:none}
+.set .row:hover{background:var(--paper)}
+.set .row svg{width:17px;height:17px;stroke:var(--ink-soft);flex:none}
+.set .row.who{cursor:default}
+.set .row.who:hover{background:none}
+.set .row .av{width:38px;height:38px;border-radius:50%;background:var(--sage);color:#fff;display:grid;place-items:center;font-weight:700}
+.set .row .grow{flex:1}
+.set .row .grow b{display:block;font-size:14.5px}
+.set .row .grow span{font-size:12px;color:var(--ink-soft)}
+.set .row.out{color:var(--terra-deep);font-weight:700}
+.set .row.out svg{stroke:var(--terra-deep)}
+.meter{padding:15px 18px}
+.meter .lbl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);margin-bottom:7px}
+.meter .bar{height:8px;border-radius:99px;background:var(--paper-deep);overflow:hidden}
+.meter .bar i{display:block;height:100%;width:4%;background:var(--sage);border-radius:99px}
+.future{font-size:12px;color:var(--ink-soft);text-align:center;font-family:'Caveat',cursive;font-size:16px}
+
+/* ---- bottom tab bar ---- */
+.tabs{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;display:flex;gap:4px;
+  background:var(--card);border-radius:999px;padding:6px;box-shadow:0 4px 10px rgba(43,33,24,.12),0 16px 40px -8px rgba(43,33,24,.35)}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;
+  font-family:'Karla',sans-serif;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--ink-soft);
+  padding:8px 17px;border-radius:999px;transition:all .18s}
+.tabs button svg{width:19px;height:19px;stroke:currentColor}
+.tabs button.on{background:var(--terra);color:#FFF4E8}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(140px);background:var(--ink);color:var(--paper);
+  border-radius:999px;padding:10px 22px;font-size:13.5px;z-index:80;transition:transform .3s}
+.toast.on{transform:translateX(-50%)}
+
+/* ---- viewer with Reviewer|Notes tabs ---- */
+.viewer{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;background:var(--paper)}
+.viewer.on{display:flex}
+.vbar{display:flex;align-items:center;gap:12px;padding:11px 16px;background:var(--card);border-bottom:1px solid var(--rule)}
+.vbar .back{background:none;border:1.5px solid var(--ink);border-radius:999px;cursor:pointer;font-weight:700;font-size:13px;
+  padding:7px 14px;font-family:'Karla',sans-serif}
+.vbar .vtitle{font-family:'Fraunces',serif;font-weight:600;font-size:15.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vseg{display:flex;justify-content:center;gap:0;background:var(--card);border-bottom:1px solid var(--rule);padding:0 16px}
+.vseg button{border:none;background:none;cursor:pointer;font-family:'Karla',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:.06em;color:var(--ink-soft);padding:12px 22px;border-bottom:3px solid transparent;margin-bottom:-1px}
+.vseg button.on{color:var(--terra);border-bottom-color:var(--terra)}
+.vpane{flex:1;overflow:auto;display:none;padding:20px}
+.vpane.on{display:block}
+.docpage{background:#fff;max-width:680px;margin:0 auto;border-radius:4px;box-shadow:var(--shadow);padding:34px 36px;line-height:1.65;font-size:15px}
+.docpage h1{font-family:'Fraunces',serif;font-size:24px;margin-bottom:4px}
+.docpage .sub{color:var(--ink-soft);font-size:12px;margin-bottom:20px;letter-spacing:.05em}
+.docpage h2{font-family:'Fraunces',serif;font-size:18px;margin:20px 0 8px;color:var(--terra-deep)}
+.docpage .formula{font-family:Georgia,serif;font-style:italic;text-align:center;font-size:16px;background:var(--paper);border-radius:8px;padding:13px;margin:11px 0}
+.notepane{max-width:680px;margin:0 auto}
+.notepane textarea{width:100%;min-height:50vh;border:none;border-radius:12px;background:var(--card);box-shadow:var(--shadow);
+  padding:20px;font-family:'Karla',sans-serif;font-size:15px;line-height:1.8;resize:vertical}
+.notepane textarea:focus{outline:2px solid var(--gold)}
+.notepane .save{font-size:11px;color:var(--sage);font-weight:800;letter-spacing:.1em;margin-top:10px;text-align:right}
+@media (min-width:761px){ .app{max-width:760px} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="brand"><h1>Repa<em>so</em></h1><span class="hi">binder mode ✦</span></div>
+
+  <!-- DESK -->
+  <div class="view on" id="v-desk">
+    <div class="search">
+      <svg fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7" stroke="currentColor" fill="none"/><path d="M21 21l-4.3-4.3" stroke="currentColor"/></svg>
+      <input placeholder="Search reviewers &amp; notes…" oninput="toast('Live search filters this list (demo)')">
+    </div>
+    <div class="upl" onclick="toast('Upload picker (demo)')">＋ Drop or tap to add a reviewer</div>
+    <div class="stack">
+      <div class="rcard" onclick="openViewer('Hypothesis Testing — Complete Reviewer')"><div class="tab"></div>
+        <div class="in"><b>Hypothesis Testing — Complete Reviewer</b><span>STAT 023 · Jul 2 · ✎ has notes</span></div>
+        <span class="pin">📌</span><button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button></div>
+      <div class="rcard" onclick="openViewer('Regression & Correlation')"><div class="tab"></div>
+        <div class="in"><b>Regression &amp; Correlation</b><span>STAT 023 · Jun 28</span></div>
+        <button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button></div>
+      <div class="rcard" onclick="openViewer('Module 5 — Decision Analysis')"><div class="tab"></div>
+        <div class="in"><b>Module 5 — Decision Analysis</b><span>QMMS · Jun 25 · ✎ has notes</span></div>
+        <button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button></div>
+      <div class="rcard" onclick="openViewer('Python Data Analysis Notes')"><div class="tab"></div>
+        <div class="in"><b>Python Data Analysis Notes</b><span>INTE 202 · Jun 20</span></div>
+        <button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button></div>
+      <div class="rcard" onclick="openViewer('Data Structures — Midterms')"><div class="tab"></div>
+        <div class="in"><b>Data Structures — Midterms</b><span>COMP 008 · Jun 12</span></div>
+        <button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button></div>
+      <div class="rcard" onclick="openViewer('Ethics — Finals Reviewer')"><div class="tab"></div>
+        <div class="in"><b>Ethics — Finals Reviewer</b><span>GEED 020 · Jun 5</span></div>
+        <button class="more" onclick="event.stopPropagation();toast('Rename · Pin · Delete (demo)')">⋯</button></div>
+    </div>
+  </div>
+
+  <!-- NOTES: first-class -->
+  <div class="view" id="v-notes">
+    <div class="nsec">Scratchpad</div>
+    <div class="note" onclick="toast('Opens scratchpad editor (demo)')">
+      <p>Summer plan: finish Repaso v1.5 → tutoring flyers → review sched for finals week…</p>
+      <div class="when">edited 2 hours ago</div>
+    </div>
+    <div class="nsec">Reviewer notes</div>
+    <div class="note rev" onclick="openViewer('Hypothesis Testing — Complete Reviewer','notes')">
+      <div class="link">📄 HYPOTHESIS TESTING — STAT 023</div>
+      <p><b>Things I keep forgetting:</b> reject H₀ when p &lt; α · z-test needs σ known!</p>
+      <div class="when">edited yesterday</div>
+    </div>
+    <div class="note rev" onclick="openViewer('Module 5 — Decision Analysis','notes')">
+      <div class="link">📄 MODULE 5 — QMMS</div>
+      <p>EMV = Σ(payoff × probability). Maximax = optimist, maximin = pessimist…</p>
+      <div class="when">edited Jun 26</div>
+    </div>
+  </div>
+
+  <!-- EXAMS -->
+  <div class="view" id="v-exams">
+    <div class="exam-big"><div class="d">14<small>DAYS</small></div>
+      <div class="t"><b>STAT 023 Finals</b><span>Thursday, July 24 · 1:00 PM</span>
+      <span class="revlink" onclick="openViewer('Hypothesis Testing — Complete Reviewer')">→ 2 reviewers linked</span></div></div>
+    <div class="exam-big"><div class="d">18<small>DAYS</small></div>
+      <div class="t"><b>QMMS Finals</b><span>Monday, July 28 · 9:00 AM</span>
+      <span class="revlink" onclick="openViewer('Module 5 — Decision Analysis')">→ 1 reviewer linked</span></div></div>
+    <div class="addexam" onclick="toast('Add exam (demo)')">＋ Add an exam date</div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="view" id="v-set">
+    <div class="set">
+      <div class="row who"><div class="av">S</div><div class="grow"><b>Shawn</b><span>ramosshawnangel@gmail.com</span></div></div>
+      <div class="row out" onclick="toast('Signed out (demo)')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Log out</div>
+    </div>
+    <div class="set">
+      <div class="row" onclick="toast('Downloads repaso-backup.json (demo)')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4M4 21h16"/></svg>Export backup (.json)</div>
+      <div class="row" onclick="toast('Import restore (demo)')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 21V8m0 0l-4 4m4-4l4 4M4 3h16"/></svg>Import backup</div>
+      <div class="meter"><div class="lbl"><span>Storage used</span><span>21 MB of 500 MB</span></div><div class="bar"><i></i></div></div>
+    </div>
+    <div class="set"><div class="row" onclick="toast('Theme picker lives here someday (Aral / STUDYO ready)')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-2 2.5-2H21"/></svg>Appearance <span style="margin-left:auto;font-size:11px;color:var(--ink-soft)">soon ✦</span></div></div>
+    <div class="future">themes, offline mode &amp; more land here later ✎</div>
+  </div>
+</div>
+
+<nav class="tabs">
+  <button class="on" onclick="go(this,'desk')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4a2 2 0 00-2-2H6.5A2.5 2.5 0 004 4.5v15z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg>DESK</button>
+  <button onclick="go(this,'notes')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>NOTES</button>
+  <button onclick="go(this,'exams')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>EXAMS</button>
+  <button onclick="go(this,'set')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>SETTINGS</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<!-- viewer with Reviewer | Notes tabs -->
+<div class="viewer" id="viewer">
+  <div class="vbar">
+    <button class="back" onclick="viewer.classList.remove('on')">← Back</button>
+    <span class="vtitle" id="vtitle"></span>
+  </div>
+  <div class="vseg">
+    <button class="on" id="tab-rev" onclick="vtab('rev')">📄 REVIEWER</button>
+    <button id="tab-note" onclick="vtab('note')">✎ NOTES</button>
+  </div>
+  <div class="vpane on" id="pane-rev">
+    <div class="docpage">
+      <h1>Hypothesis Testing</h1><div class="sub">STAT 023 · YOUR UPLOADED FILE, RENDERED FULL-PAGE</div>
+      <p>Your actual reviewer HTML in the sandboxed viewer — full width, nothing floating over it.</p>
+      <h2>Z-test statistic</h2><div class="formula">z = (x̄ − μ₀) / (σ / √n)</div>
+      <h2>Decision rule</h2><p>p-value &lt; α → <b>reject H₀</b>; otherwise fail to reject.</p>
+    </div>
+  </div>
+  <div class="vpane" id="pane-note">
+    <div class="notepane">
+      <textarea>## Things I keep forgetting
+- reject H₀ when p < α
+- z-test needs σ known — use t-test when it isn't!
+- two-tailed: split α in half</textarea>
+      <div class="save">SAVED ✓ · autosaves as you type</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const viewer=document.getElementById('viewer');
+function go(btn,v){document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));document.getElementById('v-'+v).classList.add('on')}
+function openViewer(title,tab){document.getElementById('vtitle').textContent=title;viewer.classList.add('on');vtab(tab==='notes'?'note':'rev')}
+function vtab(t){document.getElementById('tab-rev').classList.toggle('on',t==='rev');document.getElementById('tab-note').classList.toggle('on',t==='note');
+  document.getElementById('pane-rev').classList.toggle('on',t==='rev');document.getElementById('pane-note').classList.toggle('on',t==='note')}
+let tt;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1900)}
+</script>
+</body>
+</html>

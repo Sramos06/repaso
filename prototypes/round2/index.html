@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repaso v1.5 — Round 2: Pick the App Shell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F7EFE2;--card:#FFFDF6;--ink:#2B2118;--ink-soft:#6B5D4F;--terra:#C4552D;--sage:#7A8B6F;--gold:#D9A441;--rule:#E4D5BC;
+  --shadow:0 1px 2px rgba(43,33,24,.08),0 6px 18px -6px rgba(43,33,24,.18)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;padding:44px 24px 70px}
+.wrap{max-width:1240px;margin:0 auto}
+.kicker{font-size:11px;font-weight:800;letter-spacing:.2em;color:var(--terra);text-transform:uppercase;margin-bottom:12px}
+h1{font-family:'Fraunces',serif;font-weight:640;font-size:clamp(28px,4.5vw,42px);letter-spacing:-.02em;line-height:1.08;margin-bottom:12px}
+h1 em{color:var(--terra);font-style:italic}
+.sub{color:var(--ink-soft);font-size:15.5px;max-width:660px;line-height:1.65;margin-bottom:8px}
+.sub b{color:var(--ink)}
+.mix{display:inline-block;font-size:12.5px;border:1.5px solid var(--rule);border-radius:999px;padding:7px 16px;color:var(--ink-soft);margin:10px 0 40px;background:var(--card)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:24px}
+.opt{background:var(--card);border:1.5px solid var(--rule);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;
+  transition:transform .2s,border-color .2s,box-shadow .2s;box-shadow:var(--shadow)}
+.opt:hover{transform:translateY(-4px);border-color:var(--terra);box-shadow:0 2px 4px rgba(43,33,24,.1),0 18px 38px -10px rgba(43,33,24,.3)}
+.frame{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--paper)}
+.frame iframe{width:334%;height:334%;transform:scale(.3);transform-origin:0 0;border:none;pointer-events:none}
+.frame a.cover{position:absolute;inset:0;z-index:2}
+.body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:9px;flex:1}
+.name{font-family:'Fraunces',serif;font-weight:640;font-size:21px}
+.name small{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--terra);font-family:'Karla',sans-serif;display:block;margin-bottom:3px}
+.desc{color:var(--ink-soft);font-size:13.5px;line-height:1.65;flex:1}
+.desc b{color:var(--ink);font-weight:700}
+.openbtn{display:block;text-align:center;text-decoration:none;border-radius:10px;padding:12px;color:#FFF4E8;background:var(--terra);
+  font-weight:800;font-size:13px;letter-spacing:.07em;text-transform:uppercase;transition:background .15s}
+.openbtn:hover{background:#A03E1C}
+.foot{margin-top:40px;font-size:13px;color:var(--ink-soft);line-height:2}
+.foot b{color:var(--ink)}
+@media (max-width:720px){body{padding:28px 15px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Repaso · Round 2 · The v1.5 App Shell · July 10, 2026</div>
+  <h1>Same warm paper.<br>Three ways to <em>organize the desk.</em></h1>
+  <p class="sub">All three keep your chosen Repaso theme and show the <b>same new features</b> — search, subjects, exam countdowns, pins, rename/delete (the ⋯ menu), settings with logout &amp; export — but arrange the app around three different philosophies. Every one is clickable with real flows: open a reviewer, try the notes, tap the ⋯ menus, poke the settings. <b>No hamburgers were harmed.</b></p>
+  <span class="mix">mix &amp; match welcome — e.g. "A's desk + B's notes tab + C's split viewer"</span>
+
+  <div class="grid">
+    <div class="opt">
+      <div class="frame"><iframe src="a-desk-drawers.html" loading="lazy" scrolling="no" tabindex="-1" title="A preview"></iframe><a class="cover" href="a-desk-drawers.html"></a></div>
+      <div class="body">
+        <div class="name"><small>DIRECTION A</small>Desk &amp; Drawers</div>
+        <p class="desc"><b>Your current app, grown up.</b> One screen stays king: search slides into the header, subject chips + exam countdown strip live above the cards, every card gets a pin + ⋯ menu, and settings tuck behind your avatar. Notes keep the slide-out drawer but gain a Write/Preview toggle. <b>Philosophy: change nothing you already like, bolt on what's missing.</b></p>
+        <a class="openbtn" href="a-desk-drawers.html">Open A →</a>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="frame"><iframe src="b-binder.html" loading="lazy" scrolling="no" tabindex="-1" title="B preview"></iframe><a class="cover" href="b-binder.html"></a></div>
+      <div class="body">
+        <div class="name"><small>DIRECTION B</small>Binder</div>
+        <p class="desc"><b>A true phone app.</b> Floating bottom tabs — Desk / Notes / Exams / Settings — like the apps you already live in. <b>Notes become a first-class place:</b> browse ALL your notes in one tab, and inside a reviewer you flip between full-width "Reviewer" and "Notes" tabs (your idea!) instead of a cramped drawer. Exams get a whole screen with linked reviewers. <b>Philosophy: Repaso is a mobile app that happens to run on desktop.</b></p>
+        <a class="openbtn" href="b-binder.html">Open B →</a>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="frame"><iframe src="c-command-desk.html" loading="lazy" scrolling="no" tabindex="-1" title="C preview"></iframe><a class="cover" href="c-command-desk.html"></a></div>
+      <div class="body">
+        <div class="name"><small>DIRECTION C</small>Command Desk</div>
+        <p class="desc"><b>A study workstation.</b> Sidebar with your subjects as a colored tree + pinned + next-exam widget; a big Ctrl-K search bar that hunts <b>inside reviewer content</b>; and the killer feature: the viewer opens in <b>split view — reviewer left, notes right, both visible while you study</b> (with a Focus toggle). Sidebar collapses to icons on phone. <b>Philosophy: built for long desktop study sessions.</b></p>
+        <a class="openbtn" href="c-command-desk.html">Open C →</a>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot"><b>How to judge:</b> open each full-screen → use the search → tap a reviewer → try the notes (this is the big differentiator: <b>drawer vs. tab vs. split</b>) → find logout/export in each → squeeze the window narrow for the phone feel.<br><b>Remember:</b> the winning shell gets built into the real live app — repaso-six.vercel.app updates itself when we push.</p>
+</div>
+</body>
+</html>
