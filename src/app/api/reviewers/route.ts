@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { reviewers } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { requireUser } from "@/lib/require-user";
-import { validateUpload } from "@/lib/validate-upload";
+import { validateUpload, MAX_BYTES } from "@/lib/validate-upload";
 
 export async function GET() {
   try {
@@ -30,14 +30,22 @@ export async function POST(req: NextRequest) {
     const created: { id: string; title: string }[] = [];
     const rejected: { name: string; reason: string }[] = [];
     for (const file of files) {
-      const content = await file.text();
-      const check = validateUpload(file.name, file.size, content);
-      if (!check.ok) { rejected.push({ name: file.name, reason: check.reason }); continue; }
-      const [row] = await db
-        .insert(reviewers)
-        .values({ userId: user.id, title: check.title, htmlContent: content, sizeBytes: file.size })
-        .returning({ id: reviewers.id, title: reviewers.title });
-      created.push(row);
+      if (file.size > MAX_BYTES) {
+        rejected.push({ name: file.name, reason: "File is over the 5 MB limit." });
+        continue;
+      }
+      try {
+        const content = await file.text();
+        const check = validateUpload(file.name, file.size, content);
+        if (!check.ok) { rejected.push({ name: file.name, reason: check.reason }); continue; }
+        const [row] = await db
+          .insert(reviewers)
+          .values({ userId: user.id, title: check.title, htmlContent: content, sizeBytes: file.size })
+          .returning({ id: reviewers.id, title: reviewers.title });
+        created.push(row);
+      } catch {
+        rejected.push({ name: file.name, reason: "Could not save this file — try again." });
+      }
     }
     return NextResponse.json({ created, rejected }, { status: created.length ? 201 : 400 });
   } catch (e) {
