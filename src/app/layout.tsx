@@ -14,7 +14,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${karla.variable} ${caveat.variable}`}>
-      <body>{children}</body>
+      {/* suppressHydrationWarning: browser extensions (Grammarly) inject body attributes pre-hydration */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
