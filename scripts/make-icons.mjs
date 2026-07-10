@@ -1,7 +1,7 @@
-// One-off (but committed) icon generator for Repaso's PWA icon set.
+// One-off (but committed) icon generator for Repaso's PWA + browser icon set.
 // Renders an inline SVG ("R" on a terracotta rounded square) through sharp
-// to produce the three PNGs the manifest points at. Re-run this after any
-// icon design tweak: `node scripts/make-icons.mjs`.
+// to produce the PNGs the manifest and Next.js app-icon convention point at.
+// Re-run this after any icon design tweak: `node scripts/make-icons.mjs`.
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
@@ -49,22 +49,28 @@ function maskableSvg() {
 </svg>`;
 }
 
-const outDir = path.join(process.cwd(), "public", "icons");
+const iconsDir = path.join(process.cwd(), "public", "icons");
+const appDir = path.join(process.cwd(), "src", "app");
 
-async function render(svg, size, filename) {
+async function render(svg, size, outPath) {
   await sharp(Buffer.from(svg))
     .resize(size, size)
     .png()
-    .toFile(path.join(outDir, filename));
-  console.log(`wrote ${filename} (${size}x${size})`);
+    .toFile(outPath);
+  console.log(`wrote ${path.relative(process.cwd(), outPath)} (${size}x${size})`);
 }
 
 async function main() {
-  await mkdir(outDir, { recursive: true });
+  await mkdir(iconsDir, { recursive: true });
   const standard = standardSvg();
-  await render(standard, 192, "icon-192.png");
-  await render(standard, 512, "icon-512.png");
-  await render(maskableSvg(), 512, "maskable-512.png");
+  const maskable = maskableSvg();
+  await render(standard, 192, path.join(iconsDir, "icon-192.png"));
+  await render(standard, 512, path.join(iconsDir, "icon-512.png"));
+  await render(maskable, 512, path.join(iconsDir, "maskable-512.png"));
+  // Next.js app-icon file convention: src/app/icon.png -> favicon <link>,
+  // src/app/apple-icon.png -> iOS home-screen icon.
+  await render(standard, 512, path.join(appDir, "icon.png"));
+  await render(maskable, 512, path.join(appDir, "apple-icon.png"));
 }
 
 main().catch((err) => {
