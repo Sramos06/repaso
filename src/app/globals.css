@@ -143,6 +143,7 @@ a.card { color: inherit; text-decoration: none; }
   display: flex; align-items: center; gap: 14px; padding: 12px 18px;
   background: var(--card); border-bottom: 1px solid var(--rule); flex: none;
 }
+a.back { color: inherit; text-decoration: none; display: inline-flex; }
 .vbar .back {
   background: none; border: 1.5px solid var(--ink); border-radius: 999px; cursor: pointer;
   font-family: var(--font-body); font-weight: 700; font-size: 13px; color: var(--ink);
@@ -157,7 +158,8 @@ a.card { color: inherit; text-decoration: none; }
 }
 .vbar .notesbtn:hover { background: var(--terra-deep); }
 .vbody { flex: 1; display: flex; min-height: 0; }
-.vdoc { flex: 1; overflow: auto; padding: 26px; display: flex; justify-content: center; }
+.vdoc { flex: 1; overflow: auto; padding: 26px; display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.reviewer-frame { width: 100%; height: 100%; border: none; background: #fff; border-radius: 4px; box-shadow: var(--shadow); }
 .docpage {
   background: #fff; max-width: 760px; width: 100%; height: max-content; border-radius: 4px;
   box-shadow: var(--shadow); padding: 44px 48px; line-height: 1.65; font-size: 15.5px;
