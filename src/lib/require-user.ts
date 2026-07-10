@@ -9,8 +9,9 @@ import { eq } from "drizzle-orm";
 export async function requireUser(): Promise<{ id: string; email: string }> {
   const session = await auth();
   const googleSub = (session as any)?.googleSub as string | undefined;
-  const email = session?.user?.email;
-  if (!session || !googleSub || !email || email !== process.env.ALLOWED_EMAIL) {
+  const email = session?.user?.email?.toLowerCase();
+  const allowed = process.env.ALLOWED_EMAIL?.toLowerCase();
+  if (!session || !googleSub || !email || !allowed || email !== allowed) {
     throw new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
   const existing = await db.query.users.findFirst({ where: eq(users.googleSub, googleSub) });

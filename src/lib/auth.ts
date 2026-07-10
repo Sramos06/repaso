@@ -7,8 +7,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: "/signin" },
   callbacks: {
     // hard allow-list: only Shawn's account may create a session
+    // (case-insensitive: Google can return email with different casing than the env var)
     signIn({ profile }) {
-      return profile?.email === process.env.ALLOWED_EMAIL;
+      const allowed = process.env.ALLOWED_EMAIL?.toLowerCase();
+      const email = profile?.email?.toLowerCase();
+      if (!allowed || !email) return false;
+      return email === allowed;
     },
     jwt({ token, profile }) {
       if (profile?.sub) token.googleSub = profile.sub;
