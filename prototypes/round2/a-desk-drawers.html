@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Repaso R2-A — Desk & Drawers</title>
+<title>Repaso v1.5 — The Desk (final shell)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=Caveat:wght@400..700&display=swap" rel="stylesheet">
@@ -19,10 +19,10 @@ body{font-family:'Karla',sans-serif;color:var(--ink);min-height:100vh;
              radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.10), transparent 55%), var(--paper);}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");}
-.app{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:24px 22px 90px}
+.app{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:28px 22px 90px}
 
-/* ---- header: brand + search + avatar menu ---- */
-header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
+/* ---- header: brand + search + avatar menu (that's all — nothing else above the cards) ---- */
+header{display:flex;align-items:center;gap:16px;margin-bottom:34px}
 .brand h1{font-family:'Fraunces',serif;font-weight:640;font-size:30px;letter-spacing:-.02em;white-space:nowrap}
 .brand h1 em{color:var(--terra);font-style:italic}
 .search{flex:1;display:flex;align-items:center;gap:9px;background:var(--card);border:1.5px solid var(--rule);
@@ -46,25 +46,6 @@ header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
 .menu button svg{width:15px;height:15px;stroke:var(--ink-soft)}
 .menu button.out{color:var(--terra-deep)}
 .menu button.out svg{stroke:var(--terra-deep)}
-
-/* ---- countdown strip ---- */
-.exams{display:flex;gap:12px;margin:18px 0 22px;overflow-x:auto;padding-bottom:2px}
-.exam{display:flex;align-items:center;gap:11px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);
-  padding:10px 16px 10px 12px;flex:none}
-.exam .d{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:var(--terra);line-height:1}
-.exam .d small{display:block;font-family:'Karla',sans-serif;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--ink-soft)}
-.exam .t b{display:block;font-size:13.5px}
-.exam .t span{font-size:11.5px;color:var(--ink-soft)}
-.exam.add{border:1.5px dashed var(--rule);background:none;box-shadow:none;color:var(--ink-soft);font-size:13px;cursor:pointer;padding:10px 18px}
-.exam.add:hover{border-color:var(--terra);color:var(--terra)}
-
-/* ---- subject chips ---- */
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
-.chip{border:1.5px solid var(--rule);background:var(--card);border-radius:999px;padding:6px 15px;font-size:13px;
-  font-weight:700;color:var(--ink-soft);cursor:pointer;transition:all .15s;font-family:'Karla',sans-serif}
-.chip:hover{border-color:var(--terra);color:var(--terra)}
-.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.chip .n{opacity:.6;font-weight:600;margin-left:4px}
 
 /* ---- section label ---- */
 .seclabel{display:flex;align-items:center;gap:14px;margin-bottom:20px}
@@ -99,6 +80,7 @@ header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
   font-family:'Karla',sans-serif;font-size:13.5px;padding:8px 11px;border-radius:7px;text-align:left;color:var(--ink)}
 .ctx button:hover{background:var(--paper)}
 .ctx button.del{color:var(--terra-deep)}
+.empty{color:var(--ink-soft);font-size:14px;padding:30px 4px;font-style:italic;font-family:'Fraunces',serif}
 
 /* ---- fab + toast ---- */
 .fab{position:fixed;right:22px;bottom:22px;z-index:50;background:var(--ink);color:var(--paper);border:none;cursor:pointer;
@@ -106,37 +88,50 @@ header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
   box-shadow:0 10px 25px -6px rgba(43,33,24,.45);transition:transform .2s}
 .fab:hover{transform:translateY(-3px)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--paper);
-  border-radius:999px;padding:10px 22px;font-size:13.5px;z-index:80;transition:transform .3s;box-shadow:var(--shadow)}
+  border-radius:999px;padding:10px 22px;font-size:13.5px;z-index:200;transition:transform .3s;box-shadow:var(--shadow)}
 .toast.on{transform:translateX(-50%)}
 
-/* ---- viewer ---- */
-.viewer{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;background:var(--paper)}
-.viewer.on{display:flex}
-.vbar{display:flex;align-items:center;gap:14px;padding:11px 18px;background:var(--card);border-bottom:1px solid var(--rule)}
-.vbar .back{background:none;border:1.5px solid var(--ink);border-radius:999px;cursor:pointer;font-family:'Karla',sans-serif;
-  font-weight:700;font-size:13px;padding:7px 15px}
-.vbar .back:hover{background:var(--ink);color:var(--paper)}
-.vbar .vtitle{font-family:'Fraunces',serif;font-weight:600;font-size:16px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vbar .notesbtn{background:var(--terra);border:none;color:#FFF4E8;border-radius:999px;cursor:pointer;font-family:'Karla',sans-serif;
-  font-weight:700;font-size:13px;padding:8px 16px}
-.vbody{flex:1;display:flex;min-height:0}
-.vdoc{flex:1;overflow:auto;padding:24px;display:flex;justify-content:center}
-.docpage{background:#fff;max-width:720px;width:100%;height:max-content;border-radius:4px;box-shadow:var(--shadow);
-  padding:38px 42px;line-height:1.65;font-size:15px}
-.docpage h1{font-family:'Fraunces',serif;font-size:26px;margin-bottom:4px}
-.docpage .sub{color:var(--ink-soft);font-size:12.5px;margin-bottom:22px;letter-spacing:.05em}
-.docpage h2{font-family:'Fraunces',serif;font-size:19px;margin:22px 0 9px;color:var(--terra-deep)}
-.docpage .formula{font-family:Georgia,serif;font-style:italic;text-align:center;font-size:17px;background:var(--paper);border-radius:8px;padding:14px;margin:12px 0}
-/* notes drawer with write/preview */
-.notes{width:340px;flex:none;background:var(--paper-deep);border-left:1px solid var(--rule);display:flex;flex-direction:column;
-  transform:translateX(100%);transition:transform .28s ease}
+/* ================= FOCUS VIEWER =================
+   The reviewer file owns the whole screen. Repaso adds ONLY two floating
+   pills on top (back + notes) — translucent until you hover/tap them.
+   In the real app the file renders inside a sandboxed iframe underneath;
+   these pills live in Repaso's own layer above it and never touch the file. */
+.viewer{position:fixed;inset:0;z-index:100;display:none;background:#fff}
+.viewer.on{display:block}
+.vdoc{position:absolute;inset:0;overflow:auto;background:#fff;-webkit-overflow-scrolling:touch}
+.docinner{max-width:760px;margin:0 auto;padding:54px 26px 90px;line-height:1.65;font-size:15px}
+.docinner h1{font-family:'Fraunces',serif;font-size:27px;margin-bottom:4px}
+.docinner .sub{color:var(--ink-soft);font-size:12.5px;margin-bottom:24px;letter-spacing:.05em}
+.docinner h2{font-family:'Fraunces',serif;font-size:19px;margin:24px 0 9px;color:var(--terra-deep)}
+.docinner .formula{font-family:Georgia,serif;font-style:italic;text-align:center;font-size:17px;background:var(--paper);border-radius:8px;padding:14px;margin:12px 0}
+.docinner .quiz{border:1.5px solid var(--rule);border-radius:10px;padding:16px;margin:18px 0;background:#FCFAF4}
+.docinner .quiz b{display:block;margin-bottom:8px}
+.docinner .quiz label{display:block;font-size:14px;margin:5px 0;cursor:pointer}
+
+/* the two overlay pills */
+.pill{position:fixed;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;
+  font-family:'Karla',sans-serif;font-weight:700;font-size:13px;padding:9px 15px;border-radius:999px;
+  background:rgba(255,253,246,.72);color:var(--ink);border:1.5px solid rgba(43,33,24,.18);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  box-shadow:0 3px 12px -3px rgba(43,33,24,.25);opacity:.62;transition:opacity .2s,background .2s,transform .15s}
+.pill:hover,.pill:active{opacity:1;background:var(--card);transform:scale(1.04)}
+.pill.pback{top:14px;left:14px}
+.pill.pnotes{top:14px;right:14px}
+.pill.pnotes.has-notes::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--terra)}
+
+/* notes drawer — slides OVER the file, dismiss to get the full page back */
+.notes{position:fixed;top:0;right:0;bottom:0;width:min(360px,94vw);z-index:130;background:var(--paper-deep);
+  border-left:1px solid var(--rule);display:flex;flex-direction:column;
+  box-shadow:-14px 0 34px -12px rgba(43,33,24,.35);transform:translateX(105%);transition:transform .28s ease}
 .notes.on{transform:none}
-.notes .nhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
-.notes .nhead h5{font-family:'Caveat',cursive;font-size:23px;font-weight:600}
+.notes .nhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px}
+.notes .nhead h5{font-family:'Caveat',cursive;font-size:23px;font-weight:600;flex:1}
 .notes .seg{display:flex;background:var(--card);border-radius:999px;padding:3px;box-shadow:inset 0 1px 3px rgba(43,33,24,.1)}
 .notes .seg button{border:none;background:none;cursor:pointer;font-family:'Karla',sans-serif;font-weight:700;font-size:11.5px;
   padding:5px 13px;border-radius:999px;color:var(--ink-soft)}
 .notes .seg button.on{background:var(--terra);color:#FFF4E8}
+.notes .close{background:none;border:none;cursor:pointer;font-size:19px;color:var(--ink-soft);padding:2px 6px;border-radius:6px}
+.notes .close:hover{background:var(--card)}
 .notes textarea{flex:1;margin:0 14px;border:none;resize:none;border-radius:8px;background:var(--card);padding:15px;
   font-family:'Karla',sans-serif;font-size:14px;line-height:1.7;box-shadow:inset 0 1px 3px rgba(43,33,24,.1)}
 .notes textarea:focus{outline:2px solid var(--gold)}
@@ -144,15 +139,21 @@ header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
 .notes .preview h3{font-family:'Fraunces',serif;font-size:16px;margin-bottom:6px}
 .notes .preview li{margin-left:18px;margin-bottom:3px}
 .notes .save{font-size:10.5px;color:var(--sage);font-weight:800;letter-spacing:.1em;padding:10px 16px}
+
+/* ---- phone ---- */
 @media (max-width:760px){
   .app{padding:18px 14px 90px}
-  header{flex-wrap:wrap} .brand{order:1} .avatar-wrap{order:2;margin-left:auto} .search{order:3;flex-basis:100%}
-  .cards{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:18px 12px}
+  header{flex-wrap:wrap;gap:10px 12px;margin-bottom:24px}
+  .brand{order:1} .brand h1{font-size:25px} .avatar-wrap{order:2;margin-left:auto} .search{order:3;flex-basis:100%}
+  .cards{grid-template-columns:repeat(2,1fr);gap:18px 12px}
   .card h4{font-size:15px;min-height:38px}
-  .notes{position:fixed;left:0;right:0;bottom:0;width:auto;height:55vh;border-left:none;border-top:2px solid var(--rule);
-    border-radius:18px 18px 0 0;transform:translateY(100%)}
+  .card .subject{font-size:9.5px}
+  .fab{padding:12px 17px;font-size:13px}
+  .docinner{padding:64px 18px 80px}
+  /* notes become a bottom sheet on phone */
+  .notes{top:auto;left:0;right:0;bottom:0;width:auto;height:58vh;border-left:none;border-top:2px solid var(--rule);
+    border-radius:18px 18px 0 0;transform:translateY(105%)}
   .notes.on{transform:none}
-  .docpage{padding:24px 18px}
 }
 </style>
 </head>
@@ -162,33 +163,17 @@ header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
     <div class="brand"><h1>Repa<em>so</em></h1></div>
     <div class="search">
       <svg fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7" stroke="currentColor" fill="none"/><path d="M21 21l-4.3-4.3" stroke="currentColor"/></svg>
-      <input id="q" placeholder="Search your reviewers… (try “stat”)" oninput="filter()">
+      <input id="q" placeholder="Search your reviewers…" oninput="render()">
     </div>
     <div class="avatar-wrap">
       <div class="avatar" onclick="document.getElementById('menu').classList.toggle('on')">S</div>
       <div class="menu" id="menu">
         <div class="who"><b>Shawn</b><span>ramosshawnangel@gmail.com</span></div>
         <button><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4M4 21h16"/></svg>Export backup (.json)</button>
-        <button><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</button>
         <button class="out" onclick="toast('Signed out (demo)')"><svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Log out</button>
       </div>
     </div>
   </header>
-
-  <div class="exams">
-    <div class="exam"><div class="d">14<small>DAYS</small></div><div class="t"><b>STAT 023 Finals</b><span>Jul 24 · Thu</span></div></div>
-    <div class="exam"><div class="d">18<small>DAYS</small></div><div class="t"><b>QMMS Finals</b><span>Jul 28 · Mon</span></div></div>
-    <div class="exam add" onclick="toast('Add exam (demo)')">+ Add exam</div>
-  </div>
-
-  <div class="chips" id="chips">
-    <button class="chip on" onclick="pick(this,'')">All <span class="n">6</span></button>
-    <button class="chip" onclick="pick(this,'STAT 023')">STAT 023 <span class="n">2</span></button>
-    <button class="chip" onclick="pick(this,'QMMS')">QMMS <span class="n">1</span></button>
-    <button class="chip" onclick="pick(this,'INTE 202')">INTE 202 <span class="n">1</span></button>
-    <button class="chip" onclick="pick(this,'COMP 008')">COMP 008 <span class="n">1</span></button>
-    <button class="chip" onclick="pick(this,'GEED 020')">GEED 020 <span class="n">1</span></button>
-  </div>
 
   <div class="seclabel"><h3>On the desk</h3><div class="line"></div></div>
   <div class="cards" id="cards"></div>
@@ -197,29 +182,26 @@ header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
 <button class="fab" onclick="openViewer('Scratchpad',true)">✎ Scratchpad</button>
 <div class="toast" id="toast"></div>
 
+<!-- FOCUS VIEWER: the file is the whole screen; only two pills float above it -->
 <div class="viewer" id="viewer">
-  <div class="vbar">
-    <button class="back" onclick="viewer.classList.remove('on');notes.classList.remove('on')">← Desk</button>
-    <span class="vtitle" id="vtitle"></span>
-    <button class="notesbtn" onclick="notes.classList.toggle('on')">✎ Notes</button>
-  </div>
-  <div class="vbody">
-    <div class="vdoc"><div class="docpage" id="docpage"></div></div>
-    <aside class="notes" id="notes">
-      <div class="nhead">
-        <h5>margin notes</h5>
-        <div class="seg">
-          <button class="on" onclick="mode(this,'write')">Write</button>
-          <button onclick="mode(this,'preview')">Preview</button>
-        </div>
+  <div class="vdoc"><div class="docinner" id="docinner"></div></div>
+  <button class="pill pback" onclick="closeViewer()">← Desk</button>
+  <button class="pill pnotes" id="pnotes" onclick="notes.classList.toggle('on')">✎ Notes</button>
+  <aside class="notes" id="notes">
+    <div class="nhead">
+      <h5>margin notes</h5>
+      <div class="seg">
+        <button class="on" onclick="mode(this,'write')">Write</button>
+        <button onclick="mode(this,'preview')">Preview</button>
       </div>
-      <textarea id="pad">## Things I keep forgetting
+      <button class="close" onclick="notes.classList.remove('on')" title="Close">✕</button>
+    </div>
+    <textarea id="pad">## Things I keep forgetting
 - reject H₀ when p < α
 - z-test needs σ known!</textarea>
-      <div class="preview" id="prev"><h3>Things I keep forgetting</h3><ul><li>reject H₀ when p &lt; α</li><li>z-test needs σ known!</li></ul></div>
-      <div class="save">SAVED ✓</div>
-    </aside>
-  </div>
+    <div class="preview" id="prev"><h3>Things I keep forgetting</h3><ul><li>reject H₀ when p &lt; α</li><li>z-test needs σ known!</li></ul></div>
+    <div class="save">SAVED ✓</div>
+  </aside>
 </div>
 
 <script>
@@ -231,14 +213,13 @@ const data=[
  {s:"COMP 008",t:"Data Structures — Midterms",d:"Jun 12",n:false,p:false},
  {s:"GEED 020",t:"Ethics — Finals Reviewer",d:"Jun 5",n:false,p:false},
 ];
-let subj="";
 const cards=document.getElementById('cards'),viewer=document.getElementById('viewer'),notes=document.getElementById('notes');
 function render(){
   const q=document.getElementById('q').value.toLowerCase();
   cards.innerHTML="";
-  data.filter(r=>(!subj||r.s===subj)&&(r.t.toLowerCase().includes(q)||r.s.toLowerCase().includes(q)))
-   .sort((a,b)=>b.p-a.p)
-   .forEach((r,i)=>{
+  const hits=data.filter(r=>r.t.toLowerCase().includes(q)||r.s.toLowerCase().includes(q)).sort((a,b)=>b.p-a.p);
+  if(!hits.length){cards.innerHTML='<div class="empty">Nothing on the desk matches that…</div>';return}
+  hits.forEach(r=>{
     const c=document.createElement('div');c.className='card';
     c.innerHTML=`<button class="pin ${r.p?'on':''}" title="Pin" onclick="event.stopPropagation();data.find(x=>x.t==='${r.t}').p=!${r.p};render();toast('${r.p?'Unpinned':'Pinned to top'}')">📌</button>
       <button class="more" onclick="event.stopPropagation();ctx(this)">⋯</button>
@@ -247,26 +228,32 @@ function render(){
       <button class="del" onclick="event.stopPropagation();toast('Delete → confirm dialog (demo)')">🗑 Delete</button></div>
       <span class="subject">${r.s}</span><h4>${r.t}</h4>
       <div class="meta"><span>${r.d}</span>${r.n?'<span class="noteflag"><svg fill="none" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>has notes</span>':''}</div>`;
-    c.onclick=()=>openViewer(r.t,false);
+    c.onclick=()=>openViewer(r.t,false,r.n);
     cards.appendChild(c);
   });
 }
-function pick(el,s){subj=s;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');render()}
-function filter(){render()}
 function ctx(btn){document.querySelectorAll('.ctx').forEach(m=>{if(m!==btn.nextElementSibling)m.classList.remove('on')});btn.nextElementSibling.classList.toggle('on')}
 document.addEventListener('click',e=>{if(!e.target.closest('.more')&&!e.target.closest('.ctx'))document.querySelectorAll('.ctx').forEach(m=>m.classList.remove('on'));
   if(!e.target.closest('.avatar-wrap'))document.getElementById('menu').classList.remove('on')});
-function openViewer(title,scratch){
-  document.getElementById('vtitle').textContent=title;
-  document.getElementById('docpage').innerHTML= scratch
-   ?'<h1>Scratchpad</h1><div class="sub">GLOBAL NOTEBOOK</div><p>Your everywhere-notes. Panel opens automatically →</p>'
-   :`<h1>Hypothesis Testing</h1><div class="sub">STAT 023 · YOUR UPLOADED FILE, RENDERED FULL-PAGE</div>
-     <p>This is your actual reviewer HTML in the sandboxed viewer.</p>
+function openViewer(title,scratch,hasNotes){
+  document.getElementById('docinner').innerHTML= scratch
+   ?'<h1>Scratchpad</h1><div class="sub">GLOBAL NOTEBOOK</div><p>Your everywhere-notes. The notes panel opens automatically →</p>'
+   :`<h1>Hypothesis Testing</h1><div class="sub">STAT 023 · THIS IS YOUR UPLOADED FILE — IT OWNS THE WHOLE SCREEN</div>
+     <p>Pretend this white page is your actual reviewer HTML. No Repaso bar, no buttons of ours inside it — just your file, edge to edge. The two floating pills up top are the only Repaso things on screen, and they sit <b>above</b> the file in a separate layer.</p>
      <h2>Z-test statistic</h2><div class="formula">z = (x̄ − μ₀) / (σ / √n)</div>
-     <h2>Decision rule</h2><p>p-value &lt; α → <b>reject H₀</b>; otherwise fail to reject.</p>`;
+     <h2>Decision rule</h2><p>p-value &lt; α → <b>reject H₀</b>; otherwise fail to reject.</p>
+     <div class="quiz"><b>Mini quiz (your reviewers already have these — untouched)</b>
+       <label><input type="radio" name="q1"> Reject H₀ when p &gt; α</label>
+       <label><input type="radio" name="q1"> Reject H₀ when p &lt; α</label>
+     </div>
+     <h2>t vs z</h2><p>Use <b>t</b> when σ is unknown and n is small; use <b>z</b> when σ is known or n is large.</p>
+     <p>Scroll around — the pills stay put and stay subtle until you hover or tap them.</p>`;
+  document.getElementById('pnotes').classList.toggle('has-notes',!!hasNotes);
   viewer.classList.add('on');
   if(scratch)notes.classList.add('on');
 }
+function closeViewer(){viewer.classList.remove('on');notes.classList.remove('on')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeViewer()});
 function mode(btn,m){
   btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
   document.getElementById('pad').style.display=m==='write'?'':'none';
