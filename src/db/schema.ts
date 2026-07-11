@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, uuid, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, uuid, unique, boolean } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -14,6 +14,8 @@ export const reviewers = pgTable("reviewers", {
   title: text("title").notNull(),
   htmlContent: text("html_content").notNull(),
   sizeBytes: integer("size_bytes").notNull(),
+  pinned: boolean("pinned").notNull().default(false),
+  subject: text("subject"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   lastOpenedAt: timestamp("last_opened_at"),

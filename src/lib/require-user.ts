@@ -16,11 +16,17 @@ export async function requireUser(): Promise<{ id: string; email: string }> {
   }
   const existing = await db.query.users.findFirst({ where: eq(users.googleSub, googleSub) });
   if (existing) return { id: existing.id, email: existing.email };
+  // Two parallel first requests can both miss the SELECT above; the loser of
+  // the INSERT race re-reads instead of throwing on the unique violation.
   const [created] = await db
     .insert(users)
     .values({ googleSub, email, name: session.user?.name ?? null })
+    .onConflictDoNothing({ target: users.googleSub })
     .returning();
-  return { id: created.id, email: created.email };
+  if (created) return { id: created.id, email: created.email };
+  const raced = await db.query.users.findFirst({ where: eq(users.googleSub, googleSub) });
+  if (!raced) throw new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  return { id: raced.id, email: raced.email };
 }
 
 // Page-facing variant: redirects to /signin instead of throwing.
