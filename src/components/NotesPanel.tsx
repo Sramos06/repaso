@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { renderMarkdown } from "@/lib/render-md";
 
-export default function NotesPanel({ reviewerId, open }: { reviewerId: string | null; open: boolean }) {
+export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: string | null; open: boolean; onClose?: () => void }) {
   const key = `repaso-draft-${reviewerId ?? "scratchpad"}`;
   const [text, setText] = useState("");
   const [state, setState] = useState<"loading" | "saved" | "saving" | "offline">("loading");
+  const [view, setView] = useState<"write" | "preview">("write");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // Tracks whether the user has typed since mount, so the in-flight mount GET
   // knows to discard its result instead of clobbering newer keystrokes.
@@ -74,6 +76,20 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
     return () => { cancelled = true; clearTimeout(timer.current); };
   }, [reviewerId]);
 
+  // When the connection returns, push any locally-kept draft to the server.
+  useEffect(() => {
+    function onOnline() {
+      const draft = localStorage.getItem(key);
+      if (draft == null) return;
+      const seq = ++saveSeq.current;
+      setState("saving");
+      save(draft, seq);
+    }
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviewerId]);
+
   function onChange(v: string) {
     dirtyRef.current = true;
     const seq = ++saveSeq.current; // keystroke immediately invalidates any in-flight save
@@ -87,9 +103,19 @@ export default function NotesPanel({ reviewerId, open }: { reviewerId: string | 
     <aside className={`notes${open ? " on" : ""}`}>
       <header>
         <h5>margin notes</h5>
-        <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", offline: "KEPT LOCALLY — will sync" }[state]}</span>
+        <div className="seg">
+          <button type="button" className={view === "write" ? "on" : ""} onClick={() => setView("write")}>Write</button>
+          <button type="button" className={view === "preview" ? "on" : ""} onClick={() => setView("preview")}>Preview</button>
+        </div>
+        {onClose && <button type="button" className="nclose" onClick={onClose} aria-label="Close notes">✕</button>}
       </header>
-      <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading"} placeholder="Write anything — it autosaves…" />
+      {view === "write" ? (
+        <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading"} placeholder="Write anything — it autosaves…" />
+      ) : (
+        // Safe: renderMarkdown escapes ALL input before adding its own tags.
+        <div className="notes-preview" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
+      )}
+      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", offline: "KEPT LOCALLY — will sync" }[state]}</span>
     </aside>
   );
 }
