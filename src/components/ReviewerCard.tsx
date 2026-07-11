@@ -1,10 +1,35 @@
 import Link from "next/link";
 import type { DeskReviewer } from "./DeskClient";
 
-export default function ReviewerCard({ r }: { r: DeskReviewer }) {
+type Props = {
+  r: DeskReviewer;
+  menuOpen: boolean;
+  onMenuToggle: () => void;
+  onPin: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+};
+
+// The whole card is a Link; action buttons preventDefault so taps on them
+// never navigate into the viewer.
+function stop(e: React.MouseEvent, fn: () => void) {
+  e.preventDefault();
+  e.stopPropagation();
+  fn();
+}
+
+export default function ReviewerCard({ r, menuOpen, onMenuToggle, onPin, onRename, onDelete }: Props) {
   return (
     <Link href={`/viewer/${r.id}`} className="card">
-      {r.pinned && <span className="pinflag" title="Pinned">📌</span>}
+      <button type="button" className={`pin${r.pinned ? " on" : ""}`} title={r.pinned ? "Unpin" : "Pin to top"} onClick={(e) => stop(e, onPin)}>📌</button>
+      <button type="button" className="more" aria-label="Reviewer actions" onClick={(e) => stop(e, onMenuToggle)}>⋯</button>
+      {menuOpen && (
+        <div className="ctx" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+          <button type="button" onClick={(e) => stop(e, onRename)}>✏️ Rename</button>
+          <button type="button" onClick={(e) => stop(e, onPin)}>📌 {r.pinned ? "Unpin" : "Pin"}</button>
+          <button type="button" className="del" onClick={(e) => stop(e, onDelete)}>🗑 Delete</button>
+        </div>
+      )}
       {r.subject && <span className="subject">{r.subject}</span>}
       <h4>{r.title}</h4>
       <div className="meta">

@@ -52,7 +52,7 @@ header { display: flex; align-items: center; gap: 16px; margin-bottom: 34px; }
 .avatar {
   width: 40px; height: 40px; border-radius: 50%; background: var(--sage); color: #fff;
   display: grid; place-items: center; font-weight: 700; letter-spacing: .5px;
-  border: 2px solid var(--card); box-shadow: var(--shadow); flex: none; cursor: pointer;
+  border: 2px solid var(--card); font-family: var(--font-body); box-shadow: var(--shadow); flex: none; cursor: pointer;
   transition: transform .15s;
 }
 .avatar:hover { transform: scale(1.06); }
@@ -131,6 +131,74 @@ a.card { color: inherit; text-decoration: none; }
 .card .meta .noteflag { display: flex; align-items: center; gap: 4px; color: var(--sage); font-weight: 700; }
 .card .meta .noteflag svg { width: 12px; height: 12px; }
 .empty { color: var(--ink-soft); font-size: 14px; padding: 24px 4px; font-style: italic; font-family: var(--font-display); }
+
+/* ---------- card actions ---------- */
+.card .pin {
+  position: absolute; top: 8px; right: 34px; background: none; border: none; cursor: pointer;
+  font-size: 15px; opacity: .35; transition: opacity .15s; padding: 2px;
+}
+.card .pin.on, .card .pin:hover { opacity: 1; }
+.card .more {
+  position: absolute; top: 6px; right: 8px; background: none; border: none; cursor: pointer;
+  color: var(--ink-soft); font-size: 17px; font-weight: 800; letter-spacing: 1px;
+  padding: 2px 6px; border-radius: 6px;
+}
+.card .more:hover { background: var(--paper); }
+.ctx {
+  position: absolute; top: 32px; right: 8px; background: var(--card); border-radius: 10px; z-index: 30;
+  box-shadow: 0 4px 8px rgba(43,33,24,.12), 0 14px 34px -8px rgba(43,33,24,.3); padding: 6px; min-width: 150px;
+}
+.ctx button {
+  display: flex; gap: 9px; align-items: center; width: 100%; background: none; border: none; cursor: pointer;
+  font-family: var(--font-body); font-size: 13.5px; padding: 8px 11px; border-radius: 7px; text-align: left; color: var(--ink);
+}
+.ctx button:hover { background: var(--paper); }
+.ctx button.del { color: var(--terra-deep); }
+
+/* ---------- avatar menu ---------- */
+.avatar-wrap { position: relative; flex: none; }
+.menu {
+  position: absolute; right: 0; top: 48px; background: var(--card); border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(43,33,24,.12), 0 14px 34px -8px rgba(43,33,24,.3);
+  padding: 8px; min-width: 220px; z-index: 60;
+}
+.menu .who { padding: 8px 12px 10px; border-bottom: 1px solid var(--rule); margin-bottom: 6px; }
+.menu .who b { display: block; font-size: 14px; }
+.menu .who span { font-size: 12px; color: var(--ink-soft); word-break: break-all; }
+.menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; cursor: pointer;
+  font-family: var(--font-body); font-size: 14px; color: var(--ink); padding: 9px 12px; border-radius: 8px; text-align: left;
+}
+.menu button:hover { background: var(--paper); }
+.menu button:disabled { opacity: .55; cursor: default; }
+.menu button.out { color: var(--terra-deep); }
+.menu form { margin: 0; }
+.menu-err { font-size: 12px; color: var(--terra-deep); padding: 4px 12px 6px; }
+
+/* ---------- modals + toast ---------- */
+.overlay { position: fixed; inset: 0; z-index: 150; background: rgba(43,33,24,.35); display: grid; place-items: center; padding: 20px; }
+.modal { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 26px 24px; width: 100%; max-width: 400px; }
+.modal h3 { font-family: var(--font-display); font-weight: 600; font-size: 20px; margin-bottom: 14px; }
+.modal-sub { font-size: 14px; color: var(--ink-soft); margin-bottom: 16px; line-height: 1.55; }
+.modal label { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); margin-bottom: 14px; }
+.modal label small { font-weight: 400; letter-spacing: 0; }
+.modal input {
+  display: block; width: 100%; margin-top: 6px; border: 1.5px solid var(--rule); border-radius: 8px;
+  background: var(--paper); padding: 10px 12px; font-family: var(--font-body); font-size: 14.5px; color: var(--ink);
+}
+.modal input:focus { outline: none; border-color: var(--terra); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+.modal-actions button { border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 13.5px; padding: 10px 18px; border-radius: 999px; }
+.modal-actions .ghost { background: none; color: var(--ink-soft); }
+.modal-actions .ghost:hover { background: var(--paper); }
+.modal-actions .solid { background: var(--ink); color: var(--paper); }
+.modal-actions .danger { background: var(--terra); color: #FFF4E8; }
+.modal-actions .danger:hover { background: var(--terra-deep); }
+.modal-actions button:disabled { opacity: .55; cursor: default; }
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--paper);
+  border-radius: 999px; padding: 10px 22px; font-size: 13.5px; z-index: 200; box-shadow: var(--shadow);
+}
 
 /* ---------- scratchpad fab ---------- */
 .fab {
