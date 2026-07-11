@@ -106,3 +106,19 @@ notes      id · user_id → users · reviewer_id → reviewers (nullable; null 
 ## 12. Build order
 
 Prototypes (3+ looks, pick one) → project scaffold → schema + migrations → auth → upload/library/viewer/notes → PWA → security pass → deploy → phone install test.
+
+---
+
+## Addendum — v1.5 (locked 2026-07-11)
+
+**Shell (round-2 prototype pick, refined):** `prototypes/round2/a-desk-drawers.html` is the visual source of truth.
+
+- **Desk** = brand + search bar + avatar menu + card grid, nothing else. Subject filter chips and exam countdowns were CUT by Shawn (redundant with search / unwanted). Subjects survive only as an optional small label on cards (set via the rename dialog) and as searchable text.
+- **Cards** gain pin (pinned-first sort), ⋯ menu (rename title+subject, pin, delete with confirm), and a "has notes" flag.
+- **Avatar menu**: signed-in email, **export backup** (client-assembled JSON — Vercel response cap forces per-reviewer fetches), **log out**.
+- **Viewer = focus mode**: the sandboxed iframe owns the whole screen; the only Repaso chrome is two translucent floating pills (← Desk, ✎ Notes with a dot when notes exist) in the app's own layer above the iframe — the uploaded file is never modified. Pills are always-visible-translucent (iframe swallows mouse events, so idle-hide is unreliable).
+- **Notes** = slide-over drawer (right on desktop, bottom sheet on phone) with Write/Preview toggle (tiny escaped-first markdown subset — no new deps) and a ✕ close.
+- **Offline easy tier**: `public/sw.js` network-first with cache fallback (shell + opened reviewers); notes drafts re-sync on the `online` event. Full local-first is a documented future route: `docs/local-first-upgrade-path.md`.
+- Deferred still: themes (needs a settings screen), multi-user, non-HTML file types.
+
+Plan: `docs/superpowers/plans/2026-07-11-repaso-v1.5.md`.
