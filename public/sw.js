@@ -23,14 +23,14 @@ async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) (await caches.open(cacheName)).put(request, response.clone());
+  if (response.ok && !response.redirected) (await caches.open(cacheName)).put(request, response.clone());
   return response;
 }
 
 async function networkFirst(request, cacheName) {
   try {
     const response = await fetch(request);
-    if (response.ok) (await caches.open(cacheName)).put(request, response.clone());
+    if (response.ok && !response.redirected) (await caches.open(cacheName)).put(request, response.clone());
     return response;
   } catch {
     const cached = await caches.match(request);
