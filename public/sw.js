@@ -31,7 +31,12 @@ self.addEventListener("message", (event) => {
       await Promise.all(
         data.urls.map(async (u) => {
           try {
-            if (await cache.match(u)) return; // already cached — don't refetch
+            // Structurally enforce the same guards as the fetch handler:
+            // same-origin only, never auth routes — don't trust the caller's list.
+            const parsed = new URL(u, self.location.origin);
+            if (parsed.origin !== self.location.origin) return;
+            if (parsed.pathname.startsWith("/api/auth")) return;
+            if (await caches.match(u, { ignoreVary: true })) return; // already cached anywhere — don't refetch
             const res = await fetch(u, { credentials: "same-origin" });
             if (res.ok && !res.redirected) await cache.put(u, res.clone());
           } catch {
