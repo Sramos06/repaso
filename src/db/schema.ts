@@ -19,6 +19,9 @@ export const reviewers = pgTable("reviewers", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   lastOpenedAt: timestamp("last_opened_at"),
+  archivedAt: timestamp("archived_at"),
+  shareToken: text("share_token").unique(),
+  contentText: text("content_text"),
 });
 
 export const notes = pgTable(
