@@ -122,3 +122,16 @@ Prototypes (3+ looks, pick one) → project scaffold → schema + migrations →
 - Deferred still: themes (needs a settings screen), multi-user, non-HTML file types.
 
 Plan: `docs/superpowers/plans/2026-07-11-repaso-v1.5.md`.
+
+---
+
+## Addendum — v1.6 (locked 2026-07-11, post-v1.5 ship)
+
+Four features, all "complete the loop" on existing surface — no new screens beyond the public share page. UI iterates on the locked v1.5 shell (no prototype round, per Shawn's standing rule).
+
+1. **Archive shelf** — `reviewers.archived_at` (nullable timestamp; null = on the desk). ⋯ menu gains Archive/Unarchive. Desk grid hides archived; below it, a collapsed `In the drawer (N)` section (seclabel idiom) expands to show archived cards slightly faded. Search matches archived too (badged). Viewer/notes unaffected.
+2. **Share link (private capability URL)** — `reviewers.share_token` (nullable text, unique; 24 random bytes base64url ≈ 192-bit, generated server-side with `crypto.randomBytes`). ⋯ menu "Share link" → modal with the `https://…/s/<token>` URL, copy + revoke. Public page `/s/[token]` (middleware-exempt) renders the reviewer read-only in the SAME sandboxed iframe (`allow-scripts` only, no-referrer), content fetched client-side from public `GET /api/share/[token]` (404 on unknown/revoked). No listing anywhere; default private; tokens NEVER included in export backups. Small "Kept on Repaso ✦" footer pill for the promotion angle.
+3. **Import / Restore** — avatar menu "Import backup". Client-side orchestration reusing existing endpoints (server validation + 4 MB caps apply for free): parse backup JSON (accepts version 1 and 2), per reviewer → POST /api/reviewers (File from htmlContent) → PATCH subject/pinned/archived; note → PUT /api/notes. Policies: skip reviewers whose title already exists (reported); scratchpad written only if current scratchpad is empty; createdAt not preserved (dialog copy says so). Export bumps to **version 2**: adds `pinned` + `archived` per reviewer (still no tokens, no ids needed).
+4. **Content search** — `reviewers.content_text` (text): tag-stripped searchable text, populated at upload (and by a one-time backfill for existing rows; stripper = pure lib `strip-html.ts`: drop script/style blocks, strip tags, decode basic entities, collapse whitespace). New `GET /api/search?q=` (user-scoped, `ILIKE %escaped%` on content_text — fine at personal scale) returns matching ids. Desk: title/subject filtering stays instant client-side; queries ≥3 chars also debounce-hit the API and merge results, cards matched only by content get a "found inside" badge. Offline degrades to title/subject search (SW doesn't cache /api/search).
+
+Schema deltas applied via direct SQL script (drizzle-kit push still blocked by the NULLS NOT DISTINCT prompt — v1.5 lesson). Deferred still: themes, multi-user, full local-first, published shelf, drop-box, stats (idea board).
