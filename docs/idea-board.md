@@ -2,13 +2,11 @@
 
 Running list of feature ideas. Status: **picked** (next round), **candidate** (liked, unscheduled), **parked** (probably not, keep the thought), **rejected** (decided against, with reason).
 
-_Last updated: 2026-07-11 (post-v1.5 ship)._
+_Last updated: 2026-07-12 (post-v1.6 ship)._
 
-## Picked — v1.6 shortlist (pending final go)
-- **Archive shelf** — "Archive" on the ⋯ menu tucks old reviewers into a drawer off the desk; still searchable, never deleted. Keeps the desk feeling like the current semester.
-- **Share link (private, per-reviewer)** — generate a secret, revocable read-only link for one reviewer. Recipient opens it on the Repaso domain (app-branded, no account needed). Nothing else becomes public; default stays private.
-- **Import / Restore** — load an exported `repaso-backup-*.json` back in (new-laptop migration ~Aug 2026 is the driver). Completes the Export loop.
-- **Content search** — desk search also matches text *inside* reviewer HTML (Postgres full-text). Desk-only change: results are still just cards; the viewer is untouched.
+## Shipped
+- **v1.5** (2026-07-11): search desk, pins, rename/delete, export, logout, focus viewer, offline tier.
+- **v1.6** (2026-07-12): **Archive shelf** (⋯ Archive → "In the drawer" section, searchable, never deleted) · **Share link** (private revocable `/s/<token>` capability URL, app-branded, nothing else public) · **Import / Restore** (load a `repaso-backup-*.json`; export bumped to v2 with pin/archive) · **Content search** (desk search also matches text *inside* reviewer HTML; results still just cards, "found inside" badge, viewer untouched).
 
 ## Candidates (liked in discussion, not yet picked)
 - **Replace file (keep notes)** — ⋯ menu action to swap a reviewer's HTML with an updated version without duplicating the card or orphaning notes.
