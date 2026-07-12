@@ -135,3 +135,18 @@ Four features, all "complete the loop" on existing surface — no new screens be
 4. **Content search** — `reviewers.content_text` (text): tag-stripped searchable text, populated at upload (and by a one-time backfill for existing rows; stripper = pure lib `strip-html.ts`: drop script/style blocks, strip tags, decode basic entities, collapse whitespace). New `GET /api/search?q=` (user-scoped, `ILIKE %escaped%` on content_text — fine at personal scale) returns matching ids. Desk: title/subject filtering stays instant client-side; queries ≥3 chars also debounce-hit the API and merge results, cards matched only by content get a "found inside" badge. Offline degrades to title/subject search (SW doesn't cache /api/search).
 
 Schema deltas applied via direct SQL script (drizzle-kit push still blocked by the NULLS NOT DISTINCT prompt — v1.5 lesson). Deferred still: themes, multi-user, full local-first, published shelf, drop-box, stats (idea board).
+
+---
+
+## Addendum — v1.7 (locked 2026-07-12, post-v1.6 ship)
+
+Six "complete the loop" features, two themes: **find & jump** and **take it with you**. UI iterates on the locked shell (no prototype round). No schema change (the desk query adds `lastOpenedAt`, which already exists).
+
+1. **Continue studying** — a strip atop the desk with the last few opened reviewers (uses `lastOpenedAt`). Hidden while searching or when none opened.
+2. **Command palette** — Ctrl/Cmd-K overlay to jump to any reviewer by name (arrow keys + Enter); the search bar stays the mobile path.
+3. **Search snippets** — content-search results show the matching sentence with the term highlighted. `makeSnippet` returns PLAIN text (content_text is search-only and may contain tag-shaped text); the client highlights by splitting into React nodes, NEVER `dangerouslySetInnerHTML`. Search API contract `{ ids }` → `{ results: [{ id, snippet }] }`.
+4. **Download the .html** — save the original single-file HTML back to the device: a ⋯-menu action in the app and a Download button on the public `/s/<token>` page.
+5. **Everything readable offline** (the real PUP win) — precache EVERY reviewer's page shell + content, not just opened ones. A plain client `fetch` won't cache a page-shell navigation, so the client posts the URL list and a service-worker `message` handler `cache.put`s them. SW `VERSION` → v2; offline navigation fallback uses `{ ignoreVary: true }` (Next sets Vary). Read-only, no writes/sync — the low-risk stepping stone toward the promoted full local-first version, not that version.
+6. **Available-offline indicator + offline banner** — per-card badge when a reviewer's content is cached (`caches.match`); an app-level "Offline — showing your saved reviewers" banner (mounted in layout, `navigator.onLine`).
+
+Plan: `docs/superpowers/plans/2026-07-12-repaso-v1.7.md`.
