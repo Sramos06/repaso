@@ -46,40 +46,48 @@ export async function importBackup(file: File): Promise<ImportResult> {
   const result: ImportResult = { added: 0, skipped: [], failed: [] };
   for (const r of parsed.data.reviewers) {
     if (have.has(r.title.toLowerCase())) { result.skipped.push(r.title); continue; }
+    let created: { id?: string } | undefined;
     try {
       const fd = new FormData();
       fd.append("files", new File([r.htmlContent], `${r.title}.html`, { type: "text/html" }));
       const up = await fetch("/api/reviewers", { method: "POST", body: fd });
-      const created = (await up.json().catch(() => null))?.created?.[0];
-      if (!created?.id) { result.failed.push(r.title); continue; }
-      // Best-effort metadata; the reviewer already exists even if this fails.
-      await fetch(`/api/reviewers/${created.id}`, {
+      created = (await up.json().catch(() => null))?.created?.[0];
+    } catch { created = undefined; }
+    if (!created?.id) { result.failed.push(r.title); continue; }
+    // The reviewer row now exists — count it as added and register its title so a
+    // later same-titled entry is skipped. The metadata below is best-effort: a
+    // failure degrades pin/archive/subject/title but never un-creates the file.
+    const id = created.id;
+    have.add(r.title.toLowerCase());
+    result.added++;
+    try {
+      await fetch(`/api/reviewers/${id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: r.title, subject: r.subject, pinned: r.pinned, archived: r.archived }),
       });
-      if (r.noteMd) {
+    } catch { /* best-effort metadata */ }
+    if (r.noteMd) {
+      try {
         await fetch("/api/notes", {
           method: "PUT", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reviewerId: created.id, contentMd: r.noteMd }),
+          body: JSON.stringify({ reviewerId: id, contentMd: r.noteMd }),
         });
-      }
-      have.add(r.title.toLowerCase());
-      result.added++;
-    } catch { result.failed.push(r.title); }
+      } catch { /* best-effort note */ }
+    }
   }
 
-  // Scratchpad: only write if the current one is empty, so import never clobbers.
+  // Scratchpad: only write when we could CONFIRM the current one is empty. A failed
+  // read must not be treated as empty — that would clobber real notes.
   if (parsed.data.scratchpad) {
     try {
       const sres = await fetch("/api/notes?reviewerId=scratchpad");
-      const scur = sres.ok ? ((await sres.json()).contentMd ?? "") : "";
-      if (!scur) {
+      if (sres.ok && !((await sres.json()).contentMd ?? "")) {
         await fetch("/api/notes", {
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reviewerId: "scratchpad", contentMd: parsed.data.scratchpad }),
         });
       }
-    } catch { /* non-fatal */ }
+    } catch { /* non-fatal: on any error, leave the existing scratchpad untouched */ }
   }
   return result;
 }
