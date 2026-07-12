@@ -1,10 +1,11 @@
 // Repaso offline tier (easy mode): network-first everywhere it matters, so
 // online behavior is unchanged; the cache only steps in when the network is gone.
 // Bump VERSION to invalidate all caches on deploy of a breaking change.
-const VERSION = "repaso-sw-v1";
+const VERSION = "repaso-sw-v2";
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
 const API_CACHE = `${VERSION}-api`;
+const PRECACHE = `${VERSION}-precache`;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -16,6 +17,29 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) => Promise.all(keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+  );
+});
+
+// Proactive precache: the client hands us every reviewer's page-shell + content
+// URL so they open offline, not just the ones already visited. Read-only.
+self.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || data.type !== "precache" || !Array.isArray(data.urls)) return;
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(PRECACHE);
+      await Promise.all(
+        data.urls.map(async (u) => {
+          try {
+            if (await cache.match(u)) return; // already cached — don't refetch
+            const res = await fetch(u, { credentials: "same-origin" });
+            if (res.ok && !res.redirected) await cache.put(u, res.clone());
+          } catch {
+            /* offline or transient — skip; will retry on a later app load */
+          }
+        })
+      );
+    })()
   );
 });
 
@@ -33,7 +57,7 @@ async function networkFirst(request, cacheName) {
     if (response.ok && !response.redirected) (await caches.open(cacheName)).put(request, response.clone());
     return response;
   } catch {
-    const cached = await caches.match(request);
+    const cached = await caches.match(request, { ignoreVary: true });
     return cached ?? new Response(JSON.stringify({ error: "You're offline and this isn't cached yet." }), {
       status: 503,
       headers: { "Content-Type": "application/json" },
