@@ -8,12 +8,17 @@ _Last updated: 2026-07-12 (post-v1.6, triage with Shawn)._
 - **v1.5** (2026-07-11): search desk, pins, rename/delete, export, logout, focus viewer, offline tier.
 - **v1.6** (2026-07-12): archive shelf · private share links (`/s/<token>`) · import/restore (export v2) · content search ("found inside").
 
+## Next major — full local-first offline (promoted 2026-07-12)
+**Why it moved up:** PUP often has no internet and Shawn's data signal is slow/unreliable — reading (and ideally editing) reviewers offline is a real need, not a nice-to-have.
+**Why it's its own dedicated version, not bundled:** true offline = a sync engine + conflict resolution, which is exactly where data-loss bugs hide (we already spent 3 review rounds on notes-autosave races in v1.5; full sync is that, for everything). It gets its own brainstorm + spec + careful TDD, not a rushed add-on. This is Shawn's precious "never disappears" data.
+**Sequencing:** v1.7 ships the cheap, low-risk stepping stone — **all reviewers *readable* offline** (precache every reviewer's content, not just opened ones). This version then adds true offline *editing/uploads* + the sync engine: IndexedDB as source of truth, a mutation queue with per-row `updatedAt` version stamps, push-when-online, conflict = keep-both-never-drop. Route doc: `local-first-upgrade-path.md`.
+
 ## Near-term — standalone, buildable now (no new host surface needed)
 - **Continue studying row** — a strip at the top of the desk with your last few opened reviewers. Uses `lastOpenedAt`, already tracked. (Shawn: yes.)
 - **Command palette / quick jump** — key to focus search + jump to any reviewer by name without scrolling. (Shawn: yes.)
 - **Search snippets** — content-search results show the sentence the match is in, with the word highlighted (escaped — content is search-only). Upgrades "found inside" to "found inside, *here*." (Shawn: yes.)
 - **Download the .html file** (Shawn 2026-07-12) — save the original single-file HTML back to the device, in TWO places: (1) in the app (⋯ / viewer) for yourself, (2) on the public `/s/<token>` page so recipients keep a copy. Trivial: we hold `htmlContent` → Blob download.
-- **"Available offline" indicator + "Make available offline"** (Shawn 2026-07-12) — per-card badge when a reviewer is cached (`caches.match('/api/reviewers/<id>')`); an app-level online/offline banner; and a manual action to force-cache a reviewer you haven't opened yet. Makes the existing offline tier *legible*.
+- **Everything readable offline + "available offline" indicator** (Shawn 2026-07-12) — v1.7 approach: **precache every reviewer's content on app load** (while online) so all of them — not just opened ones — open offline. Per-card badge reflects cache state (`caches.match('/api/reviewers/<id>')`); app-level online/offline banner. This is the low-risk stepping stone toward the full local-first version above; it solves offline *reading* (the actual PUP pain) without the sync-engine rewrite.
 - **Replace file (keep notes)** — ⋯ action to swap a reviewer's HTML for an updated version without duplicating the card or orphaning notes.
 - **PWA app shortcuts** — long-press icon → "Scratchpad" / "Last opened" (manifest `shortcuts`, near-zero effort).
 - **Wake-lock reading mode** — keep the screen awake while a reviewer is open (no timer). Small.
@@ -44,10 +49,9 @@ _Parked until we actually decide to grow past single-user; requirements unknown 
 - **Study timer / Pomodoro** (Shawn 2026-07-12: timers on things stress him out — leave it off).
 - **Flashcard drill from notes** (reviewers already have quizzes; redundant).
 - **Exam countdowns / +Add exam** (cut from the v1.5 shell; don't re-pitch in UI).
-- **Full local-first offline** — documented route in `local-first-upgrade-path.md`; waits until the easy tier feels limiting.
+- **PDF / other file types** (moved from Rejected 2026-07-12 — Shawn: too useful to write off forever). The 4 MB per-file cap makes PDFs awkward today, but revisit: a viewer that handles PDF/images would broaden what a "reviewer" can be. Likely rides along with the **upload makeover** bundle.
 
 ## Rejected (with reason)
 - **Annotations/highlights inside the reviewer file** — the iframe sandbox that protects uploaded HTML blocks injecting our UI into it. Notes drawer is the annotation surface.
-- **PDF/other file types** — 4 MB per-file cap makes PDFs awkward; single-file HTML fits how the reviewers are made.
 - **In-app AI generation** — every call costs money server-side; breaks ₱0. Claude generates content free at build time instead.
 - **Google Keep integration** — no public consumer API.
