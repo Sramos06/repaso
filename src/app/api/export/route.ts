@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const user = await requireUser();
     const reviewerRows = await db
-      .select({ id: reviewers.id, title: reviewers.title, subject: reviewers.subject, createdAt: reviewers.createdAt })
+      .select({ id: reviewers.id, title: reviewers.title, subject: reviewers.subject, pinned: reviewers.pinned, archivedAt: reviewers.archivedAt, createdAt: reviewers.createdAt })
       .from(reviewers)
       .where(eq(reviewers.userId, user.id))
       .orderBy(desc(reviewers.createdAt));
