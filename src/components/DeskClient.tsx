@@ -6,9 +6,13 @@ import { useRouter } from "next/navigation";
 import UploadZone from "./UploadZone";
 import ReviewerCard from "./ReviewerCard";
 import AvatarMenu from "./AvatarMenu";
+import CommandPalette from "./CommandPalette";
+import { downloadText, htmlFilename } from "@/lib/download-file";
+import { precacheReviewers, cachedReviewerIds } from "@/lib/offline-cache";
 
 export type DeskReviewer = {
-  id: string; title: string; subject: string | null; pinned: boolean; archived: boolean; date: string; hasNotes: boolean;
+  id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
+  lastOpenedAt: string | null; date: string; hasNotes: boolean;
 };
 
 type Dialog =
@@ -27,39 +31,69 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [contentIds, setContentIds] = useState<Set<string>>(new Set());
+  const [contentHits, setContentHits] = useState<Map<string, string>>(new Map());
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [offlineIds, setOfflineIds] = useState<Set<string>>(new Set());
   const searchSeq = useRef(0);
   const shareSeq = useRef(0);
 
   const q = query.trim().toLowerCase();
+  const term = query.trim();
   const matchTS = (r: DeskReviewer) => r.title.toLowerCase().includes(q) || (r.subject ?? "").toLowerCase().includes(q);
 
-  // Content search: title/subject filtering stays instant; ≥3 chars also hits
-  // the API and merges by id. Offline the fetch fails silently → title/subject only.
+  // Content search → id→snippet map. title/subject stays instant; ≥3 chars hits the API.
   useEffect(() => {
-    const term = query.trim();
-    // Bump on every query change (including <3 chars) so an in-flight fetch from a
-    // previous longer query can't repopulate ids for a query we've already moved past.
+    const t = query.trim();
     const seq = ++searchSeq.current;
-    if (term.length < 3) { setContentIds(new Set()); return; }
-    const t = setTimeout(async () => {
+    if (t.length < 3) { setContentHits(new Map()); return; }
+    const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(t)}`);
         if (seq !== searchSeq.current) return;
-        if (res.ok) setContentIds(new Set(((await res.json()).ids ?? []) as string[]));
+        if (res.ok) {
+          const data = await res.json();
+          setContentHits(new Map(((data.results ?? []) as { id: string; snippet: string }[]).map((x) => [x.id, x.snippet])));
+        }
       } catch { /* offline: title/subject only */ }
     }, 250);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [query]);
+
+  // Ctrl/Cmd-K opens the command palette.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setPaletteOpen(true); }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Offline: precache every reviewer, then reflect what's cached on the cards.
+  const allIds = useMemo(() => reviewers.map((r) => r.id), [reviewers]);
+  useEffect(() => {
+    let cancelled = false;
+    async function refresh() { const s = await cachedReviewerIds(allIds); if (!cancelled) setOfflineIds(s); }
+    refresh();
+    if (navigator.onLine) {
+      precacheReviewers(allIds);
+      const t = setTimeout(refresh, 3000); // re-check after the SW has had time to cache
+      return () => { cancelled = true; clearTimeout(t); };
+    }
+    return () => { cancelled = true; };
+  }, [allIds]);
 
   const active = useMemo(() => reviewers.filter((r) => !r.archived), [reviewers]);
   const archived = useMemo(() => reviewers.filter((r) => r.archived), [reviewers]);
+  const recent = useMemo(
+    () => reviewers.filter((r) => !r.archived && r.lastOpenedAt).sort((a, b) => (a.lastOpenedAt! < b.lastOpenedAt! ? 1 : -1)).slice(0, 4),
+    [reviewers]
+  );
   const results = useMemo(
-    () => (q ? reviewers.filter((r) => matchTS(r) || contentIds.has(r.id)) : []),
+    () => (q ? reviewers.filter((r) => matchTS(r) || contentHits.has(r.id)) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [q, reviewers, contentIds]
+    [q, reviewers, contentHits]
   );
 
   function say(msg: string) { setFlash(msg); setTimeout(() => setFlash(null), 2200); }
@@ -80,6 +114,19 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const toggleArchive = (r: DeskReviewer) =>
     call(r.id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: !r.archived }) }, r.archived ? "Back on the desk" : "Moved to the drawer");
 
+  async function downloadReviewer(r: DeskReviewer) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/reviewers/${r.id}`);
+      if (!res.ok) { say("Couldn’t download — try again."); return; }
+      const data = await res.json();
+      downloadText(htmlFilename(r.title), data.htmlContent ?? "");
+      say("Downloaded");
+    } catch { say("Could not reach the server — check your connection."); }
+    finally { setBusy(false); }
+  }
+
   function openRename(r: DeskReviewer) { setDraftTitle(r.title); setDraftSubject(r.subject ?? ""); setDialog({ kind: "rename", r }); }
   const saveRename = () =>
     dialog?.kind === "rename" &&
@@ -93,7 +140,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
       const res = await fetch(`/api/reviewers/${r.id}/share`, { method: "POST" });
       if (!res.ok) throw new Error();
       const { token } = await res.json();
-      if (seq !== shareSeq.current) return; // a newer Share dialog superseded this one
+      if (seq !== shareSeq.current) return;
       setShareUrl(`${window.location.origin}/s/${token}`); setShareStatus("idle");
     } catch { if (seq === shareSeq.current) setShareStatus("error"); }
   }
@@ -114,11 +161,13 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
 
   const menuProps = (r: DeskReviewer) => ({
     menuOpen: menuFor === r.id,
+    offline: offlineIds.has(r.id),
     onMenuToggle: () => setMenuFor(menuFor === r.id ? null : r.id),
     onPin: () => { setMenuFor(null); togglePin(r); },
     onRename: () => { setMenuFor(null); openRename(r); },
     onArchive: () => { setMenuFor(null); toggleArchive(r); },
     onShare: () => { setMenuFor(null); openShare(r); },
+    onDownload: () => { setMenuFor(null); downloadReviewer(r); },
     onDelete: () => { setMenuFor(null); setDialog({ kind: "delete", r }); },
   });
 
@@ -140,13 +189,27 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
           <div className="seclabel"><h3>Results</h3><div className="line" /><span className="count">{results.length} FOUND</span></div>
           <div className="cards">
             {results.map((r) => (
-              <ReviewerCard key={r.id} r={r} contentHit={!matchTS(r) && contentIds.has(r.id)} {...menuProps(r)} />
+              <ReviewerCard key={r.id} r={r} contentHit={!matchTS(r) && contentHits.has(r.id)} snippet={contentHits.get(r.id)} term={term} {...menuProps(r)} />
             ))}
             {results.length === 0 && <p className="empty">Nothing matches that…</p>}
           </div>
         </>
       ) : (
         <>
+          {recent.length > 0 && (
+            <>
+              <div className="seclabel"><h3>Continue studying</h3><div className="line" /></div>
+              <div className="recent-row">
+                {recent.map((r) => (
+                  <Link key={r.id} href={`/viewer/${r.id}`} className="recent-chip">
+                    {r.subject && <span className="rs">{r.subject}</span>}
+                    <span className="rt">{r.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+
           <div className="seclabel"><h3>On the desk</h3><div className="line" /><span className="count">{active.length} FILES</span></div>
           <div className="cards">
             {active.map((r) => <ReviewerCard key={r.id} r={r} {...menuProps(r)} />)}
@@ -169,6 +232,10 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
       )}
 
       <Link href="/viewer/scratchpad" className="fab">✎ Scratchpad</Link>
+
+      {paletteOpen && (
+        <CommandPalette items={reviewers.map((r) => ({ id: r.id, title: r.title, subject: r.subject }))} onClose={() => setPaletteOpen(false)} />
+      )}
 
       {dialog?.kind === "rename" && (
         <div className="overlay" onClick={() => setDialog(null)}>

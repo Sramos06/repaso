@@ -7,7 +7,7 @@ import DeskClient from "@/components/DeskClient";
 export default async function Library() {
   const user = await requireUserOrRedirect();
   const rows = await db
-    .select({ id: reviewers.id, title: reviewers.title, subject: reviewers.subject, pinned: reviewers.pinned, archivedAt: reviewers.archivedAt, createdAt: reviewers.createdAt })
+    .select({ id: reviewers.id, title: reviewers.title, subject: reviewers.subject, pinned: reviewers.pinned, archivedAt: reviewers.archivedAt, lastOpenedAt: reviewers.lastOpenedAt, createdAt: reviewers.createdAt })
     .from(reviewers)
     .where(eq(reviewers.userId, user.id))
     .orderBy(desc(reviewers.pinned), desc(reviewers.createdAt));
@@ -26,6 +26,7 @@ export default async function Library() {
         subject: r.subject,
         pinned: r.pinned,
         archived: r.archivedAt !== null,
+        lastOpenedAt: r.lastOpenedAt ? r.lastOpenedAt.toISOString() : null,
         date: r.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         hasNotes: withNotes.has(r.id),
       }))}

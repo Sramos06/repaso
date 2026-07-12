@@ -16,10 +16,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       columns: { id: true, title: true, htmlContent: true },
     });
     if (!row) return NextResponse.json({ error: "Not found." }, { status: 404 });
-    await db
-      .update(reviewers)
-      .set({ lastOpenedAt: new Date() })
-      .where(and(eq(reviewers.id, id), eq(reviewers.userId, user.id)));
     return NextResponse.json(row);
   } catch (e) {
     if (e instanceof Response) return e;
