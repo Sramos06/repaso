@@ -5,11 +5,15 @@ type Props = {
   r: DeskReviewer;
   menuOpen: boolean;
   contentHit?: boolean;
+  snippet?: string;
+  term?: string;
+  offline?: boolean;
   onMenuToggle: () => void;
   onPin: () => void;
   onRename: () => void;
   onArchive: () => void;
   onShare: () => void;
+  onDownload: () => void;
   onDelete: () => void;
 };
 
@@ -20,7 +24,26 @@ function stop(e: React.MouseEvent, fn: () => void) {
   fn();
 }
 
-export default function ReviewerCard({ r, menuOpen, contentHit, onMenuToggle, onPin, onRename, onArchive, onShare, onDelete }: Props) {
+// Highlight `term` inside a plain-text snippet WITHOUT dangerouslySetInnerHTML —
+// split into React text nodes so any tag-shaped content is auto-escaped.
+function highlight(text: string, term: string) {
+  if (!term) return text;
+  const lower = text.toLowerCase();
+  const t = term.toLowerCase();
+  const out: React.ReactNode[] = [];
+  let i = 0;
+  let n = 0;
+  while (i < text.length) {
+    const at = lower.indexOf(t, i);
+    if (at === -1) { out.push(text.slice(i)); break; }
+    if (at > i) out.push(text.slice(i, at));
+    out.push(<mark key={n++}>{text.slice(at, at + term.length)}</mark>);
+    i = at + term.length;
+  }
+  return out;
+}
+
+export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, offline, onMenuToggle, onPin, onRename, onArchive, onShare, onDownload, onDelete }: Props) {
   return (
     <Link href={`/viewer/${r.id}`} className={`card${r.archived ? " archived" : ""}`}>
       {!r.archived && (
@@ -32,16 +55,19 @@ export default function ReviewerCard({ r, menuOpen, contentHit, onMenuToggle, on
           <button type="button" onClick={(e) => stop(e, onRename)}>✏️ Rename</button>
           {!r.archived && <button type="button" onClick={(e) => stop(e, onPin)}>📌 {r.pinned ? "Unpin" : "Pin"}</button>}
           <button type="button" onClick={(e) => stop(e, onShare)}>🔗 Share link</button>
+          <button type="button" onClick={(e) => stop(e, onDownload)}>⬇ Download</button>
           <button type="button" onClick={(e) => stop(e, onArchive)}>{r.archived ? "📤 Unarchive" : "🗄 Archive"}</button>
           <button type="button" className="del" onClick={(e) => stop(e, onDelete)}>🗑 Delete</button>
         </div>
       )}
       {r.subject && <span className="subject">{r.subject}</span>}
       <h4>{r.title}</h4>
+      {contentHit && snippet && <p className="snippet">{highlight(snippet, term ?? "")}</p>}
       <div className="meta">
         <span>{r.date}</span>
         <span className="flags">
           {contentHit && <span className="hitflag">found inside</span>}
+          {offline && <span className="offflag" title="Available offline">● offline</span>}
           {r.archived && <span className="archflag">archived</span>}
           {r.hasNotes && (
             <span className="noteflag">
