@@ -4,6 +4,7 @@ import { reviewers } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { requireUser } from "@/lib/require-user";
 import { validateUpload, MAX_BYTES } from "@/lib/validate-upload";
+import { stripHtml } from "@/lib/strip-html";
 
 export async function GET() {
   try {
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
         if (!check.ok) { rejected.push({ name: file.name, reason: check.reason }); continue; }
         const [row] = await db
           .insert(reviewers)
-          .values({ userId: user.id, title: check.title, htmlContent: content, sizeBytes: file.size })
+          .values({ userId: user.id, title: check.title, htmlContent: content, sizeBytes: file.size, contentText: stripHtml(content) })
           .returning({ id: reviewers.id, title: reviewers.title });
         created.push(row);
       } catch {

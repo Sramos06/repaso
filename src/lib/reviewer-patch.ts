@@ -1,4 +1,4 @@
-export type ReviewerPatch = { title?: string; subject?: string | null; pinned?: boolean };
+export type ReviewerPatch = { title?: string; subject?: string | null; pinned?: boolean; archivedAt?: Date | null };
 
 // Whitelist parser: only title/subject/pinned may change via PATCH —
 // htmlContent and ownership fields are deliberately unreachable.
@@ -23,6 +23,10 @@ export function parseReviewerPatch(
   if ("pinned" in b) {
     if (typeof b.pinned !== "boolean") return { ok: false, reason: "Pinned must be true or false." };
     patch.pinned = b.pinned;
+  }
+  if ("archived" in b) {
+    if (typeof b.archived !== "boolean") return { ok: false, reason: "Archived must be true or false." };
+    patch.archivedAt = b.archived ? new Date() : null;
   }
   if (Object.keys(patch).length === 0) return { ok: false, reason: "Nothing to update." };
   return { ok: true, patch };

@@ -26,4 +26,13 @@ describe("parseReviewerPatch", () => {
   it("ignores unknown fields", () => {
     expect(parseReviewerPatch({ title: "A", htmlContent: "<hack>" })).toEqual({ ok: true, patch: { title: "A" } });
   });
+  it("maps archived:true to an archivedAt Date and archived:false to null", () => {
+    const on = parseReviewerPatch({ archived: true });
+    expect(on.ok).toBe(true);
+    if (on.ok) expect(on.patch.archivedAt).toBeInstanceOf(Date);
+    expect(parseReviewerPatch({ archived: false })).toEqual({ ok: true, patch: { archivedAt: null } });
+  });
+  it("rejects a non-boolean archived", () => {
+    expect(parseReviewerPatch({ archived: "yes" }).ok).toBe(false);
+  });
 });
