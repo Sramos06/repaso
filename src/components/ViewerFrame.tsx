@@ -23,6 +23,8 @@ export default function ViewerFrame({ reviewerId, hasNotes }: { reviewerId: stri
         if (cancelled) return;
         setHtmlContent(data.htmlContent);
         setStatus("ready");
+        // Record the study-open (drives Continue studying); ignore failures/offline.
+        fetch(`/api/reviewers/${reviewerId}/open`, { method: "POST" }).catch(() => {});
       })
       .catch(() => {
         if (cancelled) return;
