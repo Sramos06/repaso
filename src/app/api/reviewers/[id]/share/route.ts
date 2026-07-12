@@ -18,7 +18,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     if (!existing) return NextResponse.json({ error: "Not found." }, { status: 404 });
     if (existing.shareToken) return NextResponse.json({ token: existing.shareToken });
     const token = newShareToken();
-    await db.update(reviewers).set({ shareToken: token }).where(and(eq(reviewers.id, id), eq(reviewers.userId, user.id)));
+    // Confirm the write landed (parity with DELETE/PATCH): if the reviewer was
+    // deleted between the findFirst and here, don't hand back an unpersisted token.
+    const minted = await db
+      .update(reviewers)
+      .set({ shareToken: token })
+      .where(and(eq(reviewers.id, id), eq(reviewers.userId, user.id)))
+      .returning({ id: reviewers.id });
+    if (!minted.length) return NextResponse.json({ error: "Not found." }, { status: 404 });
     return NextResponse.json({ token });
   } catch (e) {
     if (e instanceof Response) return e;

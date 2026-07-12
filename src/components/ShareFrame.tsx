@@ -21,7 +21,7 @@ export default function ShareFrame({ token }: { token: string }) {
         {status === "loading" ? (
           <div className="docpage"><p>Opening…</p></div>
         ) : status === "error" ? (
-          <div className="docpage"><h1>Link turned off</h1><p>This shared reviewer isn't available anymore.</p></div>
+          <div className="docpage"><h1>Link turned off</h1><p>This shared reviewer isn&rsquo;t available anymore.</p></div>
         ) : (
           // Same sandbox as the private viewer — allow-scripts only, no same-origin.
           <iframe className="reviewer-frame" sandbox="allow-scripts" referrerPolicy="no-referrer" srcDoc={html ?? ""} title="Shared reviewer" />
