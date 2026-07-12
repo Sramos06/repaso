@@ -31,6 +31,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<"idle" | "loading" | "error">("idle");
   const searchSeq = useRef(0);
+  const shareSeq = useRef(0);
 
   const q = query.trim().toLowerCase();
   const matchTS = (r: DeskReviewer) => r.title.toLowerCase().includes(q) || (r.subject ?? "").toLowerCase().includes(q);
@@ -39,8 +40,10 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   // the API and merges by id. Offline the fetch fails silently → title/subject only.
   useEffect(() => {
     const term = query.trim();
-    if (term.length < 3) { setContentIds(new Set()); return; }
+    // Bump on every query change (including <3 chars) so an in-flight fetch from a
+    // previous longer query can't repopulate ids for a query we've already moved past.
     const seq = ++searchSeq.current;
+    if (term.length < 3) { setContentIds(new Set()); return; }
     const t = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
@@ -84,13 +87,15 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const confirmDelete = () => dialog?.kind === "delete" && call(dialog.r.id, { method: "DELETE" }, "Deleted");
 
   async function openShare(r: DeskReviewer) {
+    const seq = ++shareSeq.current;
     setDialog({ kind: "share", r }); setShareUrl(null); setShareStatus("loading");
     try {
       const res = await fetch(`/api/reviewers/${r.id}/share`, { method: "POST" });
       if (!res.ok) throw new Error();
       const { token } = await res.json();
+      if (seq !== shareSeq.current) return; // a newer Share dialog superseded this one
       setShareUrl(`${window.location.origin}/s/${token}`); setShareStatus("idle");
-    } catch { setShareStatus("error"); }
+    } catch { if (seq === shareSeq.current) setShareStatus("error"); }
   }
   async function revokeShare() {
     if (dialog?.kind !== "share" || busy) return;
@@ -110,7 +115,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const menuProps = (r: DeskReviewer) => ({
     menuOpen: menuFor === r.id,
     onMenuToggle: () => setMenuFor(menuFor === r.id ? null : r.id),
-    onPin: () => togglePin(r),
+    onPin: () => { setMenuFor(null); togglePin(r); },
     onRename: () => { setMenuFor(null); openRename(r); },
     onArchive: () => { setMenuFor(null); toggleArchive(r); },
     onShare: () => { setMenuFor(null); openShare(r); },
