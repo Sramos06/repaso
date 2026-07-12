@@ -325,3 +325,7 @@ a.card { color: inherit; text-decoration: none; }
   }
   .notes.on { transform: none; }
 }
+
+/* ---------- shared reviewer badge ---------- */
+.pill.share-badge { bottom: 14px; right: 14px; top: auto; text-decoration: none; }
+.pill.share-badge em { color: var(--terra); font-style: italic; }
