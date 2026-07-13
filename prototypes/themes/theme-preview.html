@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Repaso — theme preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Karla:wght@400..800&family=Caveat:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     THEME TOKENS
+     Each theme is nothing but a re-set of these custom properties.
+     The real app already drives every surface off var(--…), so a
+     theme never touches markup or component code — only these values.
+     Default (:root) = Warm Paper, the current live look.
+     ============================================================ */
+  :root {
+    --paper: #F7EFE2;
+    --paper-deep: #F0E4D0;
+    --card: #FFFDF6;
+    --ink: #2B2118;
+    --ink-soft: #6B5D4F;
+    --terra: #C4552D;
+    --terra-deep: #A03E1C;
+    --sage: #7A8B6F;
+    --gold: #D9A441;
+    --rule: #E4D5BC;
+    --shadow: 0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
+    /* tokenized so dark themes read correctly (these are hardcoded in the
+       live CSS today — part of this feature is lifting them into tokens) */
+    --washi-1: rgba(122,139,111,.55);
+    --washi-2: rgba(217,164,65,.55);
+    --washi-3: rgba(196,85,45,.45);
+    --subject-bg: rgba(255,253,246,.9);
+    --glow-1: rgba(217,164,65,.12);
+    --glow-2: rgba(122,139,111,.10);
+    --grain: .5;
+    --font-display: "Fraunces", Georgia, serif;
+    --font-body: "Karla", system-ui, sans-serif;
+    --font-accent: "Caveat", cursive;
+  }
+
+  /* --- Night Library: your warm paper desk, at night.
+         Orange lives only as a low glow + accent, never orange-on-black. --- */
+  [data-theme="night"] {
+    --paper: #17130F;
+    --paper-deep: #201913;
+    --card: #241C15;
+    --ink: #EFE5D4;
+    --ink-soft: #A99A85;
+    --terra: #E4854B;
+    --terra-deep: #EC935C;
+    --sage: #94A883;
+    --gold: #E5B84F;
+    --rule: #382D22;
+    --shadow: 0 1px 2px rgba(0,0,0,.45), 0 8px 22px -6px rgba(0,0,0,.6);
+    --washi-1: rgba(148,168,131,.30);
+    --washi-2: rgba(229,184,79,.28);
+    --washi-3: rgba(228,133,75,.32);
+    --subject-bg: rgba(36,28,21,.9);
+    --glow-1: rgba(228,133,75,.10);
+    --glow-2: rgba(148,168,131,.06);
+    --grain: .35;
+  }
+
+  /* --- Coffee: espresso ink, latte paper, caramel accents. --- */
+  [data-theme="coffee"] {
+    --paper: #ECE0CE;
+    --paper-deep: #E0D0B6;
+    --card: #FBF4E8;
+    --ink: #3A2A1D;
+    --ink-soft: #7C6047;
+    --terra: #A25C2C;
+    --terra-deep: #7E4420;
+    --sage: #9C8A61;
+    --gold: #C99A4B;
+    --rule: #D8C4A4;
+    --shadow: 0 1px 2px rgba(58,42,29,.10), 0 6px 18px -6px rgba(58,42,29,.24);
+    --washi-1: rgba(156,138,97,.50);
+    --washi-2: rgba(201,154,75,.50);
+    --washi-3: rgba(162,92,44,.45);
+    --subject-bg: rgba(251,244,232,.9);
+    --glow-1: rgba(201,154,75,.14);
+    --glow-2: rgba(162,92,44,.08);
+    --grain: .55;
+  }
+
+  /* --- Matcha: tea-house calm; the accent turns green. --- */
+  [data-theme="matcha"] {
+    --paper: #EFF0E0;
+    --paper-deep: #E2E6CE;
+    --card: #FAFBF1;
+    --ink: #2B342A;
+    --ink-soft: #5C6A52;
+    --terra: #6E9457;
+    --terra-deep: #52713E;
+    --sage: #88A86B;
+    --gold: #CBA94F;
+    --rule: #D5DBBF;
+    --shadow: 0 1px 2px rgba(43,52,42,.09), 0 6px 18px -6px rgba(43,52,42,.20);
+    --washi-1: rgba(136,168,107,.50);
+    --washi-2: rgba(203,169,79,.45);
+    --washi-3: rgba(110,148,87,.40);
+    --subject-bg: rgba(250,251,241,.9);
+    --glow-1: rgba(136,168,107,.16);
+    --glow-2: rgba(203,169,79,.08);
+    --grain: .5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--font-body);
+    background:
+      radial-gradient(1200px 500px at 85% -10%, var(--glow-1), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, var(--glow-2), transparent 55%),
+      var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    transition: background .35s ease, color .35s ease;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: var(--grain); z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- theme switcher (preview-only chrome) ---------- */
+  .switcher {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 14px 22px; background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .switcher .lbl { font-family: var(--font-display); font-style: italic; font-size: 15px; margin-right: 4px; }
+  .swatch {
+    display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+    border: 1.5px solid var(--rule); background: var(--card); color: var(--ink);
+    font-family: var(--font-body); font-weight: 700; font-size: 13px;
+    padding: 7px 14px 7px 8px; border-radius: 999px; transition: border-color .15s, transform .15s;
+  }
+  .swatch:hover { transform: translateY(-1px); }
+  .swatch.active { border-color: var(--terra); box-shadow: 0 0 0 3px color-mix(in srgb, var(--terra) 22%, transparent); }
+  .swatch .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--card); box-shadow: var(--shadow); flex: none; }
+  .switcher .note { margin-left: auto; font-size: 12px; color: var(--ink-soft); font-style: italic; }
+
+  .app { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 26px 22px 90px; }
+
+  /* ---------- header ---------- */
+  header.top { display: flex; align-items: center; gap: 16px; margin-bottom: 30px; }
+  .brand h1 { font-family: var(--font-display); font-weight: 640; font-size: 30px; letter-spacing: -.02em; white-space: nowrap; }
+  .brand h1 em { color: var(--terra); font-style: italic; }
+  .search {
+    flex: 1; display: flex; align-items: center; gap: 9px; background: var(--card);
+    border: 1.5px solid var(--rule); border-radius: 999px; padding: 9px 16px; box-shadow: var(--shadow);
+  }
+  .search svg { width: 16px; height: 16px; stroke: var(--ink-soft); flex: none; }
+  .search input { border: none; outline: none; background: none; font-family: var(--font-body); font-size: 14.5px; width: 100%; color: var(--ink); }
+  .search input::placeholder { color: var(--ink-soft); }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--sage); color: #fff; display: grid; place-items: center; font-weight: 700; border: 2px solid var(--card); font-family: var(--font-body); box-shadow: var(--shadow); flex: none; }
+
+  /* ---------- continue studying ---------- */
+  .cont { margin-bottom: 34px; }
+  .cont .lead { font-family: var(--font-display); font-style: italic; font-size: 15px; color: var(--ink-soft); margin-bottom: 12px; }
+  .cont .row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .chip {
+    flex: none; width: 200px; background: var(--card); border: 1px solid var(--rule); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 12px 14px; cursor: pointer;
+  }
+  .chip .cs { font-size: 10.5px; font-weight: 800; letter-spacing: .13em; color: var(--terra-deep); text-transform: uppercase; }
+  .chip h5 { font-family: var(--font-display); font-weight: 600; font-size: 14.5px; margin: 5px 0 8px; line-height: 1.25; }
+  .chip .when { font-size: 11.5px; color: var(--ink-soft); }
+
+  /* ---------- upload ---------- */
+  .upload {
+    position: relative; border: 2px dashed var(--terra); border-radius: 14px; background: color-mix(in srgb, var(--card) 65%, transparent);
+    padding: 22px 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 40px;
+  }
+  .upload .stampbox { width: 50px; height: 50px; flex: none; border-radius: 10px; background: var(--terra); display: grid; place-items: center; transform: rotate(-4deg); box-shadow: var(--shadow); }
+  .upload .stampbox svg { width: 24px; height: 24px; stroke: #FFF4E8; }
+  .upload h2 { font-family: var(--font-display); font-weight: 560; font-size: 18px; margin-bottom: 2px; }
+  .upload p { font-size: 13.5px; color: var(--ink-soft); }
+  .upload .hint { position: absolute; top: -12px; right: 18px; font-family: var(--font-accent); background: var(--gold); color: #3A2C10; padding: 2px 12px; border-radius: 999px; font-size: 16px; transform: rotate(2deg); box-shadow: var(--shadow); }
+
+  /* ---------- section label ---------- */
+  .seclabel { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .seclabel h3 { font-family: var(--font-display); font-style: italic; font-weight: 520; font-size: 22px; }
+  .seclabel .line { flex: 1; height: 1px; background: var(--rule); }
+  .seclabel .count { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--ink-soft); }
+
+  /* ---------- index cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 26px 22px; }
+  .card {
+    position: relative; background: var(--card); border-radius: 6px; box-shadow: var(--shadow);
+    padding: 20px 18px 16px; cursor: pointer; border-top: 14px solid transparent;
+    background-image: repeating-linear-gradient(transparent, transparent 26px, var(--rule) 27px);
+    transition: transform .22s cubic-bezier(.2,.9,.3,1.4), box-shadow .22s;
+  }
+  .card:nth-child(3n+1) { transform: rotate(-.7deg); }
+  .card:nth-child(3n+2) { transform: rotate(.5deg); }
+  .card:nth-child(3n) { transform: rotate(-.3deg); }
+  .card:hover { transform: rotate(0) translateY(-5px); z-index: 2; }
+  .card::before {
+    content: ""; position: absolute; top: -11px; left: 50%; width: 74px; height: 20px;
+    transform: translateX(-50%) rotate(-2deg); border-radius: 2px; background: var(--washi-1); opacity: .85;
+  }
+  .card:nth-child(2n)::before { background: var(--washi-2); transform: translateX(-50%) rotate(1.5deg); }
+  .card:nth-child(3n)::before { background: var(--washi-3); }
+  .card .subject {
+    display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--terra-deep);
+    border: 1.5px solid currentColor; border-radius: 3px; padding: 2px 7px; margin-bottom: 12px;
+    text-transform: uppercase; background: var(--subject-bg);
+  }
+  .card h4 { font-family: var(--font-display); font-weight: 600; font-size: 19px; line-height: 1.25; margin-bottom: 12px; min-height: 48px; background: var(--card); }
+  .card .snip { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 12px; background: var(--card); }
+  .card .snip mark { background: color-mix(in srgb, var(--gold) 55%, transparent); color: inherit; border-radius: 2px; padding: 0 2px; }
+  .card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--ink-soft); background: var(--card); }
+  .card .meta .open { font-weight: 700; color: var(--terra); display: flex; align-items: center; gap: 4px; }
+  .card .pinflag { position: absolute; top: 8px; right: 10px; font-size: 15px; }
+  .card .badge-off { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--sage); }
+
+  /* ---------- reading-view mini preview ---------- */
+  .readwrap { margin-top: 48px; }
+  .reader {
+    position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--rule);
+    box-shadow: var(--shadow); height: 240px; background: var(--paper-deep);
+  }
+  .reader .doc { position: absolute; inset: 0; overflow: hidden; }
+  .reader .docpage { max-width: 520px; margin: 26px auto 0; background: var(--card); border-radius: 4px; box-shadow: var(--shadow); padding: 26px 30px; }
+  .reader .docpage h1 { font-family: var(--font-display); font-size: 21px; margin-bottom: 4px; }
+  .reader .docpage .sub { color: var(--ink-soft); font-size: 12px; margin-bottom: 14px; letter-spacing: .05em; }
+  .reader .docpage h2 { font-family: var(--font-display); font-size: 15px; color: var(--terra-deep); margin-bottom: 6px; }
+  .reader .docpage p { font-size: 13px; line-height: 1.6; color: var(--ink); }
+  .pill {
+    position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--font-body); font-weight: 700; font-size: 12.5px; padding: 8px 14px; border-radius: 999px;
+    background: color-mix(in srgb, var(--card) 72%, transparent); color: var(--ink);
+    border: 1.5px solid color-mix(in srgb, var(--ink) 18%, transparent);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: var(--shadow);
+  }
+  .pill.back { top: 14px; left: 14px; }
+  .pill.notes { top: 14px; right: 14px; }
+  .pill.notes::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--terra); }
+
+  .foot { margin-top: 40px; text-align: center; font-family: var(--font-accent); font-size: 20px; color: var(--ink-soft); }
+
+  @media (max-width: 560px) {
+    .switcher .note { display: none; }
+    .brand h1 { font-size: 25px; }
+  }
+</style>
+</head>
+<body>
+  <!-- switcher: this is the preview harness, and also a rough taste of
+       what the Settings theme picker will feel like -->
+  <div class="switcher">
+    <span class="lbl">Theme</span>
+    <button class="swatch active" data-set="warm"><span class="dot" style="background:#C4552D"></span>Warm Paper</button>
+    <button class="swatch" data-set="night"><span class="dot" style="background:#241C15"></span>Night Library</button>
+    <button class="swatch" data-set="coffee"><span class="dot" style="background:#A25C2C"></span>Coffee</button>
+    <button class="swatch" data-set="matcha"><span class="dot" style="background:#6E9457"></span>Matcha</button>
+    <span class="note">Preview only — flip through, then tell me what to keep or change.</span>
+  </div>
+
+  <div class="app">
+    <header class="top">
+      <div class="brand"><h1>Repa<em>so</em></h1></div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="Search your desk…" />
+      </div>
+      <div class="avatar">SR</div>
+    </header>
+
+    <section class="cont">
+      <div class="lead">Continue studying</div>
+      <div class="row">
+        <div class="chip"><div class="cs">STAT 023</div><h5>Hypothesis Testing Reviewer</h5><div class="when">opened 2h ago</div></div>
+        <div class="chip"><div class="cs">QMMS</div><h5>Module 5 — Decision Analysis</h5><div class="when">opened yesterday</div></div>
+        <div class="chip"><div class="cs">INTE 202</div><h5>Pandas & NumPy Cheatsheet</h5><div class="when">opened 3d ago</div></div>
+      </div>
+    </section>
+
+    <div class="upload">
+      <div class="stampbox"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div><h2>Drop a reviewer here</h2><p>A single .html file — it lands on your desk, kept forever.</p></div>
+      <span class="hint">or click</span>
+    </div>
+
+    <div class="seclabel"><h3>Your desk</h3><span class="line"></span><span class="count">6 REVIEWERS</span></div>
+
+    <div class="cards">
+      <div class="card">
+        <span class="pinflag">📌</span>
+        <span class="subject">STAT 023</span>
+        <h4>Hypothesis Testing — Full Reviewer</h4>
+        <div class="meta"><span class="badge-off">◆ offline</span><span class="open">Open →</span></div>
+      </div>
+      <div class="card">
+        <span class="subject">QMMS</span>
+        <h4>Module 5: Decision Analysis</h4>
+        <div class="snip">…expected <mark>value</mark> of perfect information equals…</div>
+        <div class="meta"><span class="badge-off">◆ offline</span><span class="open">Open →</span></div>
+      </div>
+      <div class="card">
+        <span class="subject">INTE 202</span>
+        <h4>Pandas &amp; NumPy Cheatsheet</h4>
+        <div class="meta"><span>2 days ago</span><span class="open">Open →</span></div>
+      </div>
+      <div class="card">
+        <span class="subject">MATH</span>
+        <h4>Integration Techniques</h4>
+        <div class="meta"><span class="badge-off">◆ offline</span><span class="open">Open →</span></div>
+      </div>
+      <div class="card">
+        <span class="pinflag">📌</span>
+        <span class="subject">CS</span>
+        <h4>Big-O &amp; Data Structures</h4>
+        <div class="meta"><span>5 days ago</span><span class="open">Open →</span></div>
+      </div>
+      <div class="card">
+        <span class="subject">PHYS</span>
+        <h4>Kinematics Formula Sheet</h4>
+        <div class="meta"><span>1 week ago</span><span class="open">Open →</span></div>
+      </div>
+    </div>
+
+    <div class="readwrap">
+      <div class="seclabel"><h3>Reading view</h3><span class="line"></span><span class="count">FOCUS MODE</span></div>
+      <div class="reader">
+        <span class="pill back">← Desk</span>
+        <span class="pill notes">✎ Notes</span>
+        <div class="doc">
+          <div class="docpage">
+            <h1>Hypothesis Testing</h1>
+            <div class="sub">STAT 023 · UPLOADED REVIEWER</div>
+            <h2>1. The Null &amp; Alternative</h2>
+            <p>H₀ states there is no effect; H₁ is what we suspect. We never "prove" H₀ — we either reject it or fail to reject it based on the test statistic and our chosen α…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">flip the themes up top ✦</div>
+  </div>
+
+<script>
+  // Preview harness only: swap the root data-theme attribute.
+  // In the real app this same one line runs from the saved setting.
+  const btns = document.querySelectorAll(".swatch");
+  const map = { warm: "", night: "night", coffee: "coffee", matcha: "matcha" };
+  btns.forEach((b) => b.addEventListener("click", () => {
+    document.querySelector(".swatch.active")?.classList.remove("active");
+    b.classList.add("active");
+    const t = map[b.dataset.set];
+    if (t) document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+  }));
+</script>
+</body>
+</html>

@@ -150,3 +150,17 @@ Six "complete the loop" features, two themes: **find & jump** and **take it with
 6. **Available-offline indicator + offline banner** — per-card badge when a reviewer's content is cached (`caches.match`); an app-level "Offline — showing your saved reviewers" banner (mounted in layout, `navigator.onLine`).
 
 Plan: `docs/superpowers/plans/2026-07-12-repaso-v1.7.md`.
+
+## Addendum — v1.8 (locked 2026-07-13, post-v1.7 ship)
+
+**Settings surface + Themes.** First real "home surface" — built once so future clusters (bulk actions, duplicate, stats, offline-storage readout) drop into it later. This version ships the shell + its first tenant, Themes. No speculative empty sections (YAGNI). Palettes approved from the live preview `prototypes/themes/theme-preview.html`.
+
+1. **`/settings` page** — a real route, reached from the avatar menu. Three sections: **Appearance** (theme picker), **Your data** (Export + Import/restore, *moved here* from the avatar menu — the exact existing `exportBackup`/`importBackup` flows, relocated), **Account** (email + Log out). The avatar menu slims to: email · ⚙ Settings · Log out (Log out stays in the menu for one-tap access).
+2. **Four themes** — `warm` (default, current look), `night` (dark: warm espresso ground, orange as low glow/accent only — never orange-on-black), `coffee` (espresso ink / latte paper / caramel accent), `matcha` (green accent replaces terracotta, rice-paper ground). A theme is ONLY a re-set of CSS custom properties; no component/markup changes.
+3. **Tokenize the chrome** — lift the still-hardcoded values in `globals.css` into custom properties so dark reads correctly: background glow (`--glow-1/2`), grain opacity (`--grain`), washi tape (`--washi-1/2/3`), card-label backing (`--subject-bg`), hover/menu shadows (`--shadow-hover`), modal scrim (`--scrim`), fab hover (`--ink-hover`), on-accent text (`--on-accent`). Then four `[data-theme]` blocks. **Chrome themes; the content stage stays neutral** — the reviewer iframe and the white page it sits on never change (uploaded reviewers are light HTML; forcing dark breaks their contrast). Scratchpad `.docpage` counts as content stage → stays light.
+4. **Synced, no flash** — new `theme` column on the user row (default `warm`; server validates it's one of the four). `PATCH /api/settings` saves it, owner-scoped, extensible name. The **root layout reads the saved theme server-side and stamps `data-theme` on `<html>` before first paint** → correct even on a brand-new device, no dark-mode flash. localStorage caches it so the picker applies optimistically/instantly, then confirms to the server. Public `/s/<token>` has no user → default `warm`.
+5. **One source of truth** — `src/lib/themes.ts` exports the four themes (id + label + swatch), the `Theme` type, and an `isTheme`/`coerceTheme` guard; imported by the picker, the layout, and the PATCH endpoint.
+
+Schema note: apply the `theme` column via a direct Neon `.mjs` script (drizzle-kit push still blocks on the NULLS-NOT-DISTINCT prompt in non-TTY). Tests: theme guard (rejects junk → `warm`) + settings PATCH (rejects invalid, owner-scoped). Visual re-skin verified in the live preview.
+
+Plan: `docs/superpowers/plans/2026-07-13-repaso-v1.8.md`.
