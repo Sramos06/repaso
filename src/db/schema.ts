@@ -5,6 +5,7 @@ export const users = pgTable("users", {
   googleSub: text("google_sub").notNull().unique(),
   email: text("email").notNull(),
   name: text("name"),
+  theme: text("theme").notNull().default("warm"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
