@@ -10,7 +10,8 @@ import { coerceTheme, DEFAULT_THEME, type Theme } from "@/lib/themes";
 export async function getUserTheme(): Promise<Theme> {
   try {
     const session = await auth();
-    const googleSub = (session as any)?.googleSub as string | undefined;
+    // Narrow cast (not `any`): the session is augmented with googleSub in auth callbacks.
+    const googleSub = (session as { googleSub?: string } | null)?.googleSub;
     if (!googleSub) return DEFAULT_THEME;
     const u = await db.query.users.findFirst({ where: eq(users.googleSub, googleSub) });
     return coerceTheme(u?.theme);
