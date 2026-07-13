@@ -10,16 +10,102 @@
   --gold: #D9A441;
   --rule: #E4D5BC;
   --shadow: 0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
+  /* lifted out of hardcoded rules so themes (esp. dark) read correctly */
+  --shadow-hover: 0 2px 4px rgba(43,33,24,.1), 0 16px 30px -8px rgba(43,33,24,.28);
+  --shadow-pop: 0 4px 8px rgba(43,33,24,.12), 0 14px 34px -8px rgba(43,33,24,.3);
+  --scrim: rgba(43,33,24,.35);
+  --ink-hover: #40321F;
+  --washi-1: rgba(122,139,111,.55);
+  --washi-2: rgba(217,164,65,.55);
+  --washi-3: rgba(196,85,45,.45);
+  --subject-bg: rgba(255,253,246,.9);
+  --glow-1: rgba(217,164,65,.12);
+  --glow-2: rgba(122,139,111,.10);
+  --grain: .5;
+}
+
+/* ===== Themes: each block only re-sets tokens. warm == :root (no block). ===== */
+[data-theme="night"] {
+  --paper: #17130F;
+  --paper-deep: #201913;
+  --card: #241C15;
+  --ink: #EFE5D4;
+  --ink-soft: #A99A85;
+  --terra: #E4854B;
+  --terra-deep: #EC935C;
+  --sage: #94A883;
+  --gold: #E5B84F;
+  --rule: #382D22;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 8px 22px -6px rgba(0,0,0,.6);
+  --shadow-hover: 0 2px 4px rgba(0,0,0,.5), 0 16px 30px -8px rgba(0,0,0,.65);
+  --shadow-pop: 0 4px 8px rgba(0,0,0,.5), 0 14px 34px -8px rgba(0,0,0,.7);
+  --scrim: rgba(0,0,0,.55);
+  --ink-hover: #DCD1BE;
+  --washi-1: rgba(148,168,131,.30);
+  --washi-2: rgba(229,184,79,.28);
+  --washi-3: rgba(228,133,75,.32);
+  --subject-bg: rgba(36,28,21,.9);
+  --glow-1: rgba(228,133,75,.10);
+  --glow-2: rgba(148,168,131,.06);
+  --grain: .35;
+}
+[data-theme="coffee"] {
+  --paper: #ECE0CE;
+  --paper-deep: #E0D0B6;
+  --card: #FBF4E8;
+  --ink: #3A2A1D;
+  --ink-soft: #7C6047;
+  --terra: #A25C2C;
+  --terra-deep: #7E4420;
+  --sage: #9C8A61;
+  --gold: #C99A4B;
+  --rule: #D8C4A4;
+  --shadow: 0 1px 2px rgba(58,42,29,.10), 0 6px 18px -6px rgba(58,42,29,.24);
+  --shadow-hover: 0 2px 4px rgba(58,42,29,.12), 0 16px 30px -8px rgba(58,42,29,.3);
+  --shadow-pop: 0 4px 8px rgba(58,42,29,.14), 0 14px 34px -8px rgba(58,42,29,.34);
+  --scrim: rgba(40,26,15,.4);
+  --ink-hover: #4E3928;
+  --washi-1: rgba(156,138,97,.50);
+  --washi-2: rgba(201,154,75,.50);
+  --washi-3: rgba(162,92,44,.45);
+  --subject-bg: rgba(251,244,232,.9);
+  --glow-1: rgba(201,154,75,.14);
+  --glow-2: rgba(162,92,44,.08);
+  --grain: .55;
+}
+[data-theme="matcha"] {
+  --paper: #EFF0E0;
+  --paper-deep: #E2E6CE;
+  --card: #FAFBF1;
+  --ink: #2B342A;
+  --ink-soft: #5C6A52;
+  --terra: #6E9457;
+  --terra-deep: #52713E;
+  --sage: #88A86B;
+  --gold: #CBA94F;
+  --rule: #D5DBBF;
+  --shadow: 0 1px 2px rgba(43,52,42,.09), 0 6px 18px -6px rgba(43,52,42,.20);
+  --shadow-hover: 0 2px 4px rgba(43,52,42,.11), 0 16px 30px -8px rgba(43,52,42,.26);
+  --shadow-pop: 0 4px 8px rgba(43,52,42,.12), 0 14px 34px -8px rgba(43,52,42,.3);
+  --scrim: rgba(30,38,28,.4);
+  --ink-hover: #3C4A39;
+  --washi-1: rgba(136,168,107,.50);
+  --washi-2: rgba(203,169,79,.45);
+  --washi-3: rgba(110,148,87,.40);
+  --subject-bg: rgba(250,251,241,.9);
+  --glow-1: rgba(136,168,107,.16);
+  --glow-2: rgba(203,169,79,.08);
+  --grain: .5;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: var(--font-body);
   background:
-    radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.12), transparent 60%),
-    radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.10), transparent 55%),
+    radial-gradient(1200px 500px at 85% -10%, var(--glow-1), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, var(--glow-2), transparent 55%),
     var(--paper);
-  color: var(--ink);
+  color: var(--ink); transition: background .3s ease, color .3s ease;
   min-height: 100vh;
 }
 /* faint paper grain */
@@ -28,7 +114,7 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: .5;
+  opacity: var(--grain);
   z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -49,6 +135,7 @@ header { display: flex; align-items: center; gap: 16px; margin-bottom: 34px; }
 .search:focus-within { border-color: var(--terra); }
 .search svg { width: 16px; height: 16px; stroke: var(--ink-soft); flex: none; }
 .search input { border: none; outline: none; background: none; font-family: var(--font-body); font-size: 14.5px; width: 100%; color: var(--ink); }
+.search input::placeholder { color: var(--ink-soft); }
 .avatar {
   width: 40px; height: 40px; border-radius: 50%; background: var(--sage); color: #fff;
   display: grid; place-items: center; font-weight: 700; letter-spacing: .5px;
@@ -60,7 +147,7 @@ header { display: flex; align-items: center; gap: 16px; margin-bottom: 34px; }
 /* ---------- upload desk ---------- */
 .upload {
   position: relative; border: 2px dashed var(--terra); border-radius: 14px;
-  background: rgba(255,253,246,.65);
+  background: color-mix(in srgb, var(--card) 65%, transparent);
   padding: 26px 22px; display: flex; align-items: center; gap: 18px;
   margin-bottom: 44px; cursor: pointer; transition: background .2s, transform .2s;
 }
@@ -102,20 +189,20 @@ a.card { color: inherit; text-decoration: none; }
 .card:nth-child(3n+1) { transform: rotate(-.7deg); }
 .card:nth-child(3n+2) { transform: rotate(.5deg); }
 .card:nth-child(3n) { transform: rotate(-.3deg); }
-.card:hover { transform: rotate(0) translateY(-5px); box-shadow: 0 2px 4px rgba(43,33,24,.1), 0 16px 30px -8px rgba(43,33,24,.28); z-index: 2; }
+.card:hover { transform: rotate(0) translateY(-5px); box-shadow: var(--shadow-hover); z-index: 2; }
 .card::before { /* washi tape */
   content: ""; position: absolute; top: -11px; left: 50%; width: 74px; height: 20px;
   transform: translateX(-50%) rotate(-2deg); border-radius: 2px;
-  background: linear-gradient(rgba(122,139,111,.55), rgba(122,139,111,.55));
+  background: var(--washi-1);
   opacity: .85;
 }
-.card:nth-child(2n)::before { background: rgba(217,164,65,.55); transform: translateX(-50%) rotate(1.5deg); }
-.card:nth-child(3n)::before { background: rgba(196,85,45,.45); }
+.card:nth-child(2n)::before { background: var(--washi-2); transform: translateX(-50%) rotate(1.5deg); }
+.card:nth-child(3n)::before { background: var(--washi-3); }
 .card .subject {
   display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .14em;
   color: var(--terra-deep); border: 1.5px solid currentColor; border-radius: 3px;
   padding: 2px 7px; margin-bottom: 12px; text-transform: uppercase;
-  background: rgba(255,253,246,.9);
+  background: var(--subject-bg);
 }
 .card h4 {
   font-family: var(--font-display); font-weight: 600; font-size: 19px; line-height: 1.25;
@@ -146,7 +233,7 @@ a.card { color: inherit; text-decoration: none; }
 .card .more:hover { background: var(--paper); }
 .ctx {
   position: absolute; top: 32px; right: 8px; background: var(--card); border-radius: 10px; z-index: 30;
-  box-shadow: 0 4px 8px rgba(43,33,24,.12), 0 14px 34px -8px rgba(43,33,24,.3); padding: 6px; min-width: 150px;
+  box-shadow: var(--shadow-pop); padding: 6px; min-width: 150px;
 }
 .ctx button {
   display: flex; gap: 9px; align-items: center; width: 100%; background: none; border: none; cursor: pointer;
@@ -159,7 +246,7 @@ a.card { color: inherit; text-decoration: none; }
 .avatar-wrap { position: relative; flex: none; }
 .menu {
   position: absolute; right: 0; top: 48px; background: var(--card); border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(43,33,24,.12), 0 14px 34px -8px rgba(43,33,24,.3);
+  box-shadow: var(--shadow-pop);
   padding: 8px; min-width: 220px; z-index: 60;
 }
 .menu .who { padding: 8px 12px 10px; border-bottom: 1px solid var(--rule); margin-bottom: 6px; }
@@ -176,7 +263,7 @@ a.card { color: inherit; text-decoration: none; }
 .menu-err { font-size: 12px; color: var(--terra-deep); padding: 4px 12px 6px; }
 
 /* ---------- modals + toast ---------- */
-.overlay { position: fixed; inset: 0; z-index: 150; background: rgba(43,33,24,.35); display: grid; place-items: center; padding: 20px; }
+.overlay { position: fixed; inset: 0; z-index: 150; background: var(--scrim); display: grid; place-items: center; padding: 20px; }
 .modal { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 26px 24px; width: 100%; max-width: 400px; }
 .modal h3 { font-family: var(--font-display); font-weight: 600; font-size: 20px; margin-bottom: 14px; }
 .modal-sub { font-size: 14px; color: var(--ink-soft); margin-bottom: 16px; line-height: 1.55; }
@@ -209,7 +296,7 @@ a.card { color: inherit; text-decoration: none; }
   box-shadow: 0 10px 25px -6px rgba(43,33,24,.45); transition: transform .2s, background .2s;
   text-decoration: none;
 }
-.fab:hover { transform: translateY(-3px); background: #40321F; }
+.fab:hover { transform: translateY(-3px); background: var(--ink-hover); }
 .fab svg { width: 17px; height: 17px; }
 
 /* ---------- focus viewer: the file owns the screen ---------- */
@@ -222,7 +309,7 @@ a.card { color: inherit; text-decoration: none; }
 .pill {
   position: fixed; z-index: 120; display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
   font-family: var(--font-body); font-weight: 700; font-size: 13px; padding: 9px 15px; border-radius: 999px;
-  background: rgba(255,253,246,.72); color: var(--ink); border: 1.5px solid rgba(43,33,24,.18);
+  background: color-mix(in srgb, var(--card) 72%, transparent); color: var(--ink); border: 1.5px solid color-mix(in srgb, var(--ink) 18%, transparent);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 3px 12px -3px rgba(43,33,24,.25); opacity: .62;
   transition: opacity .2s, background .2s, transform .15s; text-decoration: none;
@@ -232,6 +319,9 @@ a.card { color: inherit; text-decoration: none; }
 .pill.pnotes { top: 14px; right: 14px; }
 .pill.pnotes.has-notes::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--terra); }
 .docpage {
+  /* content stage: always light so uploaded/scratch content keeps contrast */
+  --ink: #2B2118; --ink-soft: #6B5D4F; --paper: #F7EFE2; --rule: #E4D5BC; --terra-deep: #A03E1C;
+  color: var(--ink);
   background: #fff; max-width: 760px; width: 100%; height: max-content; border-radius: 4px;
   box-shadow: var(--shadow); padding: 44px 48px; line-height: 1.65; font-size: 15.5px;
 }
