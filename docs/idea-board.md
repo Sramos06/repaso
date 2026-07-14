@@ -2,7 +2,7 @@
 
 Running list of feature ideas, grouped by *when/how* they should be built, not just liked/disliked.
 
-_Last updated: 2026-07-14 (post-v1.9 ship)._
+_Last updated: 2026-07-14 (post-v1.10 ship)._
 
 ## Shipped
 - **v1.5** (2026-07-11): search desk, pins, rename/delete, export, logout, focus viewer, offline tier.
@@ -10,6 +10,7 @@ _Last updated: 2026-07-14 (post-v1.9 ship)._
 - **v1.7** (2026-07-12): continue-studying row · command palette · search snippets · download .html · offline reading of every reviewer.
 - **v1.8** (2026-07-13): **Settings page** (`/settings`) · four themes (warm/night/coffee/matcha, synced + no-flash) · export/import moved into Settings. **The Settings surface now EXISTS** — the bundle below is unblocked.
 - **v1.9** (2026-07-14): mobile avatar-menu fix · replace file (keeps notes/link) · **notes version history** (snapshot on save, restore) · printable notes sheet · PWA shortcuts + `/continue` · automatic wake-lock. The near-term shelf is now EMPTY.
+- **v1.10** (2026-07-14): five-item ⋯ menu (Rename/Duplicate/Send/Archive/Delete) with **Send sheet** · replace-file removed (Shawn's call) · **manage mode** (bulk archive/export/delete) · **duplicate** · **offline storage readout** in Settings · `open_events` accruing for future stats · UI copy fully em-dash free. Settings-bundle DONE except the stats screen itself.
 
 ## Next major — full local-first offline (promoted 2026-07-12)
 **Why it moved up:** PUP often has no internet and Shawn's data signal is slow/unreliable — reading (and ideally editing) reviewers offline is a real need, not a nice-to-have.
@@ -19,13 +20,12 @@ _Last updated: 2026-07-14 (post-v1.9 ship)._
 ## Near-term — standalone, buildable now (no new host surface needed)
 _Empty — everything on this shelf shipped in v1.7 (continue-studying, palette, snippets, download, offline reading) and v1.9 (replace-file, shortcuts, wake-lock, notes history, notes→print). New small ideas land here._
 
-## Settings surface EXISTS (v1.8) → these now drop straight into `/settings`
-_The home surface is built. These were blocked on it; they're now near-term._
-- **Bulk actions** — multi-select archive/delete/export (semester cleanup). (Shawn: not on the desk — behind the settings/manage surface.)
-- **Duplicate a reviewer** — clone to tweak.
-- ~~**Themes / appearance**~~ — **SHIPPED v1.8** (warm/night/coffee/matcha). Unpicked ideas remain: more themes, a custom-accent picker.
-- **Offline storage readout** — what's cached, total size, "clear offline copies." (Natural pair with the full local-first version.)
-- **Study stats / streaks** — time-per-reviewer, GitHub-style heatmap; a profile-ish home.
+## Settings-bundle status (post-v1.10)
+- ~~**Bulk actions**~~ — **SHIPPED v1.10** (manage mode on the desk with Select + bottom bar).
+- ~~**Duplicate a reviewer**~~ — **SHIPPED v1.10.**
+- ~~**Themes / appearance**~~ — **SHIPPED v1.8.** Unpicked ideas remain: more themes, a custom-accent picker.
+- ~~**Offline storage readout**~~ — **SHIPPED v1.10.**
+- **Study stats / streaks** — the last one standing. `open_events` has been accruing since v1.10, so whenever this gets built it starts with real history. Time-per-reviewer, GitHub-style heatmap, a profile-ish home.
 
 ## Upload makeover (future bundle — rethink the whole upload flow at once)
 _Shawn has several ideas here; do them together as one considered pass, not piecemeal._
