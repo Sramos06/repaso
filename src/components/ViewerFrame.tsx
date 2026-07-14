@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import NotesPanel from "./NotesPanel";
+import { useWakeLock } from "@/lib/use-wake-lock";
 
 export default function ViewerFrame({ reviewerId, hasNotes }: { reviewerId: string | null; hasNotes: boolean }) {
+  useWakeLock(true); // screen stays awake while the viewer is open
   // scratchpad opens with notes shown; reviewer view starts closed
   const [notesOpen, setNotesOpen] = useState(reviewerId === null);
   const [htmlContent, setHtmlContent] = useState<string | null>(null);

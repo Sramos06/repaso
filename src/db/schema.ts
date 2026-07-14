@@ -37,3 +37,12 @@ export const notes = pgTable(
   },
   (t) => [unique("notes_user_reviewer_idx").on(t.userId, t.reviewerId).nullsNotDistinct()]
 );
+
+// Snapshots of a note's previous text, for undo. Pruned to the newest 30.
+export const noteRevisions = pgTable("note_revisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  noteId: uuid("note_id").notNull().references(() => notes.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  contentMd: text("content_md").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

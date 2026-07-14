@@ -14,6 +14,7 @@ type Props = {
   onArchive: () => void;
   onShare: () => void;
   onDownload: () => void;
+  onReplace: () => void;
   onDelete: () => void;
 };
 
@@ -43,7 +44,7 @@ function highlight(text: string, term: string) {
   return out;
 }
 
-export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, offline, onMenuToggle, onPin, onRename, onArchive, onShare, onDownload, onDelete }: Props) {
+export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, offline, onMenuToggle, onPin, onRename, onArchive, onShare, onDownload, onReplace, onDelete }: Props) {
   return (
     <Link href={`/viewer/${r.id}`} className={`card${r.archived ? " archived" : ""}`}>
       {!r.archived && (
@@ -56,6 +57,7 @@ export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, o
           {!r.archived && <button type="button" onClick={(e) => stop(e, onPin)}>📌 {r.pinned ? "Unpin" : "Pin"}</button>}
           <button type="button" onClick={(e) => stop(e, onShare)}>🔗 Share link</button>
           <button type="button" onClick={(e) => stop(e, onDownload)}>⬇ Download</button>
+          <button type="button" onClick={(e) => stop(e, onReplace)}>♻️ Replace file</button>
           <button type="button" onClick={(e) => stop(e, onArchive)}>{r.archived ? "📤 Unarchive" : "🗄 Archive"}</button>
           <button type="button" className="del" onClick={(e) => stop(e, onDelete)}>🗑 Delete</button>
         </div>
