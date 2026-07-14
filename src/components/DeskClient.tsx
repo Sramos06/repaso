@@ -8,7 +8,7 @@ import ReviewerCard from "./ReviewerCard";
 import AvatarMenu from "./AvatarMenu";
 import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
-import { precacheReviewers, cachedReviewerIds } from "@/lib/offline-cache";
+import { precacheReviewers, cachedReviewerIds, refreshReviewerCache } from "@/lib/offline-cache";
 
 export type DeskReviewer = {
   id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
@@ -19,6 +19,7 @@ type Dialog =
   | { kind: "rename"; r: DeskReviewer }
   | { kind: "delete"; r: DeskReviewer }
   | { kind: "share"; r: DeskReviewer }
+  | { kind: "replace"; r: DeskReviewer; file: File }
   | null;
 
 export default function DeskClient({ reviewers, email }: { reviewers: DeskReviewer[]; email: string }) {
@@ -38,6 +39,8 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const [offlineIds, setOfflineIds] = useState<Set<string>>(new Set());
   const searchSeq = useRef(0);
   const shareSeq = useRef(0);
+  const replaceInput = useRef<HTMLInputElement>(null);
+  const replaceTarget = useRef<DeskReviewer | null>(null);
 
   const q = query.trim().toLowerCase();
   const term = query.trim();
@@ -127,6 +130,20 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     finally { setBusy(false); }
   }
 
+  async function confirmReplace() {
+    if (dialog?.kind !== "replace" || busy) return;
+    setBusy(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", dialog.file);
+      const res = await fetch(`/api/reviewers/${dialog.r.id}/file`, { method: "PUT", body: fd });
+      if (!res.ok) { const d = await res.json().catch(() => null); say(d?.error ?? "Couldn’t replace — try again."); return; }
+      refreshReviewerCache(dialog.r.id); // the offline copy is stale now
+      say("File replaced"); setDialog(null); router.refresh();
+    } catch { say("Could not reach the server — check your connection."); }
+    finally { setBusy(false); }
+  }
+
   function openRename(r: DeskReviewer) { setDraftTitle(r.title); setDraftSubject(r.subject ?? ""); setDialog({ kind: "rename", r }); }
   const saveRename = () =>
     dialog?.kind === "rename" &&
@@ -168,6 +185,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     onArchive: () => { setMenuFor(null); toggleArchive(r); },
     onShare: () => { setMenuFor(null); openShare(r); },
     onDownload: () => { setMenuFor(null); downloadReviewer(r); },
+    onReplace: () => { setMenuFor(null); replaceTarget.current = r; replaceInput.current?.click(); },
     onDelete: () => { setMenuFor(null); setDialog({ kind: "delete", r }); },
   });
 
@@ -233,6 +251,16 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
 
       <Link href="/viewer/scratchpad" className="fab">✎ Scratchpad</Link>
 
+      <input
+        ref={replaceInput} type="file" accept=".html,.htm,text/html" hidden aria-hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          const r = replaceTarget.current;
+          if (f && r) setDialog({ kind: "replace", r, file: f });
+          e.target.value = "";
+        }}
+      />
+
       {paletteOpen && (
         <CommandPalette items={reviewers.map((r) => ({ id: r.id, title: r.title, subject: r.subject }))} onClose={() => setPaletteOpen(false)} />
       )}
@@ -263,6 +291,19 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
             <div className="modal-actions">
               <button type="button" className="ghost" onClick={() => setDialog(null)}>Keep it</button>
               <button type="button" className="danger" onClick={confirmDelete} disabled={busy}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dialog?.kind === "replace" && (
+        <div className="overlay" onClick={() => setDialog(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Replace “{dialog.r.title}”?</h3>
+            <p className="modal-sub">The file becomes “{dialog.file.name}”. Your title, subject, pin, notes, and share link all stay.</p>
+            <div className="modal-actions">
+              <button type="button" className="ghost" onClick={() => setDialog(null)}>Cancel</button>
+              <button type="button" className="solid" onClick={confirmReplace} disabled={busy}>Replace</button>
             </div>
           </div>
         </div>

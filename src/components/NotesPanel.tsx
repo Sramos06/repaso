@@ -2,11 +2,17 @@
 import { useEffect, useRef, useState } from "react";
 import { renderMarkdown } from "@/lib/render-md";
 
+type Revision = { id: string; createdAt: string; contentMd: string };
+
 export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: string | null; open: boolean; onClose?: () => void }) {
   const key = `repaso-draft-${reviewerId ?? "scratchpad"}`;
   const [text, setText] = useState("");
   const [state, setState] = useState<"loading" | "saved" | "saving" | "offline">("loading");
-  const [view, setView] = useState<"write" | "preview">("write");
+  const [view, setView] = useState<"write" | "preview" | "history">("write");
+  const [revisions, setRevisions] = useState<Revision[] | null>(null);
+  const [revError, setRevError] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // Tracks whether the user has typed since mount, so the in-flight mount GET
   // knows to discard its result instead of clobbering newer keystrokes.
@@ -39,6 +45,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
     saveSeq.current++;
     setText("");
     setState("loading");
+    setView("write");
 
     async function load() {
       const draft = localStorage.getItem(key);
@@ -99,6 +106,40 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
     timer.current = setTimeout(() => { save(v, seq); }, 500);
   }
 
+  async function openHistory() {
+    setView("history"); setRevisions(null); setRevError(false); setExpanded(null);
+    try {
+      const res = await fetch(`/api/notes/revisions?reviewerId=${reviewerId ?? "scratchpad"}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setRevisions(data.revisions ?? []);
+    } catch { setRevError(true); }
+  }
+
+  async function restore(rev: Revision) {
+    if (restoring) return;
+    setRestoring(true);
+    try {
+      const res = await fetch("/api/notes/revisions", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewerId, revisionId: rev.id }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      // Adopt the restored text as the new saved state; anything in flight is stale now.
+      saveSeq.current++;
+      dirtyRef.current = false;
+      localStorage.removeItem(key);
+      setText(data.contentMd ?? rev.contentMd);
+      setState("saved");
+      setView("write");
+    } catch { setRevError(true); }
+    finally { setRestoring(false); }
+  }
+
+  const when = (iso: string) =>
+    new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
   return (
     <aside className={`notes${open ? " on" : ""}`}>
       <header>
@@ -107,9 +148,45 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
           <button type="button" className={view === "write" ? "on" : ""} onClick={() => setView("write")}>Write</button>
           <button type="button" className={view === "preview" ? "on" : ""} onClick={() => setView("preview")}>Preview</button>
         </div>
+        <button
+          type="button"
+          className={`nclose${view === "history" ? " on-hist" : ""}`}
+          title="Version history"
+          aria-label="Version history"
+          onClick={() => (view === "history" ? setView("write") : openHistory())}
+        >🕐</button>
+        <a className="nclose" title="Print notes" aria-label="Print notes" href={`/print/notes/${reviewerId ?? "scratchpad"}`} target="_blank" rel="noopener">🖨</a>
         {onClose && <button type="button" className="nclose" onClick={onClose} aria-label="Close notes">✕</button>}
       </header>
-      {view === "write" ? (
+      {view === "history" ? (
+        <div className="nhistory">
+          {revError ? (
+            <p className="nh-empty">Couldn&rsquo;t load history — try again.</p>
+          ) : revisions === null ? (
+            <p className="nh-empty">Loading…</p>
+          ) : revisions.length === 0 ? (
+            <p className="nh-empty">No older versions yet — snapshots are kept as you save.</p>
+          ) : (
+            revisions.map((rev) => (
+              <div key={rev.id} className="nh-item">
+                <button type="button" className="nh-head" onClick={() => setExpanded(expanded === rev.id ? null : rev.id)}>
+                  <span>{when(rev.createdAt)}</span>
+                  <span className="nh-len">{rev.contentMd.length} chars</span>
+                </button>
+                {expanded === rev.id && (
+                  <div className="nh-body">
+                    {/* Safe: renderMarkdown escapes ALL input before adding its own tags. */}
+                    <div className="notes-preview nh-prev" dangerouslySetInnerHTML={{ __html: renderMarkdown(rev.contentMd) }} />
+                    <button type="button" className="nh-restore" disabled={restoring} onClick={() => restore(rev)}>
+                      ↩ Restore this version
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      ) : view === "write" ? (
         <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading"} placeholder="Write anything — it autosaves…" />
       ) : (
         // Safe: renderMarkdown escapes ALL input before adding its own tags.
