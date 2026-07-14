@@ -25,6 +25,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
   // Shared by the debounced keystroke save and the mount-time draft resync —
   // only clears the localStorage draft once the server has actually confirmed it.
   async function save(v: string, seq: number) {
+    if (seq !== saveSeq.current) return; // stale before it even fired — don't touch the server
     try {
       const res = await fetch("/api/notes", {
         method: "PUT", headers: { "Content-Type": "application/json" },
@@ -118,6 +119,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
 
   async function restore(rev: Revision) {
     if (restoring) return;
+    clearTimeout(timer.current); // kill any pending pre-restore autosave
     setRestoring(true);
     try {
       const res = await fetch("/api/notes/revisions", {
