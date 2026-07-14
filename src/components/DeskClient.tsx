@@ -8,7 +8,7 @@ import ReviewerCard from "./ReviewerCard";
 import AvatarMenu from "./AvatarMenu";
 import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
-import { precacheReviewers, cachedReviewerIds, refreshReviewerCache } from "@/lib/offline-cache";
+import { precacheReviewers, cachedReviewerIds } from "@/lib/offline-cache";
 
 export type DeskReviewer = {
   id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
@@ -18,8 +18,7 @@ export type DeskReviewer = {
 type Dialog =
   | { kind: "rename"; r: DeskReviewer }
   | { kind: "delete"; r: DeskReviewer }
-  | { kind: "share"; r: DeskReviewer }
-  | { kind: "replace"; r: DeskReviewer; file: File }
+  | { kind: "send"; r: DeskReviewer }
   | null;
 
 export default function DeskClient({ reviewers, email }: { reviewers: DeskReviewer[]; email: string }) {
@@ -39,8 +38,6 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const [offlineIds, setOfflineIds] = useState<Set<string>>(new Set());
   const searchSeq = useRef(0);
   const shareSeq = useRef(0);
-  const replaceInput = useRef<HTMLInputElement>(null);
-  const replaceTarget = useRef<DeskReviewer | null>(null);
 
   const q = query.trim().toLowerCase();
   const term = query.trim();
@@ -130,17 +127,14 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     finally { setBusy(false); }
   }
 
-  async function confirmReplace() {
-    if (dialog?.kind !== "replace" || busy) return;
+  async function duplicateReviewer(r: DeskReviewer) {
+    if (busy) return;
     setBusy(true);
     try {
-      const fd = new FormData();
-      fd.append("file", dialog.file);
-      const res = await fetch(`/api/reviewers/${dialog.r.id}/file`, { method: "PUT", body: fd });
-      if (!res.ok) { const d = await res.json().catch(() => null); say(d?.error ?? "Couldn’t replace — try again."); return; }
-      refreshReviewerCache(dialog.r.id); // the offline copy is stale now
-      say("File replaced"); setDialog(null); router.refresh();
-    } catch { say("Could not reach the server — check your connection."); }
+      const res = await fetch(`/api/reviewers/${r.id}/duplicate`, { method: "POST" });
+      if (!res.ok) { say("Couldn’t duplicate. Try again."); return; }
+      say("Duplicated"); router.refresh();
+    } catch { say("Could not reach the server. Check your connection."); }
     finally { setBusy(false); }
   }
 
@@ -150,9 +144,9 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     call(dialog.r.id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: draftTitle, subject: draftSubject }) }, "Saved");
   const confirmDelete = () => dialog?.kind === "delete" && call(dialog.r.id, { method: "DELETE" }, "Deleted");
 
-  async function openShare(r: DeskReviewer) {
+  async function openSend(r: DeskReviewer) {
     const seq = ++shareSeq.current;
-    setDialog({ kind: "share", r }); setShareUrl(null); setShareStatus("loading");
+    setDialog({ kind: "send", r }); setShareUrl(null); setShareStatus("loading");
     try {
       const res = await fetch(`/api/reviewers/${r.id}/share`, { method: "POST" });
       if (!res.ok) throw new Error();
@@ -162,7 +156,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     } catch { if (seq === shareSeq.current) setShareStatus("error"); }
   }
   async function revokeShare() {
-    if (dialog?.kind !== "share" || busy) return;
+    if (dialog?.kind !== "send" || busy) return;
     setBusy(true);
     try {
       const res = await fetch(`/api/reviewers/${dialog.r.id}/share`, { method: "DELETE" });
@@ -183,9 +177,8 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     onPin: () => { setMenuFor(null); togglePin(r); },
     onRename: () => { setMenuFor(null); openRename(r); },
     onArchive: () => { setMenuFor(null); toggleArchive(r); },
-    onShare: () => { setMenuFor(null); openShare(r); },
-    onDownload: () => { setMenuFor(null); downloadReviewer(r); },
-    onReplace: () => { setMenuFor(null); replaceTarget.current = r; replaceInput.current?.click(); },
+    onDuplicate: () => { setMenuFor(null); duplicateReviewer(r); },
+    onSend: () => { setMenuFor(null); openSend(r); },
     onDelete: () => { setMenuFor(null); setDialog({ kind: "delete", r }); },
   });
 
@@ -251,16 +244,6 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
 
       <Link href="/viewer/scratchpad" className="fab">✎ Scratchpad</Link>
 
-      <input
-        ref={replaceInput} type="file" accept=".html,.htm,text/html" hidden aria-hidden
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          const r = replaceTarget.current;
-          if (f && r) setDialog({ kind: "replace", r, file: f });
-          e.target.value = "";
-        }}
-      />
-
       {paletteOpen && (
         <CommandPalette items={reviewers.map((r) => ({ id: r.id, title: r.title, subject: r.subject }))} onClose={() => setPaletteOpen(false)} />
       )}
@@ -296,33 +279,32 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
         </div>
       )}
 
-      {dialog?.kind === "replace" && (
+      {dialog?.kind === "send" && (
         <div className="overlay" onClick={() => setDialog(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Replace “{dialog.r.title}”?</h3>
-            <p className="modal-sub">The file becomes “{dialog.file.name}”. Your title, subject, pin, notes, and share link all stay.</p>
-            <div className="modal-actions">
-              <button type="button" className="ghost" onClick={() => setDialog(null)}>Cancel</button>
-              <button type="button" className="solid" onClick={confirmReplace} disabled={busy}>Replace</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {dialog?.kind === "share" && (
-        <div className="overlay" onClick={() => setDialog(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Share “{dialog.r.title}”</h3>
-            <p className="modal-sub">Anyone with this link can view this one reviewer — read-only, no sign-in. Nothing else of yours is exposed, and you can turn the link off anytime.</p>
+          <div className="modal sendsheet" onClick={(e) => e.stopPropagation()}>
+            <h3>Send “{dialog.r.title}”</h3>
+            <p className="modal-sub">Anyone with the link can view this one reviewer. Read-only, no sign-in, and you can turn it off anytime.</p>
             {shareStatus === "loading" ? (
               <p className="modal-sub">Making a link…</p>
             ) : shareStatus === "error" ? (
-              <p className="modal-sub">Couldn’t make a link — try again.</p>
+              <p className="modal-sub">Couldn’t make a link. Try again.</p>
             ) : (
-              <div className="share-row">
-                <input readOnly value={shareUrl ?? ""} onFocus={(e) => e.target.select()} aria-label="Share link" />
-                <button type="button" className="solid" onClick={copyShare}>Copy</button>
-              </div>
+              <>
+                <div className="share-row">
+                  <input readOnly value={shareUrl ?? ""} onFocus={(e) => e.target.select()} aria-label="Share link" />
+                  <button type="button" className="solid" onClick={copyShare}>Copy</button>
+                </div>
+                <div className="send-acts">
+                  {"share" in navigator && (
+                    <button type="button" className="send-act" onClick={() => { if (shareUrl) navigator.share({ title: dialog.r.title, url: shareUrl }).catch(() => {}); }}>
+                      <span className="big">📲</span>Send via…
+                    </button>
+                  )}
+                  <button type="button" className="send-act" onClick={() => downloadReviewer(dialog.r)}>
+                    <span className="big">⬇</span>Download file
+                  </button>
+                </div>
+              </>
             )}
             <div className="modal-actions">
               <button type="button" className="danger" onClick={revokeShare} disabled={busy || shareStatus !== "idle"}>Turn off link</button>

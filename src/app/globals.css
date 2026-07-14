@@ -576,3 +576,14 @@ a.card { color: inherit; text-decoration: none; }
 .nh-restore:hover { background: var(--terra-deep); }
 .nh-restore:disabled { opacity: .55; cursor: default; }
 .nclose.on-hist { background: var(--card); }
+
+/* ---------- ctx menu separator + send sheet ---------- */
+.ctx .sep { height: 1px; background: var(--rule); margin: 4px 6px; }
+.send-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+.send-act {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;
+  border: 1.5px solid var(--rule); background: var(--card); border-radius: 12px; padding: 14px 10px;
+  font-family: var(--font-body); font-weight: 700; font-size: 12.5px; color: var(--ink);
+}
+.send-act:hover { border-color: var(--terra); }
+.send-act .big { font-size: 22px; }

@@ -18,19 +18,3 @@ export async function cachedReviewerIds(ids: string[]): Promise<Set<string>> {
   );
   return new Set(hits.filter((x): x is string => x !== null));
 }
-
-// After a reviewer's file is replaced, its offline copies are stale — and the
-// SW precache handler skips URLs that are already cached, so without eviction
-// the old file would be served offline forever. Evict, then re-precache.
-export async function refreshReviewerCache(id: string): Promise<void> {
-  if (!("caches" in window)) return;
-  const urls = [`/viewer/${id}`, `/api/reviewers/${id}`];
-  const keys = await caches.keys();
-  await Promise.all(
-    keys.map(async (k) => {
-      const c = await caches.open(k);
-      for (const u of urls) await c.delete(u, { ignoreVary: true });
-    })
-  );
-  precacheReviewers([id]);
-}
