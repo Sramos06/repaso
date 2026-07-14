@@ -401,7 +401,8 @@ a.card { color: inherit; text-decoration: none; }
 @media (max-width: 760px) {
   header { flex-wrap: wrap; gap: 10px 12px; margin-bottom: 24px; }
   .brand { order: 1; } .brand h1 { font-size: 25px; }
-  .avatar { order: 2; margin-left: auto; }
+  /* avatar stays first/left (Shawn's pick); open its dropdown INTO the screen */
+  .menu { left: 0; right: auto; }
   .search { order: 3; flex-basis: 100%; }
   .app { padding: 20px 16px 90px; }
   .cards { grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 20px 14px; }
