@@ -36,20 +36,26 @@ export default function StorageSection({ reviewers }: { reviewers: Item[] }) {
   async function onRefresh() {
     if (busy) return;
     setBusy(true); setMsg(null);
-    const ids = reviewers.map((r) => r.id);
-    await evictReviewers(ids);
-    precacheReviewers(ids);
+    try {
+      const ids = reviewers.map((r) => r.id);
+      await evictReviewers(ids);
+      precacheReviewers(ids);
+    } catch { setBusy(false); return; }
     // give the service worker a moment to fetch before re-reading
-    setTimeout(async () => { await refreshView(); setMsg("Offline copies refreshed"); setBusy(false); }, 2500);
+    setTimeout(async () => {
+      try { await refreshView(); setMsg("Offline copies refreshed"); }
+      finally { setBusy(false); }
+    }, 2500);
   }
 
   async function onClear() {
     if (busy) return;
     setBusy(true); setMsg(null);
-    await evictReviewers(reviewers.map((r) => r.id));
-    await refreshView();
-    setMsg("Device copies cleared. Cloud copies are safe.");
-    setBusy(false);
+    try {
+      await evictReviewers(reviewers.map((r) => r.id));
+      await refreshView();
+      setMsg("Device copies cleared. Cloud copies are safe.");
+    } finally { setBusy(false); }
   }
 
   return (
