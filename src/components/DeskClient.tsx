@@ -107,9 +107,9 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     setBusy(true);
     try {
       const res = await fetch(`/api/reviewers/${id}`, init);
-      if (!res.ok) { const d = await res.json().catch(() => null); say(d?.error ?? "Something went wrong — try again."); return; }
+      if (!res.ok) { const d = await res.json().catch(() => null); say(d?.error ?? "Something went wrong. Try again."); return; }
       say(okMsg); setDialog(null); router.refresh();
-    } catch { say("Could not reach the server — check your connection."); }
+    } catch { say("Could not reach the server. Check your connection."); }
     finally { setBusy(false); }
   }
 
@@ -123,11 +123,11 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     setBusy(true);
     try {
       const res = await fetch(`/api/reviewers/${r.id}`);
-      if (!res.ok) { say("Couldn’t download — try again."); return; }
+      if (!res.ok) { say("Couldn’t download. Try again."); return; }
       const data = await res.json();
       downloadText(htmlFilename(r.title), data.htmlContent ?? "");
       say("Downloaded");
-    } catch { say("Could not reach the server — check your connection."); }
+    } catch { say("Could not reach the server. Check your connection."); }
     finally { setBusy(false); }
   }
 
@@ -215,12 +215,12 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
       const res = await fetch(`/api/reviewers/${dialog.r.id}/share`, { method: "DELETE" });
       if (!res.ok) throw new Error();
       say("Share link turned off"); setDialog(null);
-    } catch { say("Couldn’t revoke — try again."); }
+    } catch { say("Couldn’t revoke. Try again."); }
     finally { setBusy(false); }
   }
   function copyShare() {
     if (!shareUrl) return;
-    navigator.clipboard?.writeText(shareUrl).then(() => say("Link copied"), () => say("Copy failed — select it manually"));
+    navigator.clipboard?.writeText(shareUrl).then(() => say("Link copied"), () => say("Copy failed. Select it manually"));
   }
 
   const menuProps = (r: DeskReviewer) => ({
@@ -322,7 +322,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
             <label>Title
               <input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} maxLength={200} autoFocus />
             </label>
-            <label>Subject <small>(optional — shows on the card)</small>
+            <label>Subject <small>(optional, shows on the card)</small>
               <input value={draftSubject} onChange={(e) => setDraftSubject(e.target.value)} maxLength={40} placeholder="STAT 023" />
             </label>
             <div className="modal-actions">

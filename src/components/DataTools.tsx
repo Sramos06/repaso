@@ -16,7 +16,7 @@ export default function DataTools() {
     if (exporting) return;
     setExporting(true); setMsg(null);
     try { await exportBackup(); }
-    catch (e) { setMsg(e instanceof Error ? e.message : "Export failed — try again."); }
+    catch (e) { setMsg(e instanceof Error ? e.message : "Export failed. Try again."); }
     finally { setExporting(false); }
   }
 
@@ -30,7 +30,7 @@ export default function DataTools() {
       if (r.failed.length) bits.push(`${r.failed.length} failed`);
       setMsg(bits.join(" · "));
       if (r.added) router.refresh();
-    } catch (e) { setMsg(e instanceof Error ? e.message : "Import failed — try again."); }
+    } catch (e) { setMsg(e instanceof Error ? e.message : "Import failed. Try again."); }
     finally { setImporting(false); }
   }
 

@@ -23,7 +23,7 @@ export default function ThemePicker({ current }: { current: Theme }) {
     } catch {
       setSel(prev);
       document.documentElement.setAttribute("data-theme", prev); // revert
-      setErr("Couldn't save that — check your connection and try again.");
+      setErr("Couldn't save that. Check your connection and try again.");
     } finally {
       setBusy(false);
     }

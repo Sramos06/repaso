@@ -41,11 +41,11 @@ export default function ViewerFrame({ reviewerId, hasNotes }: { reviewerId: stri
     <div className="focus">
       <div className="vdoc">
         {reviewerId === null ? (
-          <div className="docpage"><h1>Scratchpad</h1><p>Freeform notes — jot anything down in the panel.</p></div>
+          <div className="docpage"><h1>Scratchpad</h1><p>Freeform notes. Jot anything down in the panel.</p></div>
         ) : status === "loading" ? (
           <div className="docpage"><p>Opening your reviewer…</p></div>
         ) : status === "error" ? (
-          <div className="docpage"><p>Could not load this reviewer — check your connection and try again.</p></div>
+          <div className="docpage"><p>Could not load this reviewer. Check your connection and try again.</p></div>
         ) : (
           // allow-scripts only — NEVER allow-same-origin (uploaded HTML must not touch the app)
           <iframe className="reviewer-frame" sandbox="allow-scripts" referrerPolicy="no-referrer" srcDoc={htmlContent ?? ""} title="Reviewer" />

@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
           .returning({ id: reviewers.id, title: reviewers.title });
         created.push(row);
       } catch {
-        rejected.push({ name: file.name, reason: "Could not save this file — try again." });
+        rejected.push({ name: file.name, reason: "Could not save this file. Try again." });
       }
     }
     return NextResponse.json({ created, rejected }, { status: created.length ? 201 : 400 });

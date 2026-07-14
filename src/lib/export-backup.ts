@@ -8,7 +8,7 @@ type ExportMeta = {
 
 export async function exportBackup(onlyIds?: string[]): Promise<void> {
   const metaRes = await fetch("/api/export");
-  if (!metaRes.ok) throw new Error("Export failed — try again.");
+  if (!metaRes.ok) throw new Error("Export failed. Try again.");
   const meta: ExportMeta = await metaRes.json();
   const chosen = onlyIds ? meta.reviewers.filter((r) => onlyIds.includes(r.id)) : meta.reviewers;
 
@@ -20,7 +20,7 @@ export async function exportBackup(onlyIds?: string[]): Promise<void> {
   const files: { title: string; subject: string | null; pinned: boolean; archived: boolean; createdAt: string; htmlContent: string; noteMd: string }[] = [];
   for (const r of chosen) {
     const res = await fetch(`/api/reviewers/${r.id}`);
-    if (!res.ok) throw new Error(`Export failed on "${r.title}" — try again.`);
+    if (!res.ok) throw new Error(`Export failed on "${r.title}". Try again.`);
     const full = await res.json();
     files.push({ title: r.title, subject: r.subject, pinned: r.pinned, archived: r.archivedAt !== null, createdAt: r.createdAt, htmlContent: full.htmlContent, noteMd: noteByReviewer.get(r.id) ?? "" });
   }
