@@ -619,3 +619,19 @@ a.card { color: inherit; text-decoration: none; }
 .bulkbar button:disabled { opacity: .55; cursor: default; }
 .bulkbar .bulkdel { background: var(--terra); }
 .bulkbar .bulkdel:hover { background: var(--terra-deep); }
+
+/* ---------- settings: offline storage ---------- */
+.storagebox { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); padding: 16px 18px; }
+.stor-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.stor-total b { font-family: var(--font-display); font-size: 22px; }
+.stor-total span { font-size: 12px; color: var(--ink-soft); }
+.stor-bar { height: 8px; border-radius: 999px; background: var(--paper-deep); overflow: hidden; margin-bottom: 6px; }
+.stor-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--sage), var(--gold)); transition: width .3s; }
+.stor-cap { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 12px; }
+.stor-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 7px 2px; border-top: 1px solid var(--rule); }
+.stor-row .nm { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.stor-row .nm.more { color: var(--ink-soft); }
+.stor-row .off { color: var(--sage); font-size: 11px; font-weight: 800; white-space: nowrap; }
+.stor-row .sz { color: var(--ink-soft); white-space: nowrap; }
+.stor-empty { font-size: 13px; color: var(--ink-soft); font-style: italic; padding: 8px 0; }
+.stor-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
