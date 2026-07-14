@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Repaso — road to 2.0 preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Karla:wght@400..800&family=Caveat:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #F7EFE2; --paper-deep: #F0E4D0; --card: #FFFDF6;
+    --ink: #2B2118; --ink-soft: #6B5D4F;
+    --terra: #C4552D; --terra-deep: #A03E1C; --sage: #7A8B6F; --gold: #D9A441; --rule: #E4D5BC;
+    --shadow: 0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
+    --shadow-pop: 0 4px 8px rgba(43,33,24,.12), 0 14px 34px -8px rgba(43,33,24,.3);
+    --font-display: "Fraunces", Georgia, serif;
+    --font-body: "Karla", system-ui, sans-serif;
+    --font-accent: "Caveat", cursive;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-body); color: var(--ink); min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.12), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.10), transparent 55%),
+      var(--paper);
+  }
+
+  .prevnav {
+    position: sticky; top: 0; z-index: 90; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding: 12px 20px; background: color-mix(in srgb, var(--paper) 85%, transparent);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--rule);
+  }
+  .prevnav .lbl { font-family: var(--font-display); font-style: italic; font-size: 15px; margin-right: 6px; }
+  .tabbtn {
+    border: 1.5px solid var(--rule); background: var(--card); color: var(--ink); cursor: pointer;
+    font-family: var(--font-body); font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 999px;
+  }
+  .tabbtn.on { border-color: var(--terra); box-shadow: 0 0 0 3px color-mix(in srgb, var(--terra) 20%, transparent); }
+  .prevnav .vtag { margin-left: auto; font-size: 11.5px; font-weight: 800; letter-spacing: .1em; color: var(--ink-soft); }
+
+  .app { max-width: 1020px; margin: 0 auto; padding: 26px 20px 140px; }
+  .panel { display: none; }
+  .panel.on { display: block; }
+
+  .hint { font-family: var(--font-accent); font-size: 19px; color: var(--ink-soft); margin-bottom: 22px; transform: rotate(-.5deg); }
+  .optlabel {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--ink); color: var(--paper); font-size: 11px; font-weight: 800; letter-spacing: .08em;
+    border-radius: 999px; padding: 4px 12px; margin: 26px 0 12px;
+  }
+  .optnote { font-size: 12.5px; color: var(--ink-soft); margin: -6px 0 12px; line-height: 1.5; }
+
+  .seclabel { display: flex; align-items: center; gap: 14px; margin: 30px 0 18px; }
+  .seclabel h3 { font-family: var(--font-display); font-style: italic; font-weight: 520; font-size: 21px; }
+  .seclabel .line { flex: 1; height: 1px; background: var(--rule); }
+  .seclabel .count { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--ink-soft); }
+
+  .selbtn {
+    border: 1.5px solid var(--rule); background: var(--card); color: var(--ink-soft); cursor: pointer;
+    font-family: var(--font-body); font-weight: 700; font-size: 12px; padding: 5px 13px; border-radius: 999px;
+  }
+  .selbtn.on { border-color: var(--terra); color: var(--terra-deep); background: color-mix(in srgb, var(--terra) 8%, var(--card)); }
+
+  /* cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(225px,1fr)); gap: 26px 20px; }
+  .card {
+    position: relative; background: var(--card); border-radius: 6px; box-shadow: var(--shadow);
+    padding: 20px 18px 16px; cursor: pointer; border-top: 14px solid transparent;
+    background-image: repeating-linear-gradient(transparent, transparent 26px, var(--rule) 27px);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .card:nth-child(3n+1) { transform: rotate(-.7deg); } .card:nth-child(3n+2) { transform: rotate(.5deg); }
+  .card::before {
+    content: ""; position: absolute; top: -11px; left: 50%; width: 74px; height: 20px;
+    transform: translateX(-50%) rotate(-2deg); border-radius: 2px; background: rgba(122,139,111,.5); opacity: .85;
+  }
+  .card:nth-child(2n)::before { background: rgba(217,164,65,.5); transform: translateX(-50%) rotate(1.5deg); }
+  .card .subject {
+    display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--terra-deep);
+    border: 1.5px solid currentColor; border-radius: 3px; padding: 2px 7px; margin-bottom: 12px;
+    text-transform: uppercase; background: rgba(255,253,246,.9);
+  }
+  .card h4 { font-family: var(--font-display); font-weight: 600; font-size: 18px; line-height: 1.25; margin-bottom: 12px; min-height: 44px; background: var(--card); }
+  .card .meta { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-soft); background: var(--card); }
+  .card .pinflag { position: absolute; top: 8px; right: 34px; font-size: 15px; }
+  .card .more { position: absolute; top: 6px; right: 8px; background: none; border: none; cursor: pointer; color: var(--ink-soft); font-size: 17px; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
+  .card .more:hover { background: var(--paper); }
+
+  /* manage mode */
+  .card .tick {
+    position: absolute; top: -8px; left: -8px; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--card); border: 2px solid var(--rule); display: none; place-items: center;
+    font-size: 14px; color: transparent; box-shadow: var(--shadow); z-index: 3;
+  }
+  .managing .card .tick { display: grid; }
+  .managing .card.sel { outline: 2.5px solid var(--terra); outline-offset: 2px; }
+  .managing .card.sel .tick { background: var(--terra); border-color: var(--terra); color: #FFF4E8; }
+  .managing .card .more, .managing .card .pinflag { visibility: hidden; }
+
+  .bulkbar {
+    position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 120%); transition: transform .25s ease;
+    display: flex; align-items: center; gap: 8px; z-index: 95;
+    background: var(--ink); color: var(--paper); border-radius: 999px; padding: 10px 12px 10px 20px; box-shadow: var(--shadow-pop);
+    font-size: 13.5px; white-space: nowrap;
+  }
+  .bulkbar.on { transform: translate(-50%, 0); }
+  .bulkbar b { font-weight: 800; }
+  .bulkbar button {
+    border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 12.5px;
+    padding: 7px 14px; border-radius: 999px; background: rgba(255,253,246,.14); color: var(--paper);
+  }
+  .bulkbar button:hover { background: rgba(255,253,246,.26); }
+  .bulkbar button.danger { background: var(--terra); } .bulkbar button.danger:hover { background: var(--terra-deep); }
+
+  /* the slim 5-item menu (no section headers, Shawn's pick) */
+  .ctx {
+    position: absolute; top: 32px; right: 8px; background: var(--card); border-radius: 10px; z-index: 30;
+    box-shadow: var(--shadow-pop); padding: 6px; min-width: 158px; display: none; text-align: left;
+  }
+  .ctx.open { display: block; }
+  .ctx button { display: flex; gap: 9px; width: 100%; background: none; border: none; cursor: pointer; font-family: var(--font-body); font-size: 13.5px; padding: 8px 11px; border-radius: 7px; text-align: left; color: var(--ink); }
+  .ctx button:hover { background: var(--paper); }
+  .ctx .sep { height: 1px; background: var(--rule); margin: 4px 6px; }
+  .ctx button.del { color: var(--terra-deep); }
+
+  /* send sheet */
+  .sendsheet .link-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .sendsheet .link-row input { flex: 1; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--paper); padding: 9px 12px; font-size: 12.5px; color: var(--ink-soft); font-family: ui-monospace, monospace; min-width: 0; }
+  .send-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .send-act {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;
+    border: 1.5px solid var(--rule); background: var(--card); border-radius: 12px; padding: 14px 10px;
+    font-family: var(--font-body); font-weight: 700; font-size: 12.5px; color: var(--ink);
+  }
+  .send-act:hover { border-color: var(--terra); }
+  .send-act .big { font-size: 22px; }
+  .send-off { margin-top: 14px; text-align: center; }
+  .send-off button { background: none; border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 12px; color: var(--terra-deep); text-decoration: underline; }
+
+  /* upload options */
+  .upload {
+    position: relative; border: 2px dashed var(--terra); border-radius: 14px;
+    background: color-mix(in srgb, var(--card) 65%, transparent);
+    padding: 22px; display: flex; align-items: center; gap: 16px; cursor: pointer;
+  }
+  .upload .stampbox { width: 48px; height: 48px; flex: none; border-radius: 10px; background: var(--terra); display: grid; place-items: center; transform: rotate(-4deg); box-shadow: var(--shadow); color: #FFF4E8; font-size: 22px; font-weight: 800; }
+  .upload h2 { font-family: var(--font-display); font-weight: 560; font-size: 17.5px; margin-bottom: 2px; }
+  .upload p { font-size: 13px; color: var(--ink-soft); }
+  .upload p a { color: var(--terra-deep); font-weight: 700; }
+
+  .splitzone { display: flex; border: 2px dashed var(--terra); border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--card) 65%, transparent); }
+  .splitzone .dropside { flex: 1; display: flex; align-items: center; gap: 14px; padding: 22px; cursor: pointer; }
+  .splitzone .pasteside {
+    flex: none; width: 168px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    border-left: 2px dashed color-mix(in srgb, var(--terra) 55%, var(--rule)); cursor: pointer; padding: 14px;
+    background: color-mix(in srgb, var(--gold) 8%, transparent); text-align: center;
+  }
+  .splitzone .pasteside:hover { background: color-mix(in srgb, var(--gold) 16%, transparent); }
+  .splitzone .pasteside .big { font-size: 21px; }
+  .splitzone .pasteside b { font-size: 13px; }
+  .splitzone .pasteside span { font-size: 11px; color: var(--ink-soft); }
+  @media (max-width: 620px) {
+    .splitzone { flex-direction: column; }
+    .splitzone .pasteside { width: auto; flex-direction: row; justify-content: center; gap: 10px; border-left: none; border-top: 2px dashed color-mix(in srgb, var(--terra) 55%, var(--rule)); padding: 10px; }
+  }
+
+  .togglezone { border: 2px dashed var(--terra); border-radius: 14px; background: color-mix(in srgb, var(--card) 65%, transparent); padding: 18px 22px 22px; }
+  .togglezone .seg { display: inline-flex; background: var(--card); border-radius: 999px; padding: 3px; box-shadow: inset 0 1px 3px rgba(43,33,24,.1); margin-bottom: 14px; }
+  .togglezone .seg button { border: none; background: none; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 12px; padding: 6px 15px; border-radius: 999px; color: var(--ink-soft); }
+  .togglezone .seg button.on { background: var(--terra); color: #FFF4E8; }
+  .togglezone .zbody { display: flex; align-items: center; gap: 14px; }
+
+  .tray { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); padding: 16px 18px; margin-top: 26px; }
+  .tray h4 { font-family: var(--font-display); font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+  .tray .traynote { font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; font-style: italic; }
+  .stage { display: flex; align-items: center; gap: 12px; padding: 10px 8px; }
+  .stage + .stage { border-top: 1px solid var(--rule); }
+  .stage .ficon { width: 34px; height: 34px; flex: none; border-radius: 8px; background: var(--paper-deep); display: grid; place-items: center; font-size: 15px; }
+  .stage .fmeta { flex: 1; min-width: 0; }
+  .stage .fname { font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stage .fsize { font-size: 11.5px; color: var(--ink-soft); }
+  .stage .fsize b.warn { color: var(--terra-deep); }
+  .stage .peek, .stage .rm {
+    border: 1.5px solid var(--rule); background: var(--card); cursor: pointer; border-radius: 999px;
+    font-family: var(--font-body); font-weight: 700; font-size: 11.5px; color: var(--ink-soft); padding: 5px 11px;
+  }
+  .stage .peek:hover { border-color: var(--terra); color: var(--terra-deep); }
+  .stage.bad { opacity: .75; }
+  .stage .badtag { font-size: 11px; font-weight: 800; color: var(--terra-deep); background: color-mix(in srgb, var(--terra) 12%, var(--card)); border-radius: 999px; padding: 3px 10px; }
+  .tray .confirm { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tray .confirm .tot { font-size: 12.5px; color: var(--ink-soft); }
+  .solidbtn { border: none; cursor: pointer; background: var(--ink); color: var(--paper); font-family: var(--font-body); font-weight: 700; font-size: 13.5px; padding: 10px 20px; border-radius: 999px; }
+  .solidbtn:hover { background: #40321F; }
+
+  /* settings */
+  .set-sec { max-width: 680px; margin-bottom: 34px; }
+  .set-sec h2 { font-family: var(--font-display); font-style: italic; font-weight: 520; font-size: 21px; margin-bottom: 4px; }
+  .set-sub { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 14px; line-height: 1.55; }
+  .storagebox { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); padding: 16px 18px; }
+  .stor-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .stor-total b { font-family: var(--font-display); font-size: 22px; }
+  .stor-total span { font-size: 12px; color: var(--ink-soft); }
+  .stor-bar { height: 8px; border-radius: 999px; background: var(--paper-deep); overflow: hidden; margin-bottom: 6px; }
+  .stor-bar i { display: block; height: 100%; width: 4%; border-radius: 999px; background: linear-gradient(90deg, var(--sage), var(--gold)); }
+  .stor-cap { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 12px; }
+  .stor-row { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 2px; border-top: 1px solid var(--rule); }
+  .stor-row .nm { display: flex; gap: 8px; align-items: center; }
+  .stor-row .off { color: var(--sage); font-size: 11px; font-weight: 800; }
+  .stor-row .sz { color: var(--ink-soft); }
+  .stor-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .ghostbtn { border: 1.5px solid var(--rule); background: var(--card); color: var(--ink); cursor: pointer; box-shadow: var(--shadow); font-family: var(--font-body); font-weight: 700; font-size: 12.5px; padding: 8px 15px; border-radius: 999px; }
+  .ghostbtn:hover { border-color: var(--terra); }
+  .ghostbtn.danger { color: var(--terra-deep); }
+
+  .syncbox { background: color-mix(in srgb, var(--sage) 9%, var(--card)); border: 1.5px dashed var(--sage); border-radius: 14px; padding: 16px 18px; }
+  .syncbox .srow { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+  .syncbox .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sage) 25%, transparent); flex: none; }
+  .syncbox .srow b { font-weight: 800; }
+  .syncbox .fine { font-size: 12px; color: var(--ink-soft); margin-top: 8px; line-height: 1.5; }
+
+  .toast { position: fixed; left: 50%; bottom: 78px; transform: translateX(-50%); background: var(--ink); color: var(--paper); border-radius: 999px; padding: 10px 22px; font-size: 13.5px; z-index: 200; box-shadow: var(--shadow); opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+
+  .overlay { position: fixed; inset: 0; z-index: 150; background: rgba(43,33,24,.35); display: none; place-items: center; padding: 20px; }
+  .overlay.on { display: grid; }
+  .modal { background: var(--card); border-radius: 14px; box-shadow: var(--shadow-pop); padding: 24px; width: 100%; max-width: 440px; }
+  .modal h3 { font-family: var(--font-display); font-weight: 600; font-size: 19px; margin-bottom: 6px; }
+  .modal .msub { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; line-height: 1.5; }
+  .modal textarea { width: 100%; height: 130px; border: 1.5px solid var(--rule); border-radius: 10px; background: var(--paper); font-family: ui-monospace, monospace; font-size: 12px; padding: 12px; color: var(--ink); resize: vertical; }
+  .modal textarea:focus, .modal input:focus { outline: none; border-color: var(--terra); }
+  .modal label { display: block; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); margin: 12px 0; }
+  .modal input { display: block; width: 100%; margin-top: 6px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--paper); padding: 9px 12px; font-family: var(--font-body); font-size: 14px; color: var(--ink); }
+  .modal .macts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+  .modal .ghost { background: none; border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 13px; color: var(--ink-soft); padding: 9px 16px; border-radius: 999px; }
+  .modal .ghost:hover { background: var(--paper); }
+  .prevdoc { border: 1px solid var(--rule); border-radius: 10px; background: #fff; height: 220px; overflow: hidden; padding: 18px 20px; font-size: 12px; line-height: 1.6; color: #2B2118; }
+  .prevdoc h1 { font-family: var(--font-display); font-size: 17px; margin-bottom: 6px; }
+  .prevdoc .frm { background: #F7EFE2; border-radius: 6px; padding: 8px; text-align: center; font-style: italic; margin: 8px 0; }
+
+  @media (max-width: 620px) {
+    .prevnav .vtag { display: none; }
+    .bulkbar { font-size: 12px; padding: 8px 8px 8px 14px; }
+  }
+</style>
+</head>
+<body>
+  <nav class="prevnav">
+    <span class="lbl">Road to 2.0 · round 2</span>
+    <button class="tabbtn on" data-p="desk">Desk</button>
+    <button class="tabbtn" data-p="upload">Upload: 3 options</button>
+    <button class="tabbtn" data-p="settings">Settings</button>
+    <span class="vtag">PROTOTYPE. NOTHING IS REAL</span>
+  </nav>
+
+  <div class="app">
+
+    <!-- ================= DESK ================= -->
+    <section class="panel on" id="p-desk">
+      <p class="hint">your picks applied: 5 items, no section labels, Send replaces Share + Download. tap a ⋯ then tap Send ✦</p>
+
+      <div class="seclabel">
+        <h3>On the desk</h3><span class="line"></span>
+        <button class="selbtn" id="selToggle">☑ Select</button>
+        <span class="count">6 FILES</span>
+      </div>
+      <div class="cards" id="deskCards">
+        <div class="card"><span class="tick">✓</span><span class="pinflag">📌</span>
+          <button class="more">⋯</button>
+          <div class="ctx">
+            <button>✏️ Rename</button><button>⧉ Duplicate</button><button data-send>📤 Send</button><button>🗄 Archive</button>
+            <div class="sep"></div><button class="del">🗑 Delete</button>
+          </div>
+          <span class="subject">STAT 023</span><h4>Hypothesis Testing — Full Reviewer</h4>
+          <div class="meta"><span>Jul 2</span><span>Open →</span></div>
+        </div>
+        <div class="card"><span class="tick">✓</span>
+          <button class="more">⋯</button>
+          <div class="ctx">
+            <button>✏️ Rename</button><button>⧉ Duplicate</button><button data-send>📤 Send</button><button>🗄 Archive</button>
+            <div class="sep"></div><button class="del">🗑 Delete</button>
+          </div>
+          <span class="subject">QMMS</span><h4>Module 5: Decision Analysis</h4>
+          <div class="meta"><span>Jun 28</span><span>Open →</span></div>
+        </div>
+        <div class="card"><span class="tick">✓</span>
+          <button class="more">⋯</button>
+          <div class="ctx">
+            <button>✏️ Rename</button><button>⧉ Duplicate</button><button data-send>📤 Send</button><button>🗄 Archive</button>
+            <div class="sep"></div><button class="del">🗑 Delete</button>
+          </div>
+          <span class="subject">INTE 202</span><h4>Pandas &amp; NumPy Cheatsheet</h4>
+          <div class="meta"><span>Jun 20</span><span>Open →</span></div>
+        </div>
+        <div class="card"><span class="tick">✓</span>
+          <button class="more">⋯</button>
+          <div class="ctx">
+            <button>✏️ Rename</button><button>⧉ Duplicate</button><button data-send>📤 Send</button><button>🗄 Archive</button>
+            <div class="sep"></div><button class="del">🗑 Delete</button>
+          </div>
+          <span class="subject">MATH</span><h4>Integration Techniques</h4>
+          <div class="meta"><span>Jun 12</span><span>Open →</span></div>
+        </div>
+        <div class="card"><span class="tick">✓</span><span class="pinflag">📌</span>
+          <button class="more">⋯</button>
+          <div class="ctx">
+            <button>✏️ Rename</button><button>⧉ Duplicate</button><button data-send>📤 Send</button><button>🗄 Archive</button>
+            <div class="sep"></div><button class="del">🗑 Delete</button>
+          </div>
+          <span class="subject">CS</span><h4>Big-O &amp; Data Structures</h4>
+          <div class="meta"><span>Jun 5</span><span>Open →</span></div>
+        </div>
+        <div class="card"><span class="tick">✓</span>
+          <button class="more">⋯</button>
+          <div class="ctx">
+            <button>✏️ Rename</button><button>⧉ Duplicate</button><button data-send>📤 Send</button><button>🗄 Archive</button>
+            <div class="sep"></div><button class="del">🗑 Delete</button>
+          </div>
+          <span class="subject">PHYS</span><h4>Kinematics Formula Sheet</h4>
+          <div class="meta"><span>May 30</span><span>Open →</span></div>
+        </div>
+      </div>
+
+      <div class="bulkbar" id="bulkbar">
+        <span><b id="selCount">0</b> selected</span>
+        <button data-act="Archived">🗄 Archive</button>
+        <button data-act="Exported">📦 Export</button>
+        <button data-act="Deleted" class="danger">🗑 Delete</button>
+      </div>
+    </section>
+
+    <!-- ================= UPLOAD OPTIONS ================= -->
+    <section class="panel" id="p-upload">
+      <p class="hint">three ways to fit “paste HTML” without a second big box. pick one (or mix) ✦</p>
+
+      <span class="optlabel">OPTION A · split zone</span>
+      <p class="optnote">One dashed zone, two doors. Drop files on the left, paste on the right. On phones the paste side folds into a slim strip under the drop area, so nothing gets cramped.</p>
+      <div class="splitzone">
+        <div class="dropside">
+          <div class="upload" style="border:none;background:none;padding:0"><div class="stampbox">+</div></div>
+          <div><h2 style="font-family:var(--font-display);font-weight:560;font-size:17.5px;margin-bottom:2px">Drop reviewers here</h2><p style="font-size:13px;color:var(--ink-soft)">or click to pick files</p></div>
+        </div>
+        <div class="pasteside" data-paste>
+          <span class="big">✂</span><b>Paste HTML</b><span>no file needed</span>
+        </div>
+      </div>
+
+      <span class="optlabel">OPTION B · flip switch</span>
+      <p class="optnote">One zone with a small File / Paste switch in the corner. Tidiest footprint, but the paste door is hidden until you notice the switch.</p>
+      <div class="togglezone">
+        <div class="seg"><button class="on" id="segFile">📄 Files</button><button id="segPaste">✂ Paste</button></div>
+        <div class="zbody" id="zoneFile">
+          <div class="stampbox" style="width:48px;height:48px;border-radius:10px;background:var(--terra);display:grid;place-items:center;transform:rotate(-4deg);box-shadow:var(--shadow);color:#FFF4E8;font-size:22px;font-weight:800;flex:none">+</div>
+          <div><h2 style="font-family:var(--font-display);font-weight:560;font-size:17.5px;margin-bottom:2px">Drop reviewers here</h2><p style="font-size:13px;color:var(--ink-soft)">or click to pick files</p></div>
+        </div>
+        <div class="zbody" id="zonePaste" style="display:none">
+          <div class="stampbox" style="width:48px;height:48px;border-radius:10px;background:var(--gold);display:grid;place-items:center;transform:rotate(4deg);box-shadow:var(--shadow);color:#3A2C10;font-size:20px;font-weight:800;flex:none">✂</div>
+          <div><h2 style="font-family:var(--font-display);font-weight:560;font-size:17.5px;margin-bottom:2px">Paste HTML</h2><p style="font-size:13px;color:var(--ink-soft)">tap to open the paste box, no file needed</p></div>
+        </div>
+      </div>
+
+      <span class="optlabel">OPTION C · inline link</span>
+      <p class="optnote">Zero extra space: the zone stays exactly as it is today, and “paste HTML” lives as a link inside its caption. Cleanest look, easiest to miss.</p>
+      <div class="upload">
+        <div class="stampbox">+</div>
+        <div><h2>Drop reviewers here</h2><p>click to pick files, or <a href="#" data-paste>paste HTML instead</a></p></div>
+      </div>
+
+      <div class="tray">
+        <h4>Ready to add · 2 of 3</h4>
+        <p class="traynote">this tray only exists mid-upload. once you confirm, it clears itself and the new cards appear on the desk.</p>
+        <div class="stage">
+          <div class="ficon">📄</div>
+          <div class="fmeta"><div class="fname">stat023-final-reviewer.html</div><div class="fsize">1.4 MB · title: “STAT 023 Final Reviewer”</div></div>
+          <button class="peek" data-peek>👁 Preview</button>
+          <button class="rm">✕</button>
+        </div>
+        <div class="stage">
+          <div class="ficon">📄</div>
+          <div class="fmeta"><div class="fname">qmms-mock-exam.html</div><div class="fsize">760 KB · title: “QMMS Mock Exam”</div></div>
+          <button class="peek" data-peek>👁 Preview</button>
+          <button class="rm">✕</button>
+        </div>
+        <div class="stage bad">
+          <div class="ficon">📄</div>
+          <div class="fmeta"><div class="fname">physics-notes-with-videos.html</div><div class="fsize"><b class="warn">5.8 MB, over the 4 MB limit</b></div></div>
+          <span class="badtag">won’t be added</span>
+          <button class="rm">✕</button>
+        </div>
+        <div class="confirm">
+          <span class="tot">Adding <b>2 files · 2.1 MB</b> to your desk</span>
+          <button class="solidbtn" id="confirmAdd">Add 2 to desk</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section class="panel" id="p-settings">
+      <p class="hint">clearer wording, and the honest answer about limits ✦</p>
+
+      <div class="set-sec">
+        <h2>Offline storage</h2>
+        <p class="set-sub">Repaso keeps a copy of every reviewer on this device so they open with no internet. These are device copies only: clearing them never touches your cloud copies.</p>
+        <div class="storagebox">
+          <div class="stor-total"><b>6.2 MB</b><span>on this device · 14 reviewers</span></div>
+          <div class="stor-bar"><i></i></div>
+          <div class="stor-cap">Your browser allows roughly 2 GB or more here. At typical reviewer sizes, that is thousands of files of headroom.</div>
+          <div class="stor-row"><span class="nm">Hypothesis Testing — Full Reviewer <span class="off">● offline</span></span><span class="sz">1.4 MB</span></div>
+          <div class="stor-row"><span class="nm">Module 5: Decision Analysis <span class="off">● offline</span></span><span class="sz">920 KB</span></div>
+          <div class="stor-row"><span class="nm">Pandas &amp; NumPy Cheatsheet <span class="off">● offline</span></span><span class="sz">610 KB</span></div>
+          <div class="stor-row"><span class="nm" style="color:var(--ink-soft)">+ 11 more…</span><span class="sz"></span></div>
+          <div class="stor-actions">
+            <button class="ghostbtn" data-toast="Offline copies refreshed">⟳ Refresh offline copies</button>
+            <button class="ghostbtn danger" data-toast="Device copies cleared. Cloud copies are safe.">✕ Clear offline copies</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="set-sec">
+        <h2>Sync <span style="font-size:12px;font-weight:800;color:var(--sage);letter-spacing:.08em">COMING IN 2.0</span></h2>
+        <p class="set-sub">Once 2.0 lands, edits work fully offline and push to the cloud when signal returns.</p>
+        <div class="syncbox">
+          <div class="srow"><span class="dot"></span><span><b>All changes synced</b> · last sync 2 min ago</span></div>
+          <div class="fine">No signal at PUP? Keep writing notes, renaming, even uploading. Everything queues on this device and syncs when you are back online. Conflicts keep <b>both</b> versions; nothing is ever dropped.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- send sheet -->
+  <div class="overlay" id="sendModal">
+    <div class="modal sendsheet">
+      <h3>Send “Hypothesis Testing”</h3>
+      <p class="msub">Anyone with the link can view this one reviewer. Read-only, no sign-in, and you can turn it off anytime.</p>
+      <div class="link-row">
+        <input readonly value="repaso-six.vercel.app/s/Kx3m…" />
+        <button class="solidbtn" data-toast="Link copied" style="padding:9px 16px">Copy</button>
+      </div>
+      <div class="send-acts">
+        <button class="send-act" data-toast="Opens your phone's share sheet (Messenger, Gmail, etc.)"><span class="big">📲</span>Send via…</button>
+        <button class="send-act" data-toast="Downloads the .html file"><span class="big">⬇</span>Download file</button>
+      </div>
+      <div class="send-off"><button data-toast="Link turned off">Turn off link</button></div>
+      <div class="macts"><button class="ghost" data-close>Done</button></div>
+    </div>
+  </div>
+
+  <!-- paste modal -->
+  <div class="overlay" id="pasteModal">
+    <div class="modal">
+      <h3>Paste HTML</h3>
+      <p class="msub">Made a reviewer with Claude or copied one from anywhere? Paste the whole HTML here. No file needed.</p>
+      <textarea placeholder="&lt;!doctype html&gt;&#10;&lt;html&gt;…"></textarea>
+      <label>Title <small>(auto-filled from the &lt;title&gt; tag, editable)</small>
+        <input value="STAT 023 Final Reviewer" />
+      </label>
+      <div class="macts">
+        <button class="ghost" data-close>Cancel</button>
+        <button class="solidbtn" data-toast="Saved to your desk ✓" data-close>Save to desk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- preview modal -->
+  <div class="overlay" id="peekModal">
+    <div class="modal">
+      <h3>stat023-final-reviewer.html</h3>
+      <p class="msub">A peek inside before it lands on your desk. Sandboxed, just like the viewer.</p>
+      <div class="prevdoc">
+        <h1>STAT 023 — Final Reviewer</h1>
+        <p><b>1. Hypothesis Testing.</b> H₀ states no effect; H₁ is what we suspect…</p>
+        <div class="frm">z = (x̄ − μ) / (σ / √n)</div>
+        <p><b>2. Type I &amp; II Errors.</b> α is the probability of rejecting a true H₀…</p>
+      </div>
+      <div class="macts"><button class="ghost" data-close>Close</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  document.querySelectorAll(".tabbtn").forEach((b) => b.addEventListener("click", () => {
+    document.querySelector(".tabbtn.on")?.classList.remove("on");
+    document.querySelector(".panel.on")?.classList.remove("on");
+    b.classList.add("on");
+    document.getElementById("p-" + b.dataset.p).classList.add("on");
+  }));
+
+  let toastT;
+  function say(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("on");
+    clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2200);
+  }
+  document.querySelectorAll("[data-toast]").forEach((b) => b.addEventListener("click", () => say(b.dataset.toast)));
+
+  // manage mode
+  const desk = document.getElementById("deskCards");
+  const bulkbar = document.getElementById("bulkbar");
+  const selToggle = document.getElementById("selToggle");
+  let managing = false;
+  function updateCount() {
+    const n = desk.querySelectorAll(".card.sel").length;
+    document.getElementById("selCount").textContent = n;
+    bulkbar.classList.toggle("on", managing && n > 0);
+  }
+  selToggle.addEventListener("click", () => {
+    managing = !managing;
+    desk.classList.toggle("managing", managing);
+    selToggle.classList.toggle("on", managing);
+    selToggle.textContent = managing ? "✕ Done" : "☑ Select";
+    if (!managing) desk.querySelectorAll(".card.sel").forEach((c) => c.classList.remove("sel"));
+    updateCount();
+  });
+  desk.querySelectorAll(".card").forEach((c) => c.addEventListener("click", (e) => {
+    if (!managing) return;
+    e.preventDefault();
+    c.classList.toggle("sel");
+    updateCount();
+  }));
+  bulkbar.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+    const n = desk.querySelectorAll(".card.sel").length;
+    say(`${b.dataset.act} ${n} reviewer${n === 1 ? "" : "s"} (pretend)`);
+  }));
+
+  // menus
+  document.querySelectorAll(".more").forEach((m) => m.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const ctx = m.nextElementSibling;
+    const was = ctx.classList.contains("open");
+    document.querySelectorAll(".ctx.open").forEach((c) => c.classList.remove("open"));
+    if (!was) ctx.classList.add("open");
+  }));
+  document.addEventListener("click", () => document.querySelectorAll(".ctx.open").forEach((c) => c.classList.remove("open")));
+
+  // modals
+  function wireModal(id) {
+    const ov = document.getElementById(id);
+    ov.addEventListener("click", (e) => { if (e.target === ov) ov.classList.remove("on"); });
+    ov.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => ov.classList.remove("on")));
+    return ov;
+  }
+  const sendM = wireModal("sendModal");
+  const pasteM = wireModal("pasteModal");
+  const peekM = wireModal("peekModal");
+  document.querySelectorAll("[data-send]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); document.querySelectorAll(".ctx.open").forEach((c) => c.classList.remove("open")); sendM.classList.add("on"); }));
+  document.querySelectorAll("[data-paste]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); pasteM.classList.add("on"); }));
+  document.querySelectorAll("[data-peek]").forEach((b) => b.addEventListener("click", () => peekM.classList.add("on")));
+  document.querySelectorAll(".ctx button:not([data-send])").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); say("(pretend) " + b.textContent.trim()); }));
+  document.getElementById("confirmAdd").addEventListener("click", () => say("2 reviewers added to your desk ✓ tray clears itself"));
+
+  // option B flip
+  const segFile = document.getElementById("segFile"), segPaste = document.getElementById("segPaste");
+  segFile.addEventListener("click", () => { segFile.classList.add("on"); segPaste.classList.remove("on"); zoneFile.style.display = "flex"; zonePaste.style.display = "none"; });
+  segPaste.addEventListener("click", () => { segPaste.classList.add("on"); segFile.classList.remove("on"); zonePaste.style.display = "flex"; zoneFile.style.display = "none"; });
+</script>
+</body>
+</html>
