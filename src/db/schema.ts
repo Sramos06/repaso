@@ -46,3 +46,12 @@ export const noteRevisions = pgTable("note_revisions", {
   contentMd: text("content_md").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// One row per study-open (written by POST /api/reviewers/[id]/open). Nothing
+// reads it yet; it accrues history so a future stats screen starts with data.
+export const openEvents = pgTable("open_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  reviewerId: uuid("reviewer_id").notNull().references(() => reviewers.id, { onDelete: "cascade" }),
+  openedAt: timestamp("opened_at").notNull().defaultNow(),
+});
