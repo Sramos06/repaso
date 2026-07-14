@@ -576,3 +576,62 @@ a.card { color: inherit; text-decoration: none; }
 .nh-restore:hover { background: var(--terra-deep); }
 .nh-restore:disabled { opacity: .55; cursor: default; }
 .nclose.on-hist { background: var(--card); }
+
+/* ---------- ctx menu separator + send sheet ---------- */
+.ctx .sep { height: 1px; background: var(--rule); margin: 4px 6px; }
+.send-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+.send-act {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;
+  border: 1.5px solid var(--rule); background: var(--card); border-radius: 12px; padding: 14px 10px;
+  font-family: var(--font-body); font-weight: 700; font-size: 12.5px; color: var(--ink);
+}
+.send-act:hover { border-color: var(--terra); }
+.send-act .big { font-size: 22px; }
+
+/* ---------- manage mode ---------- */
+.selbtn {
+  border: 1.5px solid var(--rule); background: var(--card); color: var(--ink-soft); cursor: pointer;
+  font-family: var(--font-body); font-weight: 700; font-size: 12px; padding: 5px 13px; border-radius: 999px;
+}
+.selbtn.on { border-color: var(--terra); color: var(--terra-deep); background: color-mix(in srgb, var(--terra) 8%, var(--card)); }
+.card .tick {
+  position: absolute; top: -8px; left: -8px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--rule); display: none; place-items: center;
+  font-size: 14px; color: transparent; box-shadow: var(--shadow); z-index: 3;
+}
+.managing .card .tick { display: grid; }
+.managing .card.sel { outline: 2.5px solid var(--terra); outline-offset: 2px; }
+.managing .card.sel .tick { background: var(--terra); border-color: var(--terra); color: #FFF4E8; }
+.managing .card .more, .managing .card .pin, .managing .card .pinflag { visibility: hidden; }
+.bulkbar {
+  position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 130%); transition: transform .25s ease;
+  display: flex; align-items: center; gap: 8px; z-index: 95;
+  background: var(--ink); color: var(--paper); border-radius: 999px; padding: 10px 12px 10px 20px;
+  box-shadow: var(--shadow-pop); font-size: 13.5px; white-space: nowrap;
+}
+.bulkbar.on { transform: translate(-50%, 0); }
+.bulkbar b { font-weight: 800; }
+.bulkbar button {
+  border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 12.5px;
+  padding: 7px 14px; border-radius: 999px; background: rgba(255,253,246,.14); color: var(--paper);
+}
+.bulkbar button:hover { background: rgba(255,253,246,.26); }
+.bulkbar button:disabled { opacity: .55; cursor: default; }
+.bulkbar .bulkdel { background: var(--terra); }
+.bulkbar .bulkdel:hover { background: var(--terra-deep); }
+
+/* ---------- settings: offline storage ---------- */
+.storagebox { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); padding: 16px 18px; }
+.stor-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.stor-total b { font-family: var(--font-display); font-size: 22px; }
+.stor-total span { font-size: 12px; color: var(--ink-soft); }
+.stor-bar { height: 8px; border-radius: 999px; background: var(--paper-deep); overflow: hidden; margin-bottom: 6px; }
+.stor-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--sage), var(--gold)); transition: width .3s; }
+.stor-cap { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 12px; }
+.stor-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 7px 2px; border-top: 1px solid var(--rule); }
+.stor-row .nm { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.stor-row .nm.more { color: var(--ink-soft); }
+.stor-row .off { color: var(--sage); font-size: 11px; font-weight: 800; white-space: nowrap; }
+.stor-row .sz { color: var(--ink-soft); white-space: nowrap; }
+.stor-empty { font-size: 13px; color: var(--ink-soft); font-style: italic; padding: 8px 0; }
+.stor-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }

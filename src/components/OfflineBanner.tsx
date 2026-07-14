@@ -16,5 +16,5 @@ export default function OfflineBanner() {
     };
   }, []);
   if (!offline) return null;
-  return <div className="offline-banner">Offline — showing your saved reviewers</div>;
+  return <div className="offline-banner">Offline: showing your saved reviewers</div>;
 }

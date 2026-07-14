@@ -30,13 +30,13 @@ export default function UploadZone() {
           if (data.rejected?.length) rejected.push(...data.rejected);
           if (data.created?.length) created.push(...data.created);
         } catch {
-          rejected.push({ name: file.name, reason: "Could not reach the server — check your connection and try again." });
+          rejected.push({ name: file.name, reason: "Could not reach the server. Check your connection and try again." });
         }
       }
       if (rejected.length) setMsg(rejected.map((r) => `${r.name}: ${r.reason}`).join(" · "));
       if (created.length) router.refresh();
     } catch {
-      setMsg("Could not reach the server — check your connection and try again.");
+      setMsg("Could not reach the server. Check your connection and try again.");
     } finally {
       setBusy(false);
     }
@@ -52,7 +52,7 @@ export default function UploadZone() {
       <div className="stampbox">↑</div>
       <div>
         <h2>{busy ? "Saving to your desk…" : "Drop a reviewer here"}</h2>
-        <p>{msg ?? "or tap to pick — .html files, saved forever"}</p>
+        <p>{msg ?? "or tap to pick (.html files, saved forever)"}</p>
       </div>
       <input ref={input} type="file" accept=".html,.htm" multiple hidden
         onChange={(e) => e.target.files && send(e.target.files)} />

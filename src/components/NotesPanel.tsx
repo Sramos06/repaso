@@ -163,11 +163,11 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
       {view === "history" ? (
         <div className="nhistory">
           {revError ? (
-            <p className="nh-empty">Couldn&rsquo;t load history — try again.</p>
+            <p className="nh-empty">Couldn&rsquo;t load history. Try again.</p>
           ) : revisions === null ? (
             <p className="nh-empty">Loading…</p>
           ) : revisions.length === 0 ? (
-            <p className="nh-empty">No older versions yet — snapshots are kept as you save.</p>
+            <p className="nh-empty">No older versions yet. Snapshots are kept as you save.</p>
           ) : (
             revisions.map((rev) => (
               <div key={rev.id} className="nh-item">
@@ -189,12 +189,12 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
           )}
         </div>
       ) : view === "write" ? (
-        <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading"} placeholder="Write anything — it autosaves…" />
+        <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading"} placeholder="Write anything. It autosaves…" />
       ) : (
         // Safe: renderMarkdown escapes ALL input before adding its own tags.
         <div className="notes-preview" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
       )}
-      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", offline: "KEPT LOCALLY — will sync" }[state]}</span>
+      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", offline: "KEPT LOCALLY · will sync" }[state]}</span>
     </aside>
   );
 }

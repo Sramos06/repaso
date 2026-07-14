@@ -39,7 +39,7 @@ export async function importBackup(file: File): Promise<ImportResult> {
   if (!parsed.ok) throw new Error(parsed.reason);
 
   const listRes = await fetch("/api/reviewers");
-  if (!listRes.ok) throw new Error("Couldn’t read your current desk — try again.");
+  if (!listRes.ok) throw new Error("Couldn’t read your current desk. Try again.");
   const existing: { title: string }[] = (await listRes.json()).reviewers ?? [];
   const have = new Set(existing.map((r) => r.title.toLowerCase()));
 
