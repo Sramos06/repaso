@@ -587,3 +587,35 @@ a.card { color: inherit; text-decoration: none; }
 }
 .send-act:hover { border-color: var(--terra); }
 .send-act .big { font-size: 22px; }
+
+/* ---------- manage mode ---------- */
+.selbtn {
+  border: 1.5px solid var(--rule); background: var(--card); color: var(--ink-soft); cursor: pointer;
+  font-family: var(--font-body); font-weight: 700; font-size: 12px; padding: 5px 13px; border-radius: 999px;
+}
+.selbtn.on { border-color: var(--terra); color: var(--terra-deep); background: color-mix(in srgb, var(--terra) 8%, var(--card)); }
+.card .tick {
+  position: absolute; top: -8px; left: -8px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--rule); display: none; place-items: center;
+  font-size: 14px; color: transparent; box-shadow: var(--shadow); z-index: 3;
+}
+.managing .card .tick { display: grid; }
+.managing .card.sel { outline: 2.5px solid var(--terra); outline-offset: 2px; }
+.managing .card.sel .tick { background: var(--terra); border-color: var(--terra); color: #FFF4E8; }
+.managing .card .more, .managing .card .pin, .managing .card .pinflag { visibility: hidden; }
+.bulkbar {
+  position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 130%); transition: transform .25s ease;
+  display: flex; align-items: center; gap: 8px; z-index: 95;
+  background: var(--ink); color: var(--paper); border-radius: 999px; padding: 10px 12px 10px 20px;
+  box-shadow: var(--shadow-pop); font-size: 13.5px; white-space: nowrap;
+}
+.bulkbar.on { transform: translate(-50%, 0); }
+.bulkbar b { font-weight: 800; }
+.bulkbar button {
+  border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 12.5px;
+  padding: 7px 14px; border-radius: 999px; background: rgba(255,253,246,.14); color: var(--paper);
+}
+.bulkbar button:hover { background: rgba(255,253,246,.26); }
+.bulkbar button:disabled { opacity: .55; cursor: default; }
+.bulkbar .bulkdel { background: var(--terra); }
+.bulkbar .bulkdel:hover { background: var(--terra-deep); }

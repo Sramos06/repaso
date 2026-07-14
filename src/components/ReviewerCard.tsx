@@ -8,6 +8,9 @@ type Props = {
   snippet?: string;
   term?: string;
   offline?: boolean;
+  managing?: boolean;
+  selected?: boolean;
+  onToggleSelect: () => void;
   onMenuToggle: () => void;
   onPin: () => void;
   onRename: () => void;
@@ -43,9 +46,14 @@ function highlight(text: string, term: string) {
   return out;
 }
 
-export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, offline, onMenuToggle, onPin, onRename, onDuplicate, onSend, onArchive, onDelete }: Props) {
+export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, offline, managing, selected, onToggleSelect, onMenuToggle, onPin, onRename, onDuplicate, onSend, onArchive, onDelete }: Props) {
   return (
-    <Link href={`/viewer/${r.id}`} className={`card${r.archived ? " archived" : ""}`}>
+    <Link
+      href={`/viewer/${r.id}`}
+      className={`card${r.archived ? " archived" : ""}${selected ? " sel" : ""}`}
+      onClick={(e) => { if (managing) { e.preventDefault(); onToggleSelect(); } }}
+    >
+      <span className="tick">✓</span>
       {!r.archived && (
         <button type="button" className={`pin${r.pinned ? " on" : ""}`} title={r.pinned ? "Unpin" : "Pin to top"} onClick={(e) => stop(e, onPin)}>📌</button>
       )}

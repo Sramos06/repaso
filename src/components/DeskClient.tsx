@@ -9,6 +9,7 @@ import AvatarMenu from "./AvatarMenu";
 import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
 import { precacheReviewers, cachedReviewerIds } from "@/lib/offline-cache";
+import { exportBackup } from "@/lib/export-backup";
 
 export type DeskReviewer = {
   id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
@@ -19,6 +20,7 @@ type Dialog =
   | { kind: "rename"; r: DeskReviewer }
   | { kind: "delete"; r: DeskReviewer }
   | { kind: "send"; r: DeskReviewer }
+  | { kind: "bulkdelete" }
   | null;
 
 export default function DeskClient({ reviewers, email }: { reviewers: DeskReviewer[]; email: string }) {
@@ -35,6 +37,8 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<"idle" | "loading" | "error">("idle");
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [managing, setManaging] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [offlineIds, setOfflineIds] = useState<Set<string>>(new Set());
   const searchSeq = useRef(0);
   const shareSeq = useRef(0);
@@ -138,6 +142,49 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     finally { setBusy(false); }
   }
 
+  function toggleManaging() {
+    setManaging((m) => !m);
+    setSelected(new Set());
+  }
+  function toggleSelect(id: string) {
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }
+  async function bulkArchive() {
+    if (busy || selected.size === 0) return;
+    setBusy(true);
+    try {
+      for (const id of selected) {
+        await fetch(`/api/reviewers/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: true }) });
+      }
+      say(`Moved ${selected.size} to the drawer`);
+      toggleManaging(); router.refresh();
+    } catch { say("Could not reach the server. Check your connection."); }
+    finally { setBusy(false); }
+  }
+  async function bulkExport() {
+    if (busy || selected.size === 0) return;
+    setBusy(true);
+    try { await exportBackup([...selected]); say(`Exported ${selected.size}`); }
+    catch (e) { say(e instanceof Error ? e.message : "Export failed. Try again."); }
+    finally { setBusy(false); }
+  }
+  async function bulkDelete() {
+    if (busy || selected.size === 0) return;
+    setBusy(true);
+    try {
+      for (const id of selected) {
+        await fetch(`/api/reviewers/${id}`, { method: "DELETE" });
+      }
+      say(`Deleted ${selected.size}`);
+      setDialog(null); toggleManaging(); router.refresh();
+    } catch { say("Could not reach the server. Check your connection."); }
+    finally { setBusy(false); }
+  }
+
   function openRename(r: DeskReviewer) { setDraftTitle(r.title); setDraftSubject(r.subject ?? ""); setDialog({ kind: "rename", r }); }
   const saveRename = () =>
     dialog?.kind === "rename" &&
@@ -173,6 +220,9 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const menuProps = (r: DeskReviewer) => ({
     menuOpen: menuFor === r.id,
     offline: offlineIds.has(r.id),
+    managing,
+    selected: selected.has(r.id),
+    onToggleSelect: () => toggleSelect(r.id),
     onMenuToggle: () => setMenuFor(menuFor === r.id ? null : r.id),
     onPin: () => { setMenuFor(null); togglePin(r); },
     onRename: () => { setMenuFor(null); openRename(r); },
@@ -183,7 +233,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   });
 
   return (
-    <div className="app" onClick={() => setMenuFor(null)}>
+    <div className={`app${managing ? " managing" : ""}`} onClick={() => setMenuFor(null)}>
       <header>
         <div className="brand"><h1>Repa<em>so</em></h1></div>
         <div className="search">
@@ -221,7 +271,11 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
             </>
           )}
 
-          <div className="seclabel"><h3>On the desk</h3><div className="line" /><span className="count">{active.length} FILES</span></div>
+          <div className="seclabel">
+            <h3>On the desk</h3><div className="line" />
+            <button type="button" className={`selbtn${managing ? " on" : ""}`} onClick={toggleManaging}>{managing ? "✕ Done" : "☑ Select"}</button>
+            <span className="count">{active.length} FILES</span>
+          </div>
           <div className="cards">
             {active.map((r) => <ReviewerCard key={r.id} r={r} {...menuProps(r)} />)}
             {active.length === 0 && <p className="empty">Drop your first reviewer above ↑</p>}
@@ -241,6 +295,13 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
           )}
         </>
       )}
+
+      <div className={`bulkbar${managing && selected.size > 0 ? " on" : ""}`}>
+        <span><b>{selected.size}</b> selected</span>
+        <button type="button" onClick={bulkArchive} disabled={busy}>🗄 Archive</button>
+        <button type="button" onClick={bulkExport} disabled={busy}>📦 Export</button>
+        <button type="button" className="bulkdel" onClick={() => setDialog({ kind: "bulkdelete" })} disabled={busy}>🗑 Delete</button>
+      </div>
 
       <Link href="/viewer/scratchpad" className="fab">✎ Scratchpad</Link>
 
@@ -274,6 +335,19 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
             <div className="modal-actions">
               <button type="button" className="ghost" onClick={() => setDialog(null)}>Keep it</button>
               <button type="button" className="danger" onClick={confirmDelete} disabled={busy}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dialog?.kind === "bulkdelete" && (
+        <div className="overlay" onClick={() => setDialog(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete {selected.size} reviewer{selected.size === 1 ? "" : "s"}?</h3>
+            <p className="modal-sub">The files and their notes are removed for good. Copies on your device are untouched.</p>
+            <div className="modal-actions">
+              <button type="button" className="ghost" onClick={() => setDialog(null)}>Keep them</button>
+              <button type="button" className="danger" onClick={bulkDelete} disabled={busy}>Delete</button>
             </div>
           </div>
         </div>
