@@ -2,13 +2,14 @@
 
 Running list of feature ideas, grouped by *when/how* they should be built, not just liked/disliked.
 
-_Last updated: 2026-07-13 (post-v1.8 ship)._
+_Last updated: 2026-07-14 (post-v1.9 ship)._
 
 ## Shipped
 - **v1.5** (2026-07-11): search desk, pins, rename/delete, export, logout, focus viewer, offline tier.
 - **v1.6** (2026-07-12): archive shelf · private share links (`/s/<token>`) · import/restore (export v2) · content search ("found inside").
 - **v1.7** (2026-07-12): continue-studying row · command palette · search snippets · download .html · offline reading of every reviewer.
 - **v1.8** (2026-07-13): **Settings page** (`/settings`) · four themes (warm/night/coffee/matcha, synced + no-flash) · export/import moved into Settings. **The Settings surface now EXISTS** — the bundle below is unblocked.
+- **v1.9** (2026-07-14): mobile avatar-menu fix · replace file (keeps notes/link) · **notes version history** (snapshot on save, restore) · printable notes sheet · PWA shortcuts + `/continue` · automatic wake-lock. The near-term shelf is now EMPTY.
 
 ## Next major — full local-first offline (promoted 2026-07-12)
 **Why it moved up:** PUP often has no internet and Shawn's data signal is slow/unreliable — reading (and ideally editing) reviewers offline is a real need, not a nice-to-have.
@@ -16,16 +17,7 @@ _Last updated: 2026-07-13 (post-v1.8 ship)._
 **Sequencing:** v1.7 ships the cheap, low-risk stepping stone — **all reviewers *readable* offline** (precache every reviewer's content, not just opened ones). This version then adds true offline *editing/uploads* + the sync engine: IndexedDB as source of truth, a mutation queue with per-row `updatedAt` version stamps, push-when-online, conflict = keep-both-never-drop. Route doc: `local-first-upgrade-path.md`.
 
 ## Near-term — standalone, buildable now (no new host surface needed)
-- **Continue studying row** — a strip at the top of the desk with your last few opened reviewers. Uses `lastOpenedAt`, already tracked. (Shawn: yes.)
-- **Command palette / quick jump** — key to focus search + jump to any reviewer by name without scrolling. (Shawn: yes.)
-- **Search snippets** — content-search results show the sentence the match is in, with the word highlighted (escaped — content is search-only). Upgrades "found inside" to "found inside, *here*." (Shawn: yes.)
-- **Download the .html file** (Shawn 2026-07-12) — save the original single-file HTML back to the device, in TWO places: (1) in the app (⋯ / viewer) for yourself, (2) on the public `/s/<token>` page so recipients keep a copy. Trivial: we hold `htmlContent` → Blob download.
-- **Everything readable offline + "available offline" indicator** (Shawn 2026-07-12) — v1.7 approach: **precache every reviewer's content on app load** (while online) so all of them — not just opened ones — open offline. Per-card badge reflects cache state (`caches.match('/api/reviewers/<id>')`); app-level online/offline banner. This is the low-risk stepping stone toward the full local-first version above; it solves offline *reading* (the actual PUP pain) without the sync-engine rewrite.
-- **Replace file (keep notes)** — ⋯ action to swap a reviewer's HTML for an updated version without duplicating the card or orphaning notes.
-- **PWA app shortcuts** — long-press icon → "Scratchpad" / "Last opened" (manifest `shortcuts`, near-zero effort).
-- **Wake-lock reading mode** — keep the screen awake while a reviewer is open (no timer). Small.
-- **Notes version history** — undo an accidental note overwrite.
-- **Notes → printable sheet** — print/PDF a reviewer's notes for offline cramming.
+_Empty — everything on this shelf shipped in v1.7 (continue-studying, palette, snippets, download, offline reading) and v1.9 (replace-file, shortcuts, wake-lock, notes history, notes→print). New small ideas land here._
 
 ## Settings surface EXISTS (v1.8) → these now drop straight into `/settings`
 _The home surface is built. These were blocked on it; they're now near-term._
