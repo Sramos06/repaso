@@ -157,10 +157,13 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     if (busy || selected.size === 0) return;
     setBusy(true);
     try {
+      let ok = 0;
       for (const id of selected) {
-        await fetch(`/api/reviewers/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: true }) });
+        const res = await fetch(`/api/reviewers/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: true }) });
+        if (res.ok) ok++;
       }
-      say(`Moved ${selected.size} to the drawer`);
+      const failed = selected.size - ok;
+      say(failed === 0 ? `Moved ${ok} to the drawer` : `Moved ${ok} of ${selected.size} to the drawer. Try the rest again.`);
       toggleManaging(); router.refresh();
     } catch { say("Could not reach the server. Check your connection."); }
     finally { setBusy(false); }
@@ -176,10 +179,13 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     if (busy || selected.size === 0) return;
     setBusy(true);
     try {
+      let ok = 0;
       for (const id of selected) {
-        await fetch(`/api/reviewers/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/reviewers/${id}`, { method: "DELETE" });
+        if (res.ok) ok++;
       }
-      say(`Deleted ${selected.size}`);
+      const failed = selected.size - ok;
+      say(failed === 0 ? `Deleted ${ok}` : `Deleted ${ok} of ${selected.size}. Try the rest again.`);
       setDialog(null); toggleManaging(); router.refresh();
     } catch { say("Could not reach the server. Check your connection."); }
     finally { setBusy(false); }
