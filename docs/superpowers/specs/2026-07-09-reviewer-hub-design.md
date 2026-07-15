@@ -197,3 +197,18 @@ Queued after this (v1.11 "Upload makeover", direction locked in the same prototy
 Schema note: `open_events` via direct Neon `.mjs` (drizzle-kit push still blocks). Tests: `formatBytes`, duplicate-title derivation, plus existing suites. Visual checks in live preview per prototype.
 
 Plan: `docs/superpowers/plans/2026-07-14-repaso-v1.10.md`.
+
+## Addendum — v1.11 (locked 2026-07-14, post-v1.10 ship)
+
+**"Upload makeover"** — the upload experience from the road-to-2 prototype (Shawn's picks: Option A split zone; staging tray; paste HTML). Scope decision 2026-07-14: **compression is NOT in this version.** Lifting the 4 MB cap requires compressed-at-rest storage (Vercel also caps responses ~4.5 MB, so large raw files could be stored but never served), which is a data-format migration touching viewer/share/download/export/import/duplicate/offline paths. That becomes **v1.12 "Big files"** with its own spec. v1.11 keeps the 4 MB cap and no schema/endpoint changes: everything reuses `POST /api/reviewers` and the pure `validateUpload`.
+
+1. **Split-zone upload (Option A)** — one dashed zone, two doors. Left: drop/click files (existing behavior). Right: a narrower "✂ Paste HTML" door (gold-tinted). On phones (≤620px) the paste door folds under the drop area as a slim horizontal strip. Replaces the current single-purpose zone; same handler underneath.
+2. **Staging tray (nothing saves on drop anymore)** — dropping/picking files STAGES them in a tray under the zone instead of uploading immediately. Client-side pre-validation reuses the same pure `validateUpload` (extension, 4 MB, non-empty, title from `<title>`), so rejects are flagged instantly ("won't be added" + reason) without a wasted request. Per staged file: name, `formatBytes` size, detected title, **👁 Preview** (sandboxed iframe modal: `sandbox="allow-scripts"` + `referrerPolicy="no-referrer"` + `srcDoc`, same rules as the viewer), ✕ remove. Confirm row: "Adding N files · X MB" + "Add N to desk" → sequential per-file POSTs to the existing endpoint → **honest results** (v1.10 rule): full success clears the tray with a toast + refresh; partial failure removes the successes and keeps failures in the tray with the server's reason. Dropping more files while the tray is open appends. The tray exists only mid-upload.
+3. **Paste HTML** — the paste door opens a modal: monospace textarea + Title input that auto-fills live from the pasted content (`<title>` text → else first `<h1>` text → else "Pasted reviewer"), editable, capped 200. Save posts directly (constructs an in-memory `.html` File and reuses the same upload endpoint + validation; no tray detour, one step). Inline errors for empty paste and the 4 MB cap. New pure lib `pasteTitle(html): string`, tested.
+4. **Copy rules** — all new strings clear, short, professional, and em-dash free.
+
+Structure: `UploadZone.tsx` grows into the split zone + owns tray/paste state; extract `StagingTray.tsx` and `PasteModal.tsx` as focused components. No middleware, schema, or endpoint changes; iframe sandbox rules identical to the viewer.
+
+Queued after this: **v1.12 "Big files"** (compressed-at-rest via native CompressionStream/DecompressionStream, ~15–25 MB effective raw cap, migrates existing rows, own spec + review focus) then **v2.0 local-first** (own brainstorm).
+
+Plan: `docs/superpowers/plans/2026-07-14-repaso-v1.11.md`.
