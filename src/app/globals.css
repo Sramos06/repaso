@@ -385,7 +385,6 @@ a.card { color: inherit; text-decoration: none; }
   .app { padding: 20px 16px 90px; }
   .cards { grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 20px 14px; }
   .card h4 { font-size: 16px; min-height: 40px; }
-  .upload { padding: 18px 16px; gap: 13px; }
   .docpage { padding: 26px 20px; }
   .notes {
     position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 58vh;
