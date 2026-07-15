@@ -11,6 +11,7 @@ _Last updated: 2026-07-14 (post-v1.10 ship)._
 - **v1.8** (2026-07-13): **Settings page** (`/settings`) · four themes (warm/night/coffee/matcha, synced + no-flash) · export/import moved into Settings. **The Settings surface now EXISTS** — the bundle below is unblocked.
 - **v1.9** (2026-07-14): mobile avatar-menu fix · replace file (keeps notes/link) · **notes version history** (snapshot on save, restore) · printable notes sheet · PWA shortcuts + `/continue` · automatic wake-lock. The near-term shelf is now EMPTY.
 - **v1.10** (2026-07-14): five-item ⋯ menu (Rename/Duplicate/Send/Archive/Delete) with **Send sheet** · replace-file removed (Shawn's call) · **manage mode** (bulk archive/export/delete) · **duplicate** · **offline storage readout** in Settings · `open_events` accruing for future stats · UI copy fully em-dash free. Settings-bundle DONE except the stats screen itself.
+- **v1.11** (2026-07-14): **upload makeover** · split zone (drop files / paste-HTML door, folds under on phones) · **staging tray** (validate + preview before saving, honest per-file results, self-clearing) · **paste HTML** capture with auto-filled editable title. Upload-makeover bundle DONE. Cap stays 4 MB until v1.12.
 
 ## Next major — full local-first offline (promoted 2026-07-12)
 **Why it moved up:** PUP often has no internet and Shawn's data signal is slow/unreliable — reading (and ideally editing) reviewers offline is a real need, not a nice-to-have.
@@ -27,10 +28,10 @@ _Empty — everything on this shelf shipped in v1.7 (continue-studying, palette,
 - ~~**Offline storage readout**~~ — **SHIPPED v1.10.**
 - **Study stats / streaks** — the last one standing. `open_events` has been accruing since v1.10, so whenever this gets built it starts with real history. Time-per-reviewer, GitHub-style heatmap, a profile-ish home.
 
-## Upload makeover (future bundle — rethink the whole upload flow at once)
-_Shawn has several ideas here; do them together as one considered pass, not piecemeal._
-- **Paste HTML / quick capture** — save from pasted HTML (or a URL) instead of a file.
-- **Multiple-file upload UX**, **upload preview**, **file-size display**, **confirmation step**, etc. (Shawn's own list.)
+## Upload makeover — SHIPPED v1.11
+_All of Shawn's list landed: paste HTML, multi-file staging UX, preview, size display, confirmation step._
+- Leftover thread: **save from a URL** (paste a link instead of HTML) — small, parked until wanted.
+- **Next: v1.12 "Big files"** — compressed-at-rest storage (native browser compression, no deps) lifts the 4 MB cap to roughly 15-25 MB and stretches Neon's free 512 MB. Own spec; migrates existing rows; then v2.0 local-first.
 
 ## Scaling up (more users — bigger, foundations still uncertain)
 _Parked until we actually decide to grow past single-user; requirements unknown today._
