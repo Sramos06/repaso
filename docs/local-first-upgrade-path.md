@@ -1,38 +1,45 @@
-# Offline: what Repaso does today, and the full local-first upgrade path
+# Offline: Repaso is local-first (shipped in v2.0)
 
-## Today (v1.5 — "easy tier")
+The device's copy is the primary copy; the cloud (Neon) is the sync target,
+the backup-of-record, and the bridge between devices. This replaced the
+v1.5-v1.7 "easy tier" (SW content caching + localStorage note drafts).
 
-- **Service worker** (`public/sw.js`): network-first with cache fallback.
-  Every reviewer you open while online is cached; offline, the desk and any
-  previously-opened reviewer still load. Auth routes and all writes bypass
-  the cache entirely.
-- **Notes**: every keystroke is mirrored to localStorage. If a save fails,
-  the badge shows "KEPT LOCALLY — will sync" and the draft re-syncs on the
-  browser `online` event or next open. Neon remains the source of truth.
+## The pieces
 
-Limits of the easy tier (accepted on purpose):
-- A reviewer never opened on this device is not available offline.
-- Uploads, renames, deletes and pins need a connection.
-- Notes written offline on two devices at once resolve last-write-wins.
+- **Local store** (`src/lib/local-db.ts`): IndexedDB `repaso-local`, four
+  stores: `reviewers` (full desk metadata + v1.12 compressed `{payload,
+  encoding}` content + `pending` flag), `notes` (`{contentMd, updatedAt,
+  dirty}`), `outbox` (queued mutations), `meta` (hydration stamp, id remaps).
+- **Pure decisions** (`src/lib/sync-plan.ts`, tested): list diffing
+  (content is immutable after upload, so changed rows are metadata-only;
+  pending rows are protected), keep-both note merging, retry backoff,
+  temp-id remapping.
+- **Outbox** (`src/lib/outbox.ts`): every write applies locally first, then
+  queues one of `note` / `patch` / `delete` / `upload` / `open`. One tab
+  flushes at a time (Web Lock), strictly in order; entries leave the queue
+  only on server confirmation (or a permanent 400/404 verdict). Offline
+  uploads get a temp `local-<uuid>` id; on confirmation the real id is
+  adopted everywhere (meta remap record first, so a crash resumes instead
+  of re-uploading).
+- **Conflicts**: note saves carry `baseUpdatedAt`; the server 409s with its
+  copy when another device saved first; the client keeps BOTH texts and
+  notifies. Identical texts resolve quietly as confirmations. The v1.9
+  revision history remains the deep backstop.
+- **Pull** (`src/lib/sync.ts`): on app open and reconnect, flush then pull:
+  diff the upgraded list endpoint, fetch new content in parallel, adopt
+  server notes unless locally dirty, skip rows with queued local changes.
+- **UI door** (`src/lib/local-reviewers.ts`): the only module components
+  import. `BroadcastChannel` keeps every open tab live.
+- **Service worker** (`public/sw.js`, v4): shell duty only. Pages and static
+  assets cache network-first; any cached `/viewer/*` page serves as the app
+  shell for any id (the client resolves the id from the URL). All `/api/*`
+  traffic is untouched.
 
-## Future: full local-first (the real upgrade, when wanted)
+## Guarantees
 
-Goal: the device's copy is the primary copy; the cloud becomes a sync target.
-
-1. **Storage**: move reviewer HTML + notes into IndexedDB (via the `idb`
-   wrapper or Dexie). Everything opens instantly from disk, online or not.
-2. **Sync engine**: a background queue of mutations (upload/rename/delete/
-   pin/note-write) with per-row `updatedAt` version stamps; push when online,
-   pull on app open, retry with backoff.
-3. **Conflicts**: single-user + per-reviewer notes means last-write-wins per
-   field is acceptable; keep a "conflicted copy" note row if both sides
-   changed since the last sync, never silently drop text.
-4. **Uploads offline**: write to IndexedDB immediately (visible on the desk),
-   flag "not backed up yet", push when online.
-5. **Migration**: on first run of the local-first build, hydrate IndexedDB
-   from `/api/export` + per-reviewer fetches (the same path the backup
-   button uses). No server changes required to start.
-
-The v1.5 architecture was shaped so this slots in cleanly: all mutations go
-through a handful of `fetch` call sites (`DeskClient.call`, `UploadZone.send`,
-`NotesPanel.save`) which are exactly the seams a sync queue would wrap.
+- Reading, writing notes, uploading, and organizing all work offline; the
+  outbox sends everything when a connection returns.
+- Clearing local storage from Settings refuses while anything is waiting to
+  back up. Export backups stay cloud-based raw HTML (backup-v2).
+- Rollback safety: the cloud endpoints are unchanged in meaning; the outbox
+  only ever adds through the same validated APIs.
