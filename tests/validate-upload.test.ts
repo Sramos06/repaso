@@ -14,9 +14,9 @@ describe("validateUpload", () => {
     const r = validateUpload("notes.pdf", 500, "%PDF");
     expect(r).toEqual({ ok: false, reason: "Only .html or .htm files are allowed." });
   });
-  it("rejects files over 4 MB", () => {
+  it("rejects files over 15 MB", () => {
     const r = validateUpload("big.html", MAX_BYTES + 1, "<p></p>");
-    expect(r).toEqual({ ok: false, reason: "File is over the 4 MB limit." });
+    expect(r).toEqual({ ok: false, reason: "File is over the 15 MB limit." });
   });
   it("rejects empty content", () => {
     const r = validateUpload("empty.html", 0, "   ");
