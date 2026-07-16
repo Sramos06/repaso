@@ -27,6 +27,11 @@ function openDb(): Promise<IDBDatabase | null> {
   return dbPromise;
 }
 
+// Lets the UI say plainly when this browser cannot store Repaso's data.
+export function localStoreAvailable(): Promise<boolean> {
+  return openDb().then((db) => db !== null);
+}
+
 function request<T>(store: StoreName, mode: IDBTransactionMode, run: (s: IDBObjectStore) => IDBRequest): Promise<T | undefined> {
   return openDb().then((db) => {
     if (!db) return undefined;

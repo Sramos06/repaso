@@ -29,6 +29,10 @@ export function diffRows(server: ServerRow[], local: LocalReviewer[]): PullPlan 
 
 // Keep-both: never drop either side of a conflicted note.
 export function mergeNote(serverText: string, localText: string, whenIso: string): string {
+  // A resend of an already-applied PUT (crash before the outbox entry was
+  // deleted) 409s with a server copy identical to the local text; treat that
+  // as a no-op instead of appending a "Kept from this device" duplicate.
+  if (serverText.trim() === localText.trim()) return localText;
   if (!serverText.trim()) return localText;
   if (!localText.trim()) return serverText;
   const when = new Date(whenIso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });

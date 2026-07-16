@@ -57,6 +57,10 @@ describe("mergeNote", () => {
   it("returns server text alone when the local text is empty", () => {
     expect(mergeNote("server", "", "2026-07-16T10:00:00.000Z")).toBe("server");
   });
+  it("identical texts merge to themselves (crash-resend must not self-duplicate)", () => {
+    expect(mergeNote("same text", "same text", "2026-07-16T10:00:00.000Z")).toBe("same text");
+    expect(mergeNote(" same text ", "same text", "2026-07-16T10:00:00.000Z")).toBe("same text");
+  });
 });
 
 describe("backoffMs", () => {

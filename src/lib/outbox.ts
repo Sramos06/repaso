@@ -14,12 +14,22 @@ export async function outboxCount(): Promise<number> {
 }
 
 export async function enqueue(m: Mutation): Promise<void> {
-  if (m.kind === "note") {
-    // One pending save per note: the newest text supersedes any queued one.
-    const pending = await dbGetAll<QueuedMutation>("outbox");
-    for (const q of pending) if (q.kind === "note" && q.target === m.target) await dbDel("outbox", q.seq);
+  const body = async () => {
+    if (m.kind === "note") {
+      // One pending save per note: the newest text supersedes any queued one.
+      const pending = await dbGetAll<QueuedMutation>("outbox");
+      for (const q of pending) if (q.kind === "note" && q.target === m.target) await dbDel("outbox", q.seq);
+    }
+    await dbAdd("outbox", { ...m, attempts: 0 });
+  };
+  // Cross-tab guard: without a lock, two tabs racing this same collapse-then-add
+  // sequence for one note could each read the pre-collapse queue and both add
+  // an entry, leaving two pending saves instead of the intended one.
+  if (typeof navigator !== "undefined" && "locks" in navigator) {
+    await navigator.locks.request("repaso-enqueue", async () => { await body(); });
+  } else {
+    await body();
   }
-  await dbAdd("outbox", { ...m, attempts: 0 });
   notifyChange();
   scheduleFlush(0);
 }
@@ -74,36 +84,61 @@ async function flushLoop(): Promise<void> {
   }
 }
 
+// A mutation can be enqueued against a temp id in the narrow window between
+// adoption's outbox snapshot and its write-back; the meta remap record (kept
+// forever, written before anything else in adoptRealId) lets every send()
+// resolve to the live id instead of throwing a mutation at a dead temp id.
+async function resolveRemap(id: string): Promise<string> {
+  const remap = await dbGet<{ key: string; value: string }>("meta", `remap:${id}`);
+  return remap?.value ?? id;
+}
+
 async function send(m: QueuedMutation): Promise<SendResult> {
   if (m.kind === "note") {
+    const target = await resolveRemap(m.target);
     const res = await fetch("/api/notes", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reviewerId: m.target === "scratchpad" ? "scratchpad" : m.target, contentMd: m.contentMd, baseUpdatedAt: m.baseUpdatedAt }),
+      body: JSON.stringify({ reviewerId: target, contentMd: m.contentMd, baseUpdatedAt: m.baseUpdatedAt }),
     });
-    if (res.status === 409) { const d = await res.json(); return { status: "conflict", contentMd: d.contentMd ?? "", updatedAt: d.updatedAt ?? new Date().toISOString() }; }
+    if (res.status === 409) {
+      const d = await res.json().catch(() => null);
+      if (!d) return { status: "retry" }; // malformed conflict body: try again later, don't crash
+      return { status: "conflict", contentMd: d.contentMd ?? "", updatedAt: d.updatedAt ?? new Date().toISOString() };
+    }
     if (res.ok) {
       const d = await res.json().catch(() => null);
-      await adoptNoteStamp(m.target, m.contentMd, d?.updatedAt ?? null);
+      await adoptNoteStamp(target, m.contentMd, d?.updatedAt ?? null);
       return { status: "done" };
     }
     return res.status === 400 || res.status === 404 ? { status: "drop" } : { status: "retry" };
   }
   if (m.kind === "patch") {
-    const res = await fetch(`/api/reviewers/${m.id}`, {
+    const id = await resolveRemap(m.id);
+    const res = await fetch(`/api/reviewers/${id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(m.patch),
     });
     return res.ok ? { status: "done" } : res.status === 400 || res.status === 404 ? { status: "drop" } : { status: "retry" };
   }
   if (m.kind === "delete") {
-    const res = await fetch(`/api/reviewers/${m.id}`, { method: "DELETE" });
+    const id = await resolveRemap(m.id);
+    const res = await fetch(`/api/reviewers/${id}`, { method: "DELETE" });
     // 404 = already gone (e.g. deleted from the other device): that IS success.
     return res.ok || res.status === 404 ? { status: "done" } : res.status === 400 ? { status: "drop" } : { status: "retry" };
   }
   if (m.kind === "open") {
-    const res = await fetch(`/api/reviewers/${m.id}/open`, { method: "POST" });
+    const id = await resolveRemap(m.id);
+    const res = await fetch(`/api/reviewers/${id}/open`, { method: "POST" });
     return res.ok || res.status === 404 ? { status: "done" } : { status: "retry" };
   }
   // upload
+  const priorRemap = await dbGet<{ key: string; value: string }>("meta", `remap:${m.tempId}`);
+  if (priorRemap) {
+    // A previous run already got a 2xx and started adopting before crashing;
+    // re-running adoption is safe (every step no-ops once done) and avoids
+    // sending a second, duplicate upload for the same content.
+    await adoptRealId(m.tempId, priorRemap.value);
+    return { status: "done" };
+  }
   const res = await fetch("/api/reviewers", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: m.name, encoding: m.encoding, payload: m.payload }),
@@ -139,6 +174,10 @@ async function resolveNoteConflict(m: QueuedMutation & { kind: "note" }, serverT
 
 // After a confirmed upload: the row becomes real everywhere the temp id lived.
 async function adoptRealId(tempId: string, realId: string): Promise<void> {
+  // Written first: a crash anywhere after this point leaves a durable marker
+  // that adoption already happened, so send() can detect it and resume this
+  // same (idempotent) sequence instead of re-uploading.
+  await dbPut("meta", { key: `remap:${tempId}`, value: realId });
   const row = await dbGet<LocalReviewer>("reviewers", tempId);
   if (row) {
     await dbDel("reviewers", tempId);
@@ -154,6 +193,5 @@ async function adoptRealId(tempId: string, realId: string): Promise<void> {
   for (let i = 0; i < pending.length; i++) {
     if (remapped[i] !== pending[i]) await dbPut("outbox", remapped[i]);
   }
-  await dbPut("meta", { key: `remap:${tempId}`, value: realId });
   notifyChange();
 }
