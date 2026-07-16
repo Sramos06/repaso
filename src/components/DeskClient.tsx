@@ -2,19 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import UploadZone from "./UploadZone";
 import ReviewerCard from "./ReviewerCard";
 import AvatarMenu from "./AvatarMenu";
 import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
-import { precacheReviewers, cachedReviewerIds } from "@/lib/offline-cache";
 import { exportBackup } from "@/lib/export-backup";
-import { decodeContent } from "@/lib/content-codec";
+import { getDeskRows, localPatch, localDelete, localDuplicate, getContent } from "@/lib/local-reviewers";
+import { startSync, outboxCount } from "@/lib/sync";
+import { onLocalChange, localStoreAvailable } from "@/lib/local-db";
+import type { LocalReviewer } from "@/lib/local-types";
 
 export type DeskReviewer = {
   id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
-  lastOpenedAt: string | null; date: string; hasNotes: boolean;
+  lastOpenedAt: string | null; date: string; hasNotes: boolean; pendingSync: boolean;
 };
 
 type Dialog =
@@ -24,8 +25,7 @@ type Dialog =
   | { kind: "bulkdelete" }
   | null;
 
-export default function DeskClient({ reviewers, email }: { reviewers: DeskReviewer[]; email: string }) {
-  const router = useRouter();
+export default function DeskClient({ email }: { email: string }) {
   const [query, setQuery] = useState("");
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -40,7 +40,9 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [managing, setManaging] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [offlineIds, setOfflineIds] = useState<Set<string>>(new Set());
+  const [rows, setRows] = useState<LocalReviewer[] | null>(null); // null = first IDB read pending
+  const [waiting, setWaiting] = useState(0); // outbox depth
+  const [storeAvailable, setStoreAvailable] = useState<boolean | null>(null); // null = check pending
   const searchSeq = useRef(0);
   const shareSeq = useRef(0);
 
@@ -75,19 +77,31 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Offline: precache every reviewer, then reflect what's cached on the cards.
-  const allIds = useMemo(() => reviewers.map((r) => r.id), [reviewers]);
+  // The desk reads from the device's local store, not a server prop: first
+  // paint comes from IndexedDB, then this effect keeps it live via the local
+  // change channel while startSync() reconciles with the cloud in the background.
   useEffect(() => {
     let cancelled = false;
-    async function refresh() { const s = await cachedReviewerIds(allIds); if (!cancelled) setOfflineIds(s); }
-    refresh();
-    if (navigator.onLine) {
-      precacheReviewers(allIds);
-      const t = setTimeout(refresh, 3000); // re-check after the SW has had time to cache
-      return () => { cancelled = true; clearTimeout(t); };
+    async function readLocal() {
+      const [r, w] = await Promise.all([getDeskRows(), outboxCount()]);
+      if (!cancelled) { setRows(r); setWaiting(w); }
     }
-    return () => { cancelled = true; };
-  }, [allIds]);
+    readLocal();
+    startSync();
+    localStoreAvailable().then((ok) => { if (!cancelled) setStoreAvailable(ok); });
+    const off = onLocalChange(() => { void readLocal(); });
+    return () => { cancelled = true; off(); };
+  }, []);
+
+  const reviewers: DeskReviewer[] = useMemo(
+    () => (rows ?? []).map((r) => ({
+      id: r.id, title: r.title, subject: r.subject, pinned: r.pinned,
+      archived: r.archivedAt !== null, lastOpenedAt: r.lastOpenedAt,
+      date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      hasNotes: r.hasNotes, pendingSync: r.pending,
+    })),
+    [rows]
+  );
 
   const active = useMemo(() => reviewers.filter((r) => !r.archived), [reviewers]);
   const archived = useMemo(() => reviewers.filter((r) => r.archived), [reviewers]);
@@ -103,45 +117,21 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
 
   function say(msg: string) { setFlash(msg); setTimeout(() => setFlash(null), 2200); }
 
-  async function call(id: string, init: RequestInit, okMsg: string) {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/reviewers/${id}`, init);
-      if (!res.ok) { const d = await res.json().catch(() => null); say(d?.error ?? "Something went wrong. Try again."); return; }
-      say(okMsg); setDialog(null); router.refresh();
-    } catch { say("Could not reach the server. Check your connection."); }
-    finally { setBusy(false); }
-  }
-
-  const togglePin = (r: DeskReviewer) =>
-    call(r.id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pinned: !r.pinned }) }, r.pinned ? "Unpinned" : "Pinned to top");
-  const toggleArchive = (r: DeskReviewer) =>
-    call(r.id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: !r.archived }) }, r.archived ? "Back on the desk" : "Moved to the drawer");
+  const togglePin = (r: DeskReviewer) => { void localPatch(r.id, { pinned: !r.pinned }); say(r.pinned ? "Unpinned" : "Pinned to top"); };
+  const toggleArchive = (r: DeskReviewer) => { void localPatch(r.id, { archived: !r.archived }); say(r.archived ? "Back on the desk" : "Moved to the drawer"); };
 
   async function downloadReviewer(r: DeskReviewer) {
     if (busy) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/reviewers/${r.id}`);
-      if (!res.ok) { say("Couldn’t download. Try again."); return; }
-      const data = await res.json();
-      downloadText(htmlFilename(r.title), await decodeContent(data.htmlContent ?? "", data.encoding ?? "plain"));
+      const html = await getContent(r.id);
+      if (html === null) { say("Not on this device yet. Go online once and try again."); return; }
+      downloadText(htmlFilename(r.title), html);
       say("Downloaded");
-    } catch { say("Could not reach the server. Check your connection."); }
-    finally { setBusy(false); }
+    } finally { setBusy(false); }
   }
 
-  async function duplicateReviewer(r: DeskReviewer) {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/reviewers/${r.id}/duplicate`, { method: "POST" });
-      if (!res.ok) { say("Couldn’t duplicate. Try again."); return; }
-      say("Duplicated"); router.refresh();
-    } catch { say("Could not reach the server. Check your connection."); }
-    finally { setBusy(false); }
-  }
+  const duplicateReviewer = (r: DeskReviewer) => { void localDuplicate(r.id); say("Duplicated"); };
 
   function toggleManaging() {
     setManaging((m) => !m);
@@ -154,20 +144,10 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
       return n;
     });
   }
-  async function bulkArchive() {
-    if (busy || selected.size === 0) return;
-    setBusy(true);
-    try {
-      let ok = 0;
-      for (const id of selected) {
-        const res = await fetch(`/api/reviewers/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: true }) });
-        if (res.ok) ok++;
-      }
-      const failed = selected.size - ok;
-      say(failed === 0 ? `Moved ${ok} to the drawer` : `Moved ${ok} of ${selected.size} to the drawer. Try the rest again.`);
-      toggleManaging(); router.refresh();
-    } catch { say("Could not reach the server. Check your connection."); }
-    finally { setBusy(false); }
+  function bulkArchive() {
+    if (selected.size === 0) return;
+    for (const id of selected) void localPatch(id, { archived: true });
+    say(`Moved ${selected.size} to the drawer`); toggleManaging();
   }
   async function bulkExport() {
     if (busy || selected.size === 0) return;
@@ -176,29 +156,26 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
     catch (e) { say(e instanceof Error ? e.message : "Export failed. Try again."); }
     finally { setBusy(false); }
   }
-  async function bulkDelete() {
-    if (busy || selected.size === 0) return;
-    setBusy(true);
-    try {
-      let ok = 0;
-      for (const id of selected) {
-        const res = await fetch(`/api/reviewers/${id}`, { method: "DELETE" });
-        if (res.ok) ok++;
-      }
-      const failed = selected.size - ok;
-      say(failed === 0 ? `Deleted ${ok}` : `Deleted ${ok} of ${selected.size}. Try the rest again.`);
-      setDialog(null); toggleManaging(); router.refresh();
-    } catch { say("Could not reach the server. Check your connection."); }
-    finally { setBusy(false); }
+  function bulkDelete() {
+    if (selected.size === 0) return;
+    for (const id of selected) void localDelete(id);
+    say(`Deleted ${selected.size}`); setDialog(null); toggleManaging();
   }
 
   function openRename(r: DeskReviewer) { setDraftTitle(r.title); setDraftSubject(r.subject ?? ""); setDialog({ kind: "rename", r }); }
-  const saveRename = () =>
-    dialog?.kind === "rename" &&
-    call(dialog.r.id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: draftTitle, subject: draftSubject }) }, "Saved");
-  const confirmDelete = () => dialog?.kind === "delete" && call(dialog.r.id, { method: "DELETE" }, "Deleted");
+  const saveRename = () => {
+    if (dialog?.kind !== "rename") return;
+    void localPatch(dialog.r.id, { title: draftTitle, subject: draftSubject });
+    say("Saved"); setDialog(null);
+  };
+  const confirmDelete = () => {
+    if (dialog?.kind !== "delete") return;
+    void localDelete(dialog.r.id);
+    say("Deleted"); setDialog(null);
+  };
 
   async function openSend(r: DeskReviewer) {
+    if (r.pendingSync) { say("This file hasn’t backed up yet. Try again once it has."); return; }
     const seq = ++shareSeq.current;
     setDialog({ kind: "send", r }); setShareUrl(null); setShareStatus("loading");
     try {
@@ -226,7 +203,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
 
   const menuProps = (r: DeskReviewer) => ({
     menuOpen: menuFor === r.id,
-    offline: offlineIds.has(r.id),
+    pendingSync: r.pendingSync,
     managing,
     selected: selected.has(r.id),
     onToggleSelect: () => toggleSelect(r.id),
@@ -249,6 +226,10 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
         </div>
         <AvatarMenu email={email} />
       </header>
+
+      {storeAvailable === false && (
+        <p className="empty">This browser can’t store Repaso’s data, so offline use and saving won’t work here. Try a current version of Chrome, Edge, or Safari.</p>
+      )}
 
       <UploadZone />
 
@@ -282,10 +263,15 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
             <h3>On the desk</h3><div className="line" />
             <button type="button" className={`selbtn${managing ? " on" : ""}`} onClick={toggleManaging}>{managing ? "✕ Done" : "☑ Select"}</button>
             <span className="count">{active.length} FILES</span>
+            {waiting > 0 && <span className="syncflag" title="Changes on this device that back up when online">☁ {waiting} to back up</span>}
           </div>
           <div className="cards">
             {active.map((r) => <ReviewerCard key={r.id} r={r} {...menuProps(r)} />)}
-            {active.length === 0 && <p className="empty">Drop your first reviewer above ↑</p>}
+            {rows === null ? (
+              <p className="empty">Opening your desk…</p>
+            ) : active.length === 0 ? (
+              <p className="empty">{navigator.onLine ? "Drop your first reviewer above ↑" : "Nothing on this device yet. Go online once and your desk downloads itself."}</p>
+            ) : null}
           </div>
 
           {archived.length > 0 && (

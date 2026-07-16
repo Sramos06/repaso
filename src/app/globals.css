@@ -456,6 +456,10 @@ a.card { color: inherit; text-decoration: none; }
 /* ---------- offline badge ---------- */
 .card .offflag { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--sage); }
 
+/* ---------- sync flags: card badge + "On the desk" waiting pill ---------- */
+.syncflag { color: var(--gold); font-weight: 700; white-space: nowrap; }
+.seclabel .syncflag { font-size: 11px; letter-spacing: .04em; }
+
 /* ---------- command palette ---------- */
 .palette-overlay { align-items: flex-start; }
 .palette { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); width: 100%; max-width: 520px; margin-top: 12vh; overflow: hidden; }
