@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (!isUuid(id)) return NextResponse.json({ error: "Not found." }, { status: 404 });
     const row = await db.query.reviewers.findFirst({
       where: and(eq(reviewers.id, id), eq(reviewers.userId, user.id)),
-      columns: { id: true, title: true, htmlContent: true },
+      columns: { id: true, title: true, htmlContent: true, encoding: true },
     });
     if (!row) return NextResponse.json({ error: "Not found." }, { status: 404 });
     return NextResponse.json(row);

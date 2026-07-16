@@ -3,9 +3,12 @@ import { db } from "@/db";
 import { reviewers } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { requireUser } from "@/lib/require-user";
-import { validateUpload, MAX_BYTES } from "@/lib/validate-upload";
+import { validateUpload, MAX_BYTES, MAX_WIRE_BYTES, WIRE_LIMIT_REASON } from "@/lib/validate-upload";
+import { parseUploadBody } from "@/lib/upload-body";
+import { decodeContent, utf8Bytes } from "@/lib/content-codec";
 import { stripHtml } from "@/lib/strip-html";
 
+// GET — unchanged from before this version.
 export async function GET() {
   try {
     const user = await requireUser();
@@ -21,34 +24,38 @@ export async function GET() {
   }
 }
 
+// POST — one file per request as JSON {name, encoding, payload}. The client
+// compresses before sending (that is what lifts Vercel's request cap); the
+// server decodes ONCE to validate and index, then stores the payload as-is.
 export async function POST(req: NextRequest) {
   try {
     const user = await requireUser();
-    const form = await req.formData();
-    const files = form.getAll("files").filter((f): f is File => f instanceof File);
-    if (!files.length) return NextResponse.json({ error: "No files received." }, { status: 400 });
+    const parsed = parseUploadBody(await req.json().catch(() => null));
+    if (!parsed.ok) return NextResponse.json({ error: parsed.reason }, { status: 400 });
+    const { name, encoding, payload } = parsed;
 
-    const created: { id: string; title: string }[] = [];
-    const rejected: { name: string; reason: string }[] = [];
-    for (const file of files) {
-      if (file.size > MAX_BYTES) {
-        rejected.push({ name: file.name, reason: "File is over the 4 MB limit." });
-        continue;
-      }
-      try {
-        const content = await file.text();
-        const check = validateUpload(file.name, file.size, content);
-        if (!check.ok) { rejected.push({ name: file.name, reason: check.reason }); continue; }
-        const [row] = await db
-          .insert(reviewers)
-          .values({ userId: user.id, title: check.title, htmlContent: content, sizeBytes: file.size, contentText: stripHtml(content) })
-          .returning({ id: reviewers.id, title: reviewers.title });
-        created.push(row);
-      } catch {
-        rejected.push({ name: file.name, reason: "Could not save this file. Try again." });
-      }
+    const reject = (reason: string) =>
+      NextResponse.json({ created: [], rejected: [{ name, reason }] }, { status: 400 });
+
+    if (utf8Bytes(payload) > MAX_WIRE_BYTES) {
+      return reject(encoding === "gzip" ? WIRE_LIMIT_REASON : "File is over the 4 MB limit for uncompressed uploads.");
     }
-    return NextResponse.json({ created, rejected }, { status: created.length ? 201 : 400 });
+    let raw: string;
+    try {
+      raw = await decodeContent(payload, encoding);
+    } catch {
+      return reject("Could not read this file. Try uploading it again.");
+    }
+    const rawBytes = utf8Bytes(raw);
+    if (rawBytes > MAX_BYTES) return reject("File is over the 15 MB limit.");
+    const check = validateUpload(name, rawBytes, raw);
+    if (!check.ok) return reject(check.reason);
+
+    const [row] = await db
+      .insert(reviewers)
+      .values({ userId: user.id, title: check.title, htmlContent: payload, encoding, sizeBytes: rawBytes, contentText: stripHtml(raw) })
+      .returning({ id: reviewers.id, title: reviewers.title });
+    return NextResponse.json({ created: [row], rejected: [] }, { status: 201 });
   } catch (e) {
     if (e instanceof Response) return e;
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
