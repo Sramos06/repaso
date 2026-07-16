@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { downloadText, htmlFilename } from "@/lib/download-file";
+import { decodeContent } from "@/lib/content-codec";
 
 export default function ShareFrame({ token }: { token: string }) {
   const [html, setHtml] = useState<string | null>(null);
@@ -12,7 +13,13 @@ export default function ShareFrame({ token }: { token: string }) {
     let cancelled = false;
     fetch(`/api/share/${token}`)
       .then((res) => { if (!res.ok) throw new Error("gone"); return res.json(); })
-      .then((data) => { if (cancelled) return; setHtml(data.htmlContent); setTitle(data.title ?? "reviewer"); setStatus("ready"); })
+      .then(async (data) => {
+        const html = await decodeContent(data.htmlContent ?? "", data.encoding ?? "plain");
+        if (cancelled) return;
+        setHtml(html);
+        setTitle(data.title ?? "reviewer");
+        setStatus("ready");
+      })
       .catch(() => { if (!cancelled) setStatus("error"); });
     return () => { cancelled = true; };
   }, [token]);

@@ -1,3 +1,5 @@
+import { uploadOne } from "./upload-one";
+
 export type BackupReviewer = {
   title: string; subject: string | null; pinned: boolean; archived: boolean; htmlContent: string; noteMd: string;
 };
@@ -29,7 +31,7 @@ export function parseBackup(json: unknown): { ok: true; data: Backup } | { ok: f
 }
 
 // Browser-only: reuses the normal upload/patch/notes endpoints, so server-side
-// validation and the 4 MB cap apply for free. Title-duplicates are skipped;
+// validation and the 15 MB cap apply for free. Title-duplicates are skipped;
 // createdAt is not preserved (server stamps upload time).
 export async function importBackup(file: File): Promise<ImportResult> {
   let json: unknown;
@@ -46,13 +48,8 @@ export async function importBackup(file: File): Promise<ImportResult> {
   const result: ImportResult = { added: 0, skipped: [], failed: [] };
   for (const r of parsed.data.reviewers) {
     if (have.has(r.title.toLowerCase())) { result.skipped.push(r.title); continue; }
-    let created: { id?: string } | undefined;
-    try {
-      const fd = new FormData();
-      fd.append("files", new File([r.htmlContent], `${r.title}.html`, { type: "text/html" }));
-      const up = await fetch("/api/reviewers", { method: "POST", body: fd });
-      created = (await up.json().catch(() => null))?.created?.[0];
-    } catch { created = undefined; }
+    const up = await uploadOne(`${r.title}.html`, r.htmlContent);
+    const created: { id: string } | undefined = up.ok ? { id: up.id } : undefined;
     if (!created?.id) { result.failed.push(r.title); continue; }
     // The reviewer row now exists — count it as added and register its title so a
     // later same-titled entry is skipped. The metadata below is best-effort: a

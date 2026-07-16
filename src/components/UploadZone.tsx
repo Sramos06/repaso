@@ -43,30 +43,33 @@ export default function UploadZone() {
     const valid = staged.filter((s) => s.reason === null);
     if (valid.length === 0) return;
     setBusy(true); setMsg(null);
-    // Snapshot this batch: rows staged while the uploads run must survive both clears below.
-    const batch = new Set(staged.map((s) => s.key));
-    const failed = new Map<string, string>();
-    let ok = 0;
-    for (const item of valid) {
-      const result = await uploadOne(item.file);
-      if (result.ok) ok++;
-      else failed.set(item.key, result.reason);
+    try {
+      // Snapshot this batch: rows staged while the uploads run must survive both clears below.
+      const batch = new Set(staged.map((s) => s.key));
+      const failed = new Map<string, string>();
+      let ok = 0;
+      for (const item of valid) {
+        const result = await uploadOne(item.name, item.content);
+        if (result.ok) ok++;
+        else failed.set(item.key, result.reason);
+      }
+      if (failed.size === 0) {
+        // full success: the confirmed batch clears itself (keeps anything staged mid-flight)
+        setStaged((prev) => prev.filter((s) => !batch.has(s.key)));
+        setMsg(`Added ${ok} to your desk`);
+      } else {
+        // Honest results: drop the successes, keep failures (retryable) with the server's reason.
+        setStaged((prev) =>
+          prev
+            .filter((s) => !batch.has(s.key) || s.reason !== null || failed.has(s.key))
+            .map((s) => (failed.has(s.key) ? { ...s, serverError: failed.get(s.key) } : s))
+        );
+        setMsg(ok ? `Added ${ok} of ${valid.length}. The rest stayed below.` : "Nothing was added. See the reasons below.");
+      }
+      if (ok) router.refresh();
+    } finally {
+      setBusy(false);
     }
-    if (failed.size === 0) {
-      // full success: the confirmed batch clears itself (keeps anything staged mid-flight)
-      setStaged((prev) => prev.filter((s) => !batch.has(s.key)));
-      setMsg(`Added ${ok} to your desk`);
-    } else {
-      // Honest results: drop the successes, keep failures (retryable) with the server's reason.
-      setStaged((prev) =>
-        prev
-          .filter((s) => !batch.has(s.key) || s.reason !== null || failed.has(s.key))
-          .map((s) => (failed.has(s.key) ? { ...s, serverError: failed.get(s.key) } : s))
-      );
-      setMsg(ok ? `Added ${ok} of ${valid.length}. The rest stayed below.` : "Nothing was added. See the reasons below.");
-    }
-    if (ok) router.refresh();
-    setBusy(false);
   }
 
   return (
@@ -81,7 +84,7 @@ export default function UploadZone() {
           <div className="stampbox">↑</div>
           <div>
             <h2>{busy ? "Saving to your desk…" : "Drop reviewers here"}</h2>
-            <p>{msg ?? "or tap to pick (.html files, saved forever)"}</p>
+            <p>{msg ?? "or tap to pick (.html files up to 15 MB, saved forever)"}</p>
           </div>
           <input
             ref={input} type="file" accept=".html,.htm" multiple hidden

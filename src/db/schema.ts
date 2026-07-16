@@ -23,6 +23,8 @@ export const reviewers = pgTable("reviewers", {
   archivedAt: timestamp("archived_at"),
   shareToken: text("share_token").unique(),
   contentText: text("content_text"),
+  // 'plain' = html_content is raw HTML; 'gzip' = base64-encoded gzip bytes.
+  encoding: text("encoding").notNull().default("plain"),
 });
 
 export const notes = pgTable(

@@ -15,7 +15,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     if (!isUuid(id)) return NextResponse.json({ error: "Not found." }, { status: 404 });
     const src = await db.query.reviewers.findFirst({
       where: and(eq(reviewers.id, id), eq(reviewers.userId, user.id)),
-      columns: { title: true, htmlContent: true, contentText: true, sizeBytes: true, subject: true },
+      columns: { title: true, htmlContent: true, contentText: true, sizeBytes: true, subject: true, encoding: true },
     });
     if (!src) return NextResponse.json({ error: "Not found." }, { status: 404 });
     const [row] = await db
@@ -27,6 +27,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         contentText: src.contentText,
         sizeBytes: src.sizeBytes,
         subject: src.subject,
+        encoding: src.encoding,
       })
       .returning({ id: reviewers.id });
     return NextResponse.json({ ok: true, id: row.id }, { status: 201 });

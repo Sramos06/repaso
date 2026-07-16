@@ -21,12 +21,12 @@ export default function PasteModal({ onClose, onSaved }: { onClose: () => void; 
     if (busy) return;
     const body = text.trim();
     if (!body) { setErr("Paste some HTML first."); return; }
-    if (new Blob([body]).size > MAX_BYTES) { setErr("That is over the 4 MB limit."); return; }
+    if (new Blob([body]).size > MAX_BYTES) { setErr("That is over the 15 MB limit."); return; }
     setBusy(true); setErr(null);
     try {
       const finalTitle = (title.trim() || "Pasted reviewer").slice(0, 200);
       const safeName = (finalTitle.replace(/[^\w\- ]+/g, "").trim() || "pasted-reviewer") + ".html";
-      const result = await uploadOne(new File([body], safeName, { type: "text/html" }));
+      const result = await uploadOne(safeName, body);
       if (!result.ok) { setErr(result.reason); return; }
       // The server names it from the pasted <title>; the edited field wins.
       if (result.title !== finalTitle) {

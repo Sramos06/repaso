@@ -12,10 +12,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
     if (!isShareToken(token)) return NextResponse.json({ error: "Not found." }, { status: 404 });
     const row = await db.query.reviewers.findFirst({
       where: eq(reviewers.shareToken, token),
-      columns: { title: true, htmlContent: true },
+      columns: { title: true, htmlContent: true, encoding: true },
     });
     if (!row) return NextResponse.json({ error: "Not found." }, { status: 404 });
-    return NextResponse.json({ title: row.title, htmlContent: row.htmlContent });
+    return NextResponse.json({ title: row.title, htmlContent: row.htmlContent, encoding: row.encoding });
   } catch {
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
