@@ -20,7 +20,9 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 
-function base64ToBytes(b64: string): Uint8Array {
+// Return type stays the narrow Uint8Array<ArrayBuffer> so Blob accepts it
+// under TS 5.9's generic typed arrays without a defensive copy.
+function base64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
   const bin = atob(b64); // throws on invalid base64
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
@@ -37,9 +39,6 @@ export async function encodeContent(raw: string): Promise<{ payload: string; enc
 export async function decodeContent(payload: string, encoding: string): Promise<string> {
   if (encoding !== "gzip") return payload;
   const bytes = base64ToBytes(payload);
-  // Create a new Uint8Array with fresh ArrayBuffer to satisfy TypeScript type checking
-  const freshBytes = new Uint8Array(bytes.length);
-  freshBytes.set(bytes);
-  const stream = new Blob([freshBytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
   return await new Response(stream).text(); // rejects on corrupt gzip
 }
