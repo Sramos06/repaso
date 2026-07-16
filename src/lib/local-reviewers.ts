@@ -51,6 +51,17 @@ export async function localPatch(id: string, patch: ReviewerPatch): Promise<void
   await enqueue({ kind: "patch", id: rid, patch });
 }
 
+// Toggles read the freshest stored row so two rapid taps invert twice,
+// instead of both computing the same target from a stale render snapshot.
+export async function localToggle(id: string, field: "pinned" | "archived"): Promise<boolean | null> {
+  const rid = await resolveId(id);
+  const row = await dbGet<LocalReviewer>("reviewers", rid);
+  if (!row) return null;
+  const next = field === "pinned" ? !row.pinned : row.archivedAt === null;
+  await localPatch(rid, field === "pinned" ? { pinned: next } : { archived: next });
+  return next;
+}
+
 export async function localDelete(id: string): Promise<void> {
   const rid = await resolveId(id);
   const row = await dbGet<LocalReviewer>("reviewers", rid);

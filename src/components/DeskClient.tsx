@@ -8,7 +8,7 @@ import AvatarMenu from "./AvatarMenu";
 import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
 import { exportBackup } from "@/lib/export-backup";
-import { getDeskRows, localPatch, localDelete, localDuplicate, getContent } from "@/lib/local-reviewers";
+import { getDeskRows, localPatch, localDelete, localDuplicate, localToggle, getContent } from "@/lib/local-reviewers";
 import { startSync, outboxCount } from "@/lib/sync";
 import { onLocalChange, localStoreAvailable } from "@/lib/local-db";
 import type { LocalReviewer } from "@/lib/local-types";
@@ -117,8 +117,8 @@ export default function DeskClient({ email }: { email: string }) {
 
   function say(msg: string) { setFlash(msg); setTimeout(() => setFlash(null), 2200); }
 
-  const togglePin = (r: DeskReviewer) => { void localPatch(r.id, { pinned: !r.pinned }); say(r.pinned ? "Unpinned" : "Pinned to top"); };
-  const toggleArchive = (r: DeskReviewer) => { void localPatch(r.id, { archived: !r.archived }); say(r.archived ? "Back on the desk" : "Moved to the drawer"); };
+  const togglePin = async (r: DeskReviewer) => { const v = await localToggle(r.id, "pinned"); if (v !== null) say(v ? "Pinned to top" : "Unpinned"); };
+  const toggleArchive = async (r: DeskReviewer) => { const v = await localToggle(r.id, "archived"); if (v !== null) say(v ? "Moved to the drawer" : "Back on the desk"); };
 
   async function downloadReviewer(r: DeskReviewer) {
     if (busy) return;
