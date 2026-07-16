@@ -42,3 +42,28 @@ export async function decodeContent(payload: string, encoding: string): Promise<
   const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
   return await new Response(stream).text(); // rejects on corrupt gzip
 }
+
+// Decompresses with a hard output cap so a malicious "gzip bomb" payload
+// cannot balloon into gigabytes of memory. Server-side uploads use this;
+// trusted read paths keep decodeContent.
+export async function decodeContentBounded(payload: string, encoding: string, maxBytes: number): Promise<string> {
+  if (encoding !== "gzip") return payload;
+  const bytes = base64ToBytes(payload);
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip")).getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > maxBytes) {
+      await reader.cancel();
+      throw new Error("Decompressed size exceeds limit");
+    }
+    chunks.push(value);
+  }
+  const all = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) { all.set(c, off); off += c.length; }
+  return new TextDecoder().decode(all);
+}

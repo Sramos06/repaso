@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { encodeContent, decodeContent, utf8Bytes } from "../src/lib/content-codec";
+import { encodeContent, decodeContent, decodeContentBounded, utf8Bytes } from "../src/lib/content-codec";
 
 describe("content codec", () => {
   it("round-trips a small HTML document", async () => {
@@ -45,5 +45,19 @@ describe("content codec", () => {
   it("counts utf8 bytes, not code units", () => {
     expect(utf8Bytes("abc")).toBe(3);
     expect(utf8Bytes("₱")).toBe(3);
+  });
+
+  it("bounded decode passes normal content through the same as decodeContent", async () => {
+    const raw = "<p>ordinary reviewer</p>".repeat(1000);
+    const enc = await encodeContent(raw);
+    expect(await decodeContentBounded(enc.payload, enc.encoding, 10 * 1024 * 1024)).toBe(raw);
+    expect(await decodeContentBounded("<p>plain</p>", "plain", 10)).toBe("<p>plain</p>");
+  });
+
+  it("bounded decode rejects when decompressed output exceeds the cap (bomb guard)", async () => {
+    const raw = "a".repeat(8 * 1024 * 1024); // ~8 MB expands from a tiny gzip stream
+    const enc = await encodeContent(raw);
+    expect(enc.encoding).toBe("gzip");
+    await expect(decodeContentBounded(enc.payload, enc.encoding, 1024 * 1024)).rejects.toThrow();
   });
 });

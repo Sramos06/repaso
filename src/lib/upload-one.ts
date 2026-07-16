@@ -9,14 +9,20 @@ export async function uploadOne(
   raw: string
 ): Promise<{ ok: true; id: string; title: string } | { ok: false; reason: string }> {
   if (utf8Bytes(raw) > MAX_BYTES) return { ok: false, reason: "File is over the 15 MB limit." };
-  const { payload, encoding } = await encodeContent(raw);
-  if (utf8Bytes(payload) > MAX_WIRE_BYTES) {
-    return {
-      ok: false,
-      reason: encoding === "gzip"
-        ? WIRE_LIMIT_REASON
-        : "Files over 4 MB need a browser that supports compression. Update your browser and try again.",
-    };
+  let payload: string;
+  let encoding: string;
+  try {
+    ({ payload, encoding } = await encodeContent(raw));
+    if (utf8Bytes(payload) > MAX_WIRE_BYTES) {
+      return {
+        ok: false,
+        reason: encoding === "gzip"
+          ? WIRE_LIMIT_REASON
+          : "Files over 4 MB need a browser that supports compression. Update your browser and try again.",
+      };
+    }
+  } catch {
+    return { ok: false, reason: "Could not read this file. Try again." };
   }
   try {
     const res = await fetch("/api/reviewers", {

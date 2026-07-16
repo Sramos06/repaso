@@ -5,7 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { requireUser } from "@/lib/require-user";
 import { validateUpload, MAX_BYTES, MAX_WIRE_BYTES, WIRE_LIMIT_REASON } from "@/lib/validate-upload";
 import { parseUploadBody } from "@/lib/upload-body";
-import { decodeContent, utf8Bytes } from "@/lib/content-codec";
+import { decodeContentBounded, utf8Bytes } from "@/lib/content-codec";
 import { stripHtml } from "@/lib/strip-html";
 
 // GET — unchanged from before this version.
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
     let raw: string;
     try {
-      raw = await decodeContent(payload, encoding);
+      raw = await decodeContentBounded(payload, encoding, MAX_BYTES + 1024 * 1024);
     } catch {
       return reject("Could not read this file. Try uploading it again.");
     }

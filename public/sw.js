@@ -1,7 +1,7 @@
 // Repaso offline tier (easy mode): network-first everywhere it matters, so
 // online behavior is unchanged; the cache only steps in when the network is gone.
 // Bump VERSION to invalidate all caches on deploy of a breaking change.
-const VERSION = "repaso-sw-v2";
+const VERSION = "repaso-sw-v3";
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
 const API_CACHE = `${VERSION}-api`;
