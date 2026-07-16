@@ -10,6 +10,7 @@ import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
 import { precacheReviewers, cachedReviewerIds } from "@/lib/offline-cache";
 import { exportBackup } from "@/lib/export-backup";
+import { decodeContent } from "@/lib/content-codec";
 
 export type DeskReviewer = {
   id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
@@ -125,7 +126,7 @@ export default function DeskClient({ reviewers, email }: { reviewers: DeskReview
       const res = await fetch(`/api/reviewers/${r.id}`);
       if (!res.ok) { say("Couldn’t download. Try again."); return; }
       const data = await res.json();
-      downloadText(htmlFilename(r.title), data.htmlContent ?? "");
+      downloadText(htmlFilename(r.title), await decodeContent(data.htmlContent ?? "", data.encoding ?? "plain"));
       say("Downloaded");
     } catch { say("Could not reach the server. Check your connection."); }
     finally { setBusy(false); }

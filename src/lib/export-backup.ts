@@ -1,5 +1,9 @@
 // Browser-only: assembles a full backup by pulling each reviewer through the
 // per-file endpoint (Vercel caps response bodies, so no single big response).
+// Reviewer content arrives possibly gzip-compressed; decode it here so the
+// backup JSON always stores raw, human-readable HTML in htmlContent.
+import { decodeContent } from "@/lib/content-codec";
+
 type ExportMeta = {
   exportedAt: string;
   reviewers: { id: string; title: string; subject: string | null; pinned: boolean; archivedAt: string | null; createdAt: string }[];
@@ -22,7 +26,7 @@ export async function exportBackup(onlyIds?: string[]): Promise<void> {
     const res = await fetch(`/api/reviewers/${r.id}`);
     if (!res.ok) throw new Error(`Export failed on "${r.title}". Try again.`);
     const full = await res.json();
-    files.push({ title: r.title, subject: r.subject, pinned: r.pinned, archived: r.archivedAt !== null, createdAt: r.createdAt, htmlContent: full.htmlContent, noteMd: noteByReviewer.get(r.id) ?? "" });
+    files.push({ title: r.title, subject: r.subject, pinned: r.pinned, archived: r.archivedAt !== null, createdAt: r.createdAt, htmlContent: await decodeContent(full.htmlContent, full.encoding ?? "plain"), noteMd: noteByReviewer.get(r.id) ?? "" });
   }
 
   const payload = { app: "repaso", version: 2, exportedAt: meta.exportedAt, scratchpad: onlyIds ? "" : scratchpad, reviewers: files };

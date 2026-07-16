@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import NotesPanel from "./NotesPanel";
 import { useWakeLock } from "@/lib/use-wake-lock";
+import { decodeContent } from "@/lib/content-codec";
 
 export default function ViewerFrame({ reviewerId, hasNotes }: { reviewerId: string | null; hasNotes: boolean }) {
   useWakeLock(true); // screen stays awake while the viewer is open
@@ -21,9 +22,10 @@ export default function ViewerFrame({ reviewerId, hasNotes }: { reviewerId: stri
         if (!res.ok) throw new Error("fetch failed");
         return res.json();
       })
-      .then((data) => {
+      .then(async (data) => {
+        const html = await decodeContent(data.htmlContent ?? "", data.encoding ?? "plain");
         if (cancelled) return;
-        setHtmlContent(data.htmlContent);
+        setHtmlContent(html);
         setStatus("ready");
         // Record the study-open (drives Continue studying); ignore failures/offline.
         fetch(`/api/reviewers/${reviewerId}/open`, { method: "POST" }).catch(() => {});
