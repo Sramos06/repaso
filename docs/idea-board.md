@@ -2,7 +2,7 @@
 
 Running list of feature ideas, grouped by *when/how* they should be built, not just liked/disliked.
 
-_Last updated: 2026-07-14 (post-v1.10 ship)._
+_Last updated: 2026-07-16 (post-v1.12 ship)._
 
 ## Shipped
 - **v1.5** (2026-07-11): search desk, pins, rename/delete, export, logout, focus viewer, offline tier.
@@ -12,6 +12,7 @@ _Last updated: 2026-07-14 (post-v1.10 ship)._
 - **v1.9** (2026-07-14): mobile avatar-menu fix · replace file (keeps notes/link) · **notes version history** (snapshot on save, restore) · printable notes sheet · PWA shortcuts + `/continue` · automatic wake-lock. The near-term shelf is now EMPTY.
 - **v1.10** (2026-07-14): five-item ⋯ menu (Rename/Duplicate/Send/Archive/Delete) with **Send sheet** · replace-file removed (Shawn's call) · **manage mode** (bulk archive/export/delete) · **duplicate** · **offline storage readout** in Settings · `open_events` accruing for future stats · UI copy fully em-dash free. Settings-bundle DONE except the stats screen itself.
 - **v1.11** (2026-07-14): **upload makeover** · split zone (drop files / paste-HTML door, folds under on phones) · **staging tray** (validate + preview before saving, honest per-file results, self-clearing) · **paste HTML** capture with auto-filled editable title. Upload-makeover bundle DONE. Cap stays 4 MB until v1.12.
+- **v1.12** (2026-07-16): **big files** · compressed-at-rest storage (client gzips via native CompressionStream, server stores gzip, all readers decode) lifts the cap to **15 MB raw** · decompression-bomb guard server-side · backups stay raw HTML (export decodes) · existing rows migrated (~63% smaller stored) · Neon's free 512 MB now stretches ~4-5x.
 
 ## Next major — full local-first offline (promoted 2026-07-12)
 **Why it moved up:** PUP often has no internet and Shawn's data signal is slow/unreliable — reading (and ideally editing) reviewers offline is a real need, not a nice-to-have.
@@ -31,7 +32,7 @@ _Empty — everything on this shelf shipped in v1.7 (continue-studying, palette,
 ## Upload makeover — SHIPPED v1.11
 _All of Shawn's list landed: paste HTML, multi-file staging UX, preview, size display, confirmation step._
 - Leftover thread: **save from a URL** (paste a link instead of HTML) — small, parked until wanted.
-- **Next: v1.12 "Big files"** — compressed-at-rest storage (native browser compression, no deps) lifts the 4 MB cap to roughly 15-25 MB and stretches Neon's free 512 MB. Own spec; migrates existing rows; then v2.0 local-first.
+- ~~**v1.12 "Big files"**~~ — **SHIPPED 2026-07-16.** Next up: **v2.0 local-first** (own brainstorm). Note for the parked PDF/other-file-types idea: the old "4 MB makes PDFs awkward" objection is softer now (15 MB raw), though PDFs are binary, so they would ride the same encoding seam rather than the HTML pipeline.
 
 ## Scaling up (more users — bigger, foundations still uncertain)
 _Parked until we actually decide to grow past single-user; requirements unknown today._
