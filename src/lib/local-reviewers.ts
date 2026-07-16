@@ -115,7 +115,10 @@ export async function recordOpen(id: string): Promise<void> {
     await dbPut("reviewers", { ...row, lastOpenedAt: new Date().toISOString() });
     notifyChange();
   }
-  if (row && !row.pending) await enqueue({ kind: "open", id: rid });
+  // Pending rows enqueue too (same invariant as localPatch): the ordered
+  // outbox uploads first, then adoption remaps this open to the real id,
+  // so lastOpenedAt survives the first sync instead of reverting to null.
+  if (row) await enqueue({ kind: "open", id: rid });
 }
 
 export async function getLocalNote(target: string): Promise<LocalNote | null> {

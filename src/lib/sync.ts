@@ -48,12 +48,17 @@ async function pull(): Promise<void> {
   // The next pull adopts server truth once that mutation confirms and leaves the outbox.
   const queued = await dbGetAll<{ kind: string; id?: string; target?: string }>("outbox");
   const locallyAhead = new Set<string>();
+  // A queued delete means the row is gone locally; re-fetching it would
+  // resurrect what the user just deleted until the delete flushes.
+  const locallyDeleted = new Set<string>();
   for (const q of queued) {
     if (q.kind === "patch" && q.id) locallyAhead.add(q.id);
     if (q.kind === "note" && q.target) locallyAhead.add(q.target);
+    if (q.kind === "delete" && q.id) locallyDeleted.add(q.id);
   }
 
   await Promise.all(plan.fetchIds.map(async (id) => {
+    if (locallyDeleted.has(id)) return;
     try {
       const res = await fetch(`/api/reviewers/${id}`);
       if (!res.ok) return;
@@ -83,6 +88,7 @@ async function pull(): Promise<void> {
       const all: { reviewerId: string | null; contentMd: string; updatedAt: string }[] = (await res.json()).notes ?? [];
       for (const n of all) {
         const key = n.reviewerId ?? "scratchpad";
+        if (locallyDeleted.has(key)) continue; // its reviewer is deletion-pending; don't re-adopt the note
         const localNote = await dbGet<LocalNote>("notes", key);
         if (localNote?.dirty) continue; // outbox will reconcile (keep-both on conflict)
         await dbPut("notes", { key, contentMd: n.contentMd, updatedAt: n.updatedAt, dirty: false } satisfies LocalNote);
