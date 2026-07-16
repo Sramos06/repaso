@@ -48,9 +48,8 @@ export async function importBackup(file: File): Promise<ImportResult> {
   const result: ImportResult = { added: 0, skipped: [], failed: [] };
   for (const r of parsed.data.reviewers) {
     if (have.has(r.title.toLowerCase())) { result.skipped.push(r.title); continue; }
-    let created: { id: string } | undefined;
     const up = await uploadOne(`${r.title}.html`, r.htmlContent);
-    created = up.ok ? { id: up.id } : undefined;
+    const created: { id: string } | undefined = up.ok ? { id: up.id } : undefined;
     if (!created?.id) { result.failed.push(r.title); continue; }
     // The reviewer row now exists — count it as added and register its title so a
     // later same-titled entry is skipped. The metadata below is best-effort: a
