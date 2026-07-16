@@ -1,13 +1,29 @@
-// One file per request (Vercel caps request bodies ~4.5 MB). Returns the
-// server's verdict for exactly this file. Shared by the staging tray and
-// the paste modal so both paths report the same honest reasons.
+import { encodeContent, utf8Bytes } from "./content-codec";
+import { MAX_BYTES, MAX_WIRE_BYTES, WIRE_LIMIT_REASON } from "./validate-upload";
+
+// One file per request (Vercel caps request bodies ~4.5 MB). Compresses in the
+// browser, then sends {name, encoding, payload} as JSON. Shared by the staging
+// tray, the paste modal, and import so all paths report the same honest reasons.
 export async function uploadOne(
-  file: File
+  name: string,
+  raw: string
 ): Promise<{ ok: true; id: string; title: string } | { ok: false; reason: string }> {
-  const fd = new FormData();
-  fd.append("files", file);
+  if (utf8Bytes(raw) > MAX_BYTES) return { ok: false, reason: "File is over the 15 MB limit." };
+  const { payload, encoding } = await encodeContent(raw);
+  if (utf8Bytes(payload) > MAX_WIRE_BYTES) {
+    return {
+      ok: false,
+      reason: encoding === "gzip"
+        ? WIRE_LIMIT_REASON
+        : "Files over 4 MB need a browser that supports compression. Update your browser and try again.",
+    };
+  }
   try {
-    const res = await fetch("/api/reviewers", { method: "POST", body: fd });
+    const res = await fetch("/api/reviewers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, encoding, payload }),
+    });
     if (res.status === 413) return { ok: false, reason: "Too large to upload." };
     const data = await res.json().catch(() => null);
     if (data?.created?.length) return { ok: true, id: data.created[0].id, title: data.created[0].title };

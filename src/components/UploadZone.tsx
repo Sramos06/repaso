@@ -48,7 +48,7 @@ export default function UploadZone() {
     const failed = new Map<string, string>();
     let ok = 0;
     for (const item of valid) {
-      const result = await uploadOne(item.file);
+      const result = await uploadOne(item.name, item.content);
       if (result.ok) ok++;
       else failed.set(item.key, result.reason);
     }
@@ -81,7 +81,7 @@ export default function UploadZone() {
           <div className="stampbox">↑</div>
           <div>
             <h2>{busy ? "Saving to your desk…" : "Drop reviewers here"}</h2>
-            <p>{msg ?? "or tap to pick (.html files, saved forever)"}</p>
+            <p>{msg ?? "or tap to pick (.html files up to 15 MB, saved forever)"}</p>
           </div>
           <input
             ref={input} type="file" accept=".html,.htm" multiple hidden
