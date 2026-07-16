@@ -1,11 +1,11 @@
-// Repaso offline tier (easy mode): network-first everywhere it matters, so
-// online behavior is unchanged; the cache only steps in when the network is gone.
-// Bump VERSION to invalidate all caches on deploy of a breaking change.
-const VERSION = "repaso-sw-v3";
+// Repaso service worker v4: shell duty only. Reviewer content and notes live
+// in IndexedDB (see src/lib/sync.ts); the SW just keeps the app's pages and
+// static assets openable offline, and serves a cached viewer page as an app
+// shell for any /viewer/<id> the network can't reach (the client resolves the
+// id from the URL against the local store).
+const VERSION = "repaso-sw-v4";
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
-const API_CACHE = `${VERSION}-api`;
-const PRECACHE = `${VERSION}-precache`;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -20,34 +20,6 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Proactive precache: the client hands us every reviewer's page-shell + content
-// URL so they open offline, not just the ones already visited. Read-only.
-self.addEventListener("message", (event) => {
-  const data = event.data;
-  if (!data || data.type !== "precache" || !Array.isArray(data.urls)) return;
-  event.waitUntil(
-    (async () => {
-      const cache = await caches.open(PRECACHE);
-      await Promise.all(
-        data.urls.map(async (u) => {
-          try {
-            // Structurally enforce the same guards as the fetch handler:
-            // same-origin only, never auth routes — don't trust the caller's list.
-            const parsed = new URL(u, self.location.origin);
-            if (parsed.origin !== self.location.origin) return;
-            if (parsed.pathname.startsWith("/api/auth")) return;
-            if (await caches.match(u, { ignoreVary: true })) return; // already cached anywhere — don't refetch
-            const res = await fetch(u, { credentials: "same-origin" });
-            if (res.ok && !res.redirected) await cache.put(u, res.clone());
-          } catch {
-            /* offline or transient — skip; will retry on a later app load */
-          }
-        })
-      );
-    })()
-  );
-});
-
 async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) return cached;
@@ -56,40 +28,43 @@ async function cacheFirst(request, cacheName) {
   return response;
 }
 
-async function networkFirst(request, cacheName) {
+async function pageNetworkFirst(request, url) {
   try {
     const response = await fetch(request);
-    if (response.ok && !response.redirected) (await caches.open(cacheName)).put(request, response.clone());
+    if (response.ok && !response.redirected) (await caches.open(PAGE_CACHE)).put(request, response.clone());
     return response;
   } catch {
     const cached = await caches.match(request, { ignoreVary: true });
-    return cached ?? new Response(JSON.stringify({ error: "You're offline and this isn't cached yet." }), {
+    if (cached) return cached;
+    if (url.pathname.startsWith("/viewer/")) {
+      // Any cached viewer page works as the shell for any id.
+      const cache = await caches.open(PAGE_CACHE);
+      const entries = await cache.keys();
+      const shell = entries.find((r) => new URL(r.url).pathname.startsWith("/viewer/"));
+      if (shell) {
+        const res = await cache.match(shell, { ignoreVary: true });
+        if (res) return res;
+      }
+    }
+    return new Response("<h1>Offline</h1><p>Open Repaso once while online and it works offline after that.</p>", {
       status: 503,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/html" },
     });
   }
 }
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return; // uploads/saves/deletes: network only
+  if (request.method !== "GET") return; // writes: network only, always
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return; // fonts etc. load normally
-  if (url.pathname.startsWith("/api/auth")) return; // NEVER cache auth
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/")) return; // data lives in IndexedDB now; auth stays untouched
 
-  // hashed build assets + icons: safe to serve cache-first forever
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
-  // reviewer list + content: fresh when online, cached copy when offline
-  if (url.pathname.startsWith("/api/reviewers")) {
-    event.respondWith(networkFirst(request, API_CACHE));
-    return;
-  }
-  if (url.pathname.startsWith("/api/")) return; // notes GET stays live (draft system covers offline)
-  // page navigations (the desk, the viewer shell)
   if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request, PAGE_CACHE));
+    event.respondWith(pageNetworkFirst(request, url));
   }
 });
