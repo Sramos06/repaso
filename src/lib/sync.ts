@@ -43,19 +43,31 @@ async function pull(): Promise<void> {
   const plan = diffRows(serverRows, local);
   const metaById = new Map(serverRows.map((r) => [r.id, r]));
 
-  for (const id of plan.fetchIds) {
+  // A retry-scheduled flush failure still falls through to pull: rows with a
+  // queued mutation are ahead of the server and must not be overwritten here.
+  // The next pull adopts server truth once that mutation confirms and leaves the outbox.
+  const queued = await dbGetAll<{ kind: string; id?: string; target?: string }>("outbox");
+  const locallyAhead = new Set<string>();
+  for (const q of queued) {
+    if (q.kind === "patch" && q.id) locallyAhead.add(q.id);
+    if (q.kind === "note" && q.target) locallyAhead.add(q.target);
+  }
+
+  await Promise.all(plan.fetchIds.map(async (id) => {
     try {
       const res = await fetch(`/api/reviewers/${id}`);
-      if (!res.ok) continue;
+      if (!res.ok) return;
       const d = await res.json();
       const s = metaById.get(id);
-      if (!s || typeof d.htmlContent !== "string") continue;
+      if (!s || typeof d.htmlContent !== "string") return;
       await dbPut("reviewers", {
         ...s, payload: d.htmlContent, encoding: d.encoding ?? "plain", pending: false,
       } satisfies LocalReviewer);
     } catch { /* offline mid-pull: next runSync finishes the job */ }
-  }
+  }));
+  notifyChange(); // paint fetched content as soon as it lands, don't wait for notes below
   for (const s of plan.metaOnly) {
+    if (locallyAhead.has(s.id)) continue; // this device is ahead of the server here; adopt after the flush lands
     const row = await dbGet<LocalReviewer>("reviewers", s.id);
     if (row) await dbPut("reviewers", { ...row, ...s, payload: row.payload, encoding: row.encoding, pending: false });
   }

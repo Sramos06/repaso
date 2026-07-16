@@ -13,7 +13,11 @@ import { copyTitle } from "./copy-title";
 
 export async function getDeskRows(): Promise<LocalReviewer[]> {
   const rows = await dbGetAll<LocalReviewer>("reviewers");
-  return rows.sort((a, b) => (a.pinned === b.pinned ? (a.createdAt < b.createdAt ? 1 : -1) : a.pinned ? -1 : 1));
+  return rows.sort((a, b) =>
+    a.pinned === b.pinned
+      ? a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0
+      : a.pinned ? -1 : 1
+  );
 }
 
 // A temp id may have been adopted while this tab still holds the old URL.
@@ -43,7 +47,7 @@ export async function localPatch(id: string, patch: ReviewerPatch): Promise<void
   if (!row) return;
   await dbPut("reviewers", applyPatchLocal(row, patch, new Date().toISOString()));
   notifyChange();
-  if (row.pending) return; // the upload carries current state; metadata patch would 404
+  // Pending rows enqueue too: the ordered outbox uploads first, then adoption remaps this patch to the real id.
   await enqueue({ kind: "patch", id: rid, patch });
 }
 
