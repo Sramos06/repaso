@@ -169,10 +169,13 @@ async function resolveNoteConflict(m: QueuedMutation & { kind: "note" }, serverT
   const note = await dbGet<LocalNote>("notes", target);
   const localText = note?.contentMd ?? m.contentMd;
   const merged = mergeNote(serverText, localText, new Date().toISOString());
-  if (merged === serverText) {
-    // Both sides ended up with the same text (restore follow-ups, crash
-    // resends): that is a confirmation, not a conflict. Adopt the server
-    // stamp quietly; no merge notice, no extra PUT.
+  if (serverText.trim() === localText.trim()) {
+    // Both sides TYPED the same text (restore follow-ups, crash resends):
+    // that is a confirmation, not a conflict. Adopt the server stamp
+    // quietly; no merge notice, no extra PUT. Deliberately NOT keyed on
+    // merged === serverText: mergeNote also returns serverText when the
+    // local side is empty (a cleared note losing to another device's
+    // edit), and THAT case must keep the loud merge path below.
     await dbPut("notes", { key: target, contentMd: serverText, updatedAt: serverUpdatedAt, dirty: false } satisfies LocalNote);
     await dbDel("outbox", m.seq);
     notifyChange();

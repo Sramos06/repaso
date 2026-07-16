@@ -10,7 +10,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
   const target = reviewerId ?? "scratchpad";
   const draftKey = `repaso-draft-${target}`; // legacy adoption only
   const [text, setText] = useState("");
-  const [state, setState] = useState<"loading" | "saved" | "saving" | "pending">("loading");
+  const [state, setState] = useState<"loading" | "saved" | "saving" | "pending" | "offline">("loading");
   const [view, setView] = useState<"write" | "preview" | "history">("write");
   const [revisions, setRevisions] = useState<Revision[] | null>(null);
   const [revError, setRevError] = useState(false);
@@ -18,6 +18,8 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
   const [restoring, setRestoring] = useState(false);
   const [merged, setMerged] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Latest typed text, so a note switch mid-debounce can flush instead of discard.
+  const textRef = useRef("");
   // True from the first keystroke until the debounce fires — guards external
   // refreshes (other tab, merge) from clobbering text the user is mid-typing.
   const editingRef = useRef(false);
@@ -52,7 +54,8 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
           return;
         }
       } catch { /* offline with no local copy */ }
-      if (!cancelled && !editingRef.current) { setText(""); setState("saved"); }
+      // Nothing local and the live fetch failed: an honest badge, not "SAVED".
+      if (!cancelled && !editingRef.current) { setText(""); setState("offline"); }
     }
     void load();
 
@@ -60,12 +63,19 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
       if (msg.type === "note-merged" && msg.target === target) { setMerged(true); setTimeout(() => setMerged(false), 6000); }
       void readFromStore(true);
     });
-    return () => { cancelled = true; off(); clearTimeout(timer.current); };
+    return () => {
+      cancelled = true; off();
+      clearTimeout(timer.current);
+      // Switching notes mid-debounce persists the keystrokes to the OLD target
+      // (this closure's target) instead of discarding up to 500ms of typing.
+      if (editingRef.current) { editingRef.current = false; void saveNoteLocal(target, textRef.current); }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reviewerId]);
 
   function onChange(v: string) {
     editingRef.current = true;
+    textRef.current = v;
     setText(v); setState("saving");
     clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
@@ -164,7 +174,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
         <div className="notes-preview" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
       )}
       {merged && <span className="save merged">Notes from two places were combined.</span>}
-      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", pending: "SAVED · BACKS UP ONLINE" }[state]}</span>
+      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", pending: "SAVED · BACKS UP ONLINE", offline: "OFFLINE · NOTHING LOADED YET" }[state]}</span>
     </aside>
   );
 }
