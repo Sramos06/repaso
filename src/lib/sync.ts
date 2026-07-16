@@ -46,15 +46,21 @@ async function pull(): Promise<void> {
   // A retry-scheduled flush failure still falls through to pull: rows with a
   // queued mutation are ahead of the server and must not be overwritten here.
   // The next pull adopts server truth once that mutation confirms and leaves the outbox.
-  const queued = await dbGetAll<{ kind: string; id?: string; target?: string }>("outbox");
+  const queued = await dbGetAll<{ kind: string; id?: string; target?: string; tempId?: string }>("outbox");
   const locallyAhead = new Set<string>();
   // A queued delete means the row is gone locally; re-fetching it would
   // resurrect what the user just deleted until the delete flushes.
   const locallyDeleted = new Set<string>();
+  // Every id any queued mutation references, so a delete pulled mid-flight
+  // can't remove a row (or its note) an in-flight upload/patch still owns.
+  const queuedIds = new Set<string>();
   for (const q of queued) {
     if (q.kind === "patch" && q.id) locallyAhead.add(q.id);
     if (q.kind === "note" && q.target) locallyAhead.add(q.target);
     if (q.kind === "delete" && q.id) locallyDeleted.add(q.id);
+    if (q.id) queuedIds.add(q.id);
+    if (q.target) queuedIds.add(q.target);
+    if (q.tempId) queuedIds.add(q.tempId);
   }
 
   await Promise.all(plan.fetchIds.map(async (id) => {
@@ -65,6 +71,7 @@ async function pull(): Promise<void> {
       const d = await res.json();
       const s = metaById.get(id);
       if (!s || typeof d.htmlContent !== "string") return;
+      if (typeof s.updatedAt !== "string") return; // stale tab against a rolled-back v1.12 server
       await dbPut("reviewers", {
         ...s, payload: d.htmlContent, encoding: d.encoding ?? "plain", pending: false,
       } satisfies LocalReviewer);
@@ -73,10 +80,12 @@ async function pull(): Promise<void> {
   notifyChange(); // paint fetched content as soon as it lands, don't wait for notes below
   for (const s of plan.metaOnly) {
     if (locallyAhead.has(s.id)) continue; // this device is ahead of the server here; adopt after the flush lands
+    if (typeof s.updatedAt !== "string") continue; // stale tab against a rolled-back v1.12 server
     const row = await dbGet<LocalReviewer>("reviewers", s.id);
     if (row) await dbPut("reviewers", { ...row, ...s, payload: row.payload, encoding: row.encoding, pending: false });
   }
   for (const id of plan.deleteIds) {
+    if (queuedIds.has(id)) continue; // an in-flight mutation still references this row; next pull settles it
     await dbDel("reviewers", id);
     await dbDel("notes", id);
   }

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { renderMarkdown } from "@/lib/render-md";
-import { getLocalNote, saveNoteLocal } from "@/lib/local-reviewers";
+import { getLocalNote, saveNoteLocal, adoptServerNote } from "@/lib/local-reviewers";
 import { onLocalChange } from "@/lib/local-db";
 
 type Revision = { id: string; createdAt: string; contentMd: string };
@@ -50,6 +50,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
         const res = await fetch(`/api/notes?reviewerId=${target}`);
         if (res.ok) {
           const d = await res.json();
+          await adoptServerNote(target, d.contentMd ?? "", d.updatedAt ?? null);
           if (!cancelled && !editingRef.current) { setText(d.contentMd ?? ""); setState("saved"); }
           return;
         }

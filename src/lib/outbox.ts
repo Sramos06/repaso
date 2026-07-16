@@ -93,12 +93,23 @@ async function resolveRemap(id: string): Promise<string> {
   return remap?.value ?? id;
 }
 
+// The newer of two ISO stamps, treating null (never confirmed) as oldest.
+function newerIso(a: string | null, b: string | null): string | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return Date.parse(a) >= Date.parse(b) ? a : b;
+}
+
 async function send(m: QueuedMutation): Promise<SendResult> {
   if (m.kind === "note") {
     const target = await resolveRemap(m.target);
+    const localNote = await dbGet<LocalNote>("notes", target);
+    // The local row's updatedAt is this device's last server-confirmed stamp;
+    // a base frozen at enqueue time can be older and 409 against our own save.
+    const base = newerIso(localNote?.updatedAt ?? null, m.baseUpdatedAt);
     const res = await fetch("/api/notes", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reviewerId: target, contentMd: m.contentMd, baseUpdatedAt: m.baseUpdatedAt }),
+      body: JSON.stringify({ reviewerId: target, contentMd: m.contentMd, baseUpdatedAt: base }),
     });
     if (res.status === 409) {
       const d = await res.json().catch(() => null);
@@ -146,7 +157,9 @@ async function send(m: QueuedMutation): Promise<SendResult> {
   if (res.ok) {
     const d = await res.json().catch(() => null);
     const realId = d?.created?.[0]?.id;
-    if (typeof realId === "string") await adoptRealId(m.tempId, realId);
+    // Malformed 2xx: no id to adopt means the row would be orphaned pending forever.
+    if (typeof realId !== "string") return { status: "retry" };
+    await adoptRealId(m.tempId, realId);
     return { status: "done" };
   }
   return res.status === 400 ? { status: "drop" } : { status: "retry" };

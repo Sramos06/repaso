@@ -137,6 +137,16 @@ export async function getLocalNote(target: string): Promise<LocalNote | null> {
   return (await dbGet<LocalNote>("notes", t)) ?? null;
 }
 
+// Adopt a server-fetched note into the local store (pre-hydration fallback),
+// so the first edit carries the correct base instead of self-conflicting.
+export async function adoptServerNote(target: string, contentMd: string, updatedAt: string | null): Promise<void> {
+  const t = await resolveId(target);
+  const existing = await dbGet<LocalNote>("notes", t);
+  if (existing?.dirty) return; // never clobber unconfirmed local text
+  await dbPut("notes", { key: t, contentMd, updatedAt, dirty: false } satisfies LocalNote);
+  notifyChange();
+}
+
 export async function saveNoteLocal(target: string, contentMd: string): Promise<void> {
   const t = await resolveId(target);
   const existing = await dbGet<LocalNote>("notes", t);

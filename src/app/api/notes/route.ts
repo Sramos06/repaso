@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { notes } from "@/db/schema";
+import { notes, reviewers } from "@/db/schema";
 import { requireUser } from "@/lib/require-user";
 import { resolveNoteTarget } from "@/lib/note-target";
 import { whereForNote } from "@/lib/note-where";
@@ -28,6 +29,16 @@ export async function PUT(req: NextRequest) {
     if ("error" in target) return NextResponse.json({ error: target.error }, { status: 400 });
     if (typeof body.contentMd !== "string" || body.contentMd.length > 100_000)
       return NextResponse.json({ error: "Invalid note content." }, { status: 400 });
+
+    if (target.reviewerId !== null) {
+      const owner = await db.query.reviewers.findFirst({
+        where: and(eq(reviewers.id, target.reviewerId), eq(reviewers.userId, user.id)),
+        columns: { id: true },
+      });
+      // Deleted (or never yours): a permanent verdict the sync queue can drop,
+      // never a 500 it would retry forever.
+      if (!owner) return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
 
     const existing = await db.query.notes.findFirst({ where: whereForNote(user.id, target.reviewerId) });
     if (existing && noteConflict(existing.updatedAt, existing.contentMd, body.baseUpdatedAt)) {
