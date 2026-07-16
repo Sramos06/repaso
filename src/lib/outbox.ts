@@ -162,14 +162,17 @@ async function adoptNoteStamp(target: string, savedText: string, updatedAt: stri
 }
 
 // After a merged conflict: keep both texts locally and requeue with the fresh base.
+// The target is remap-resolved so the merge lands on the live notes row, never a
+// zombie row keyed by an already-adopted temp id.
 async function resolveNoteConflict(m: QueuedMutation & { kind: "note" }, serverText: string, serverUpdatedAt: string): Promise<void> {
-  const note = await dbGet<LocalNote>("notes", m.target);
+  const target = await resolveRemap(m.target);
+  const note = await dbGet<LocalNote>("notes", target);
   const localText = note?.contentMd ?? m.contentMd;
   const merged = mergeNote(serverText, localText, new Date().toISOString());
-  await dbPut("notes", { key: m.target, contentMd: merged, updatedAt: serverUpdatedAt, dirty: true } satisfies LocalNote);
+  await dbPut("notes", { key: target, contentMd: merged, updatedAt: serverUpdatedAt, dirty: true } satisfies LocalNote);
   await dbDel("outbox", m.seq);
-  await dbAdd("outbox", { kind: "note", target: m.target, contentMd: merged, baseUpdatedAt: serverUpdatedAt, attempts: 0 });
-  notifyChange({ type: "note-merged", target: m.target });
+  await dbAdd("outbox", { kind: "note", target, contentMd: merged, baseUpdatedAt: serverUpdatedAt, attempts: 0 });
+  notifyChange({ type: "note-merged", target });
 }
 
 // After a confirmed upload: the row becomes real everywhere the temp id lived.
