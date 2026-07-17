@@ -7,23 +7,32 @@ import { buildYearGrid } from "@/lib/calendar-grid";
 
 type Top = { id: string; title: string; subject: string | null; visits: number };
 type Data = { events: string[]; top: Top[] };
+// events: a ~370-day lookback so streaks and last-30 stay correct across
+// New Year; yearEvents/top: strictly this calendar year (what the card shows).
+type StatsData = { events: string[]; yearEvents: number; top: Top[] };
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function StatsClient() {
-  const [data, setData] = useState<Data | null>(null);
+  const [data, setData] = useState<StatsData | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "offline" | "error">("loading");
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const now = new Date();
-      const from = new Date(now.getFullYear(), 0, 1).toISOString();
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      const lookback = new Date(now.getTime() - 370 * 86400000);
+      const q = (from: Date) => `/api/stats?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(now.toISOString())}`;
       try {
-        const res = await fetch(`/api/stats?from=${encodeURIComponent(from)}&to=${encodeURIComponent(now.toISOString())}`);
-        if (!res.ok) throw new Error("bad");
-        const d: Data = await res.json();
-        if (!cancelled) { setData(d); setState("ready"); }
+        const [wideRes, yearRes] = await Promise.all([fetch(q(lookback)), fetch(q(yearStart))]);
+        if (!wideRes.ok || !yearRes.ok) throw new Error("bad");
+        const wide: Data = await wideRes.json();
+        const yearly: Data = await yearRes.json();
+        if (!cancelled) {
+          setData({ events: wide.events, yearEvents: yearly.events.length, top: yearly.top });
+          setState("ready");
+        }
       } catch {
         if (!cancelled) setState(typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "error");
       }
@@ -64,7 +73,7 @@ export default function StatsClient() {
 
             <div className="stx-r"><span className="k">Longest streak</span><span className="v">{s.longest} day{s.longest === 1 ? "" : "s"}</span></div>
             <div className="stx-r"><span className="k">Days studied, last 30</span><span className="v">{daysInLast30(days, todayKey)} of 30</span></div>
-            <div className="stx-r"><span className="k">Visits this year</span><span className="v">{data?.events.length ?? 0}</span></div>
+            <div className="stx-r"><span className="k">Visits this year</span><span className="v">{data?.yearEvents ?? 0}</span></div>
 
             <div className="stx-cal">
               <div className="stx-cal-inner">

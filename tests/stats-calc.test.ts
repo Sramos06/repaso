@@ -48,6 +48,11 @@ describe("streaks", () => {
   it("empty set is all zeros", () => {
     expect(streaks(new Set(), "2026-07-17")).toEqual({ current: 0, longest: 0 });
   });
+  it("streaks cross the New Year boundary", () => {
+    const s = streaks(days("2025-12-30", "2025-12-31", "2026-01-01"), "2026-01-01");
+    expect(s.current).toBe(3);
+    expect(s.longest).toBe(3);
+  });
 });
 
 describe("daysInLast30", () => {
