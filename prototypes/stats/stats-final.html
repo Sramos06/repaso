@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repaso · Stats — E refined (final candidate)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Karla:wght@400;500;700;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F7EFE2; --card: #FFFDF6;
+    --ink: #2B2118; --ink-soft: #6B5D4F; --terra: #C4552D; --terra-deep: #A03E1C;
+    --sage: #7A8B6F; --gold: #D9A441; --rule: #E3D5BC;
+    --washi-1: rgba(122,139,111,.55); --washi-2: rgba(217,164,65,.55); --washi-3: rgba(196,85,45,.45);
+    --shadow: 0 1px 2px rgba(43,33,24,.05), 0 10px 26px rgba(43,33,24,.09);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Karla, sans-serif; color: var(--ink); min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.14), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.12), transparent 55%),
+      var(--paper);
+  }
+  .page { max-width: 780px; margin: 0 auto; padding: 36px 22px 90px; }
+  .crumb { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 18px; }
+  .crumb a { color: var(--terra); text-decoration: none; }
+  .seclabel { display: flex; align-items: center; gap: 14px; margin: 30px 0 18px; }
+  .seclabel h3 { font-family: Fraunces, serif; font-style: italic; font-weight: 520; font-size: 22px; }
+  .seclabel .line { flex: 1; height: 1px; background: var(--rule); }
+  .seclabel .count { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--ink-soft); }
+  h1.title { font-family: Fraunces, serif; font-weight: 700; font-size: 32px; letter-spacing: -.01em; }
+  .hand { font-family: Caveat, cursive; font-size: 19px; color: var(--ink-soft); }
+
+  /* ---------- the attendance card ---------- */
+  .e-card {
+    background: var(--card); border-radius: 6px; box-shadow: var(--shadow);
+    padding: 26px 30px 24px; border-top: 1px solid var(--rule);
+  }
+  /* header row: title block left, streak stamp right — real layout, no overlap */
+  .e-top { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+  .e-top .who { flex: 1; min-width: 0; }
+  .e-top .lib { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); margin-top: 4px; display: block; }
+  .e-streak {
+    flex: none; width: 96px; height: 96px; border: 2.5px solid var(--terra); border-radius: 50%;
+    transform: rotate(-7deg); display: grid; place-items: center; text-align: center;
+    color: var(--terra); mix-blend-mode: multiply;
+  }
+  .e-streak b { font-family: Fraunces, serif; font-size: 32px; font-weight: 900; line-height: 1; display: block; }
+  .e-streak span { font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .e-r { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 11px 2px; border-bottom: 1px solid var(--rule); font-size: 14.5px; }
+  .e-r .k { font-weight: 700; color: var(--ink-soft); }
+  .e-r .v { font-family: Fraunces, serif; font-weight: 800; font-size: 16px; text-align: right; }
+
+  /* ---------- calendar grid with real date bearings ---------- */
+  .cal { padding: 20px 0 4px; overflow-x: auto; }
+  .cal-inner { display: inline-block; min-width: 0; }
+  .cal-months { display: grid; grid-auto-flow: column; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; color: var(--ink-soft); text-transform: uppercase; margin: 0 0 5px 34px; }
+  .cal-body { display: flex; gap: 6px; }
+  .cal-days { display: grid; grid-template-rows: repeat(7, 15px); gap: 1px; font-size: 9.5px; font-weight: 800; color: var(--ink-soft); width: 28px; }
+  .cal-days span { line-height: 15px; text-align: right; padding-right: 2px; letter-spacing: .04em; }
+  .graph { display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(7, 15px); background: var(--rule); gap: 1px; padding: 1px; }
+  .graph i { width: 15px; height: 15px; background: var(--card); }
+  .graph i.future { background: transparent; }
+  .graph i.l1 { background: #EBD9AF; } .graph i.l2 { background: #DDA45E; } .graph i.l3 { background: var(--terra); }
+
+  /* ---------- most visited: top 3, warmth = work ---------- */
+  .e-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 22px 18px; margin-top: 6px; }
+  .e-mini {
+    position: relative; border-radius: 6px; box-shadow: var(--shadow); padding: 16px 14px 12px;
+    background-image: repeating-linear-gradient(transparent, transparent 22px, var(--rule) 23px);
+  }
+  /* the harder you work it, the warmer the card */
+  .e-mini.hot  { background-color: #FBEEDF; transform: rotate(-.8deg); }
+  .e-mini.warm { background-color: #FCF4E6; transform: rotate(.6deg); }
+  .e-mini.mild { background-color: var(--card); transform: rotate(-.3deg); }
+  .e-mini::before { content: ""; position: absolute; top: -9px; left: 50%; width: 58px; height: 16px; transform: translateX(-50%) rotate(-2deg); border-radius: 2px; opacity: .85; }
+  .e-mini.hot::before { background: var(--washi-3); }
+  .e-mini.warm::before { background: var(--washi-2); transform: translateX(-50%) rotate(1.5deg); }
+  .e-mini.mild::before { background: var(--washi-1); }
+  .e-mini h4 { font-family: Fraunces, serif; font-size: 14.5px; line-height: 1.3; margin: 4px 0 8px; }
+  .e-mini .visits { font-family: Caveat, cursive; font-size: 19px; }
+  .e-mini.hot .visits { color: var(--terra-deep); }
+  .e-mini.warm .visits { color: var(--terra); }
+  .e-mini.mild .visits { color: var(--ink-soft); }
+  .e-mini.hot .flame { position: absolute; top: 8px; right: 10px; font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="crumb"><a href="#">← Desk</a> · Study stats</div>
+
+    <div class="e-card">
+      <div class="e-top">
+        <div class="who">
+          <h1 class="title">Attendance</h1>
+          <span class="lib">Repaso · study record · 2026</span>
+        </div>
+        <div class="e-streak"><div><b>6</b><span>day streak</span></div></div>
+      </div>
+
+      <div class="e-r"><span class="k">Longest streak</span><span class="v">11 days</span></div>
+      <div class="e-r"><span class="k">Days studied, last 30</span><span class="v">23 of 30</span></div>
+      <div class="e-r"><span class="k">Visits this year</span><span class="v">148</span></div>
+
+      <div class="cal">
+        <div class="cal-inner">
+          <div class="cal-months" id="months"></div>
+          <div class="cal-body">
+            <div class="cal-days"><span></span><span>MON</span><span></span><span>WED</span><span></span><span>FRI</span><span></span></div>
+            <div class="graph" id="grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="seclabel"><h3>Most visited</h3><div class="line"></div><span class="count">THIS YEAR</span></div>
+    <div class="e-stack">
+      <div class="e-mini hot"><span class="flame">🔥</span><h4>COMP 014 — Quantitative Methods</h4><span class="visits">41 visits, hard at work ✎</span></div>
+      <div class="e-mini warm"><h4>STAT 023 — Reviewer</h4><span class="visits">32 visits</span></div>
+      <div class="e-mini mild"><h4>GEED 010 — Finals Coverage</h4><span class="visits">18 visits</span></div>
+    </div>
+  </div>
+
+<script>
+  // Real calendar bearings for the CURRENT year: month labels aligned to week
+  // columns, Sunday-start rows, hover shows the actual date + visits.
+  const year = new Date().getFullYear();
+  const start = new Date(year, 0, 1);
+  const firstCell = new Date(start); firstCell.setDate(start.getDate() - start.getDay()); // back to Sunday
+  const today = new Date();
+  const end = new Date(year, 11, 31);
+  const weeks = Math.ceil(((end - firstCell) / 86400000 + 1) / 7);
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  let cells = "", monthCols = [], lastMonth = -1;
+  for (let w = 0; w < weeks; w++) {
+    const colDate = new Date(firstCell); colDate.setDate(firstCell.getDate() + w * 7);
+    const m = colDate.getMonth();
+    if (m !== lastMonth && colDate.getFullYear() === year && colDate.getDate() <= 14) { monthCols.push({ w, m }); lastMonth = m; }
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(firstCell); day.setDate(firstCell.getDate() + w * 7 + d);
+      if (day.getFullYear() !== year || day > today) { cells += '<i class="future"></i>'; continue; }
+      const r = Math.random();
+      const visits = r > 0.93 ? 5 : r > 0.8 ? 3 : r > 0.58 ? 1 : 0;
+      const lvl = visits >= 5 ? "l3" : visits >= 3 ? "l2" : visits >= 1 ? "l1" : "";
+      const label = `${MONTHS[day.getMonth()]} ${day.getDate()} · ${visits ? visits + " visit" + (visits > 1 ? "s" : "") : "no visits"}`;
+      cells += `<i class="${lvl}" title="${label}"></i>`;
+    }
+  }
+  document.getElementById("grid").innerHTML = cells;
+  const months = document.getElementById("months");
+  months.style.gridTemplateColumns = `repeat(${weeks}, 16px)`;
+  let mHtml = "";
+  for (let w = 0; w < weeks; w++) {
+    const hit = monthCols.find((x) => x.w === w);
+    mHtml += `<span>${hit ? MONTHS[hit.m] : ""}</span>`;
+  }
+  months.innerHTML = mHtml;
+</script>
+</body>
+</html>
