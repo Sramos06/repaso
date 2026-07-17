@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repaso · Stats — round 2, in the app's own language</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Karla:wght@400;500;700;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F7EFE2; --paper-deep: #F0E4D0; --card: #FFFDF6;
+    --ink: #2B2118; --ink-soft: #6B5D4F; --terra: #C4552D; --terra-deep: #A03E1C;
+    --sage: #7A8B6F; --gold: #D9A441; --rule: #E3D5BC;
+    --washi-1: rgba(122,139,111,.55); --washi-2: rgba(217,164,65,.55); --washi-3: rgba(196,85,45,.45);
+    --shadow: 0 1px 2px rgba(43,33,24,.05), 0 10px 26px rgba(43,33,24,.09);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Karla, sans-serif; color: var(--ink); min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.14), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.12), transparent 55%),
+      var(--paper);
+  }
+  .switch {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 8px; align-items: center;
+    padding: 10px 16px; background: rgba(247,239,226,.93); backdrop-filter: blur(6px); border-bottom: 1px solid var(--rule);
+  }
+  .switch b { font-family: Fraunces, serif; font-size: 15px; margin-right: 6px; }
+  .switch button {
+    font: 700 12px Karla; letter-spacing: .04em; padding: 7px 14px; border-radius: 999px;
+    border: 1.5px solid var(--rule); background: var(--card); color: var(--ink-soft); cursor: pointer;
+  }
+  .switch button.on { border-color: var(--terra); color: var(--terra); }
+  section.option { display: none; }
+  section.option.on { display: block; }
+  .page { max-width: 780px; margin: 0 auto; padding: 36px 22px 90px; }
+
+  /* shared idioms lifted from the real app */
+  .crumb { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 18px; }
+  .crumb a { color: var(--terra); text-decoration: none; }
+  .seclabel { display: flex; align-items: center; gap: 14px; margin: 30px 0 18px; }
+  .seclabel h3 { font-family: Fraunces, serif; font-style: italic; font-weight: 520; font-size: 22px; }
+  .seclabel .line { flex: 1; height: 1px; background: var(--rule); }
+  .seclabel .count { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--ink-soft); }
+  h1.title { font-family: Fraunces, serif; font-weight: 700; font-size: 32px; letter-spacing: -.01em; }
+  .hand { font-family: Caveat, cursive; font-size: 19px; color: var(--ink-soft); }
+  .stampchip {
+    display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .14em;
+    color: var(--terra-deep); border: 1.5px solid currentColor; border-radius: 3px;
+    padding: 2px 7px; text-transform: uppercase; background: rgba(196,85,45,.06);
+  }
+
+  /* heatmap as graph paper: cells live INSIDE a drawn grid, square corners */
+  .graph { display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(7, 15px); background: var(--rule); gap: 1px; padding: 1px; max-width: 100%; overflow-x: auto; }
+  .graph i { width: 15px; height: 15px; background: var(--card); }
+  .graph i.l1 { background: #EBD9AF; } .graph i.l2 { background: #DDA45E; } .graph i.l3 { background: var(--terra); }
+
+  /* ============ D · NOTEBOOK PAGE ============ */
+  .d-sheet {
+    position: relative; background: var(--card); border-radius: 6px; box-shadow: var(--shadow);
+    padding: 34px 38px 30px; transform: rotate(-.3deg);
+    background-image: repeating-linear-gradient(transparent, transparent 30px, var(--rule) 31px);
+  }
+  .d-sheet::before { content: ""; position: absolute; top: -12px; left: 54px; width: 96px; height: 24px; transform: rotate(-2deg); border-radius: 2px; background: var(--washi-2); opacity: .85; }
+  .d-sheet::after { content: ""; position: absolute; top: -10px; right: 70px; width: 78px; height: 22px; transform: rotate(1.6deg); border-radius: 2px; background: var(--washi-1); opacity: .8; }
+  .d-ledger { margin: 18px 0 6px; }
+  .d-row { display: flex; align-items: baseline; gap: 10px; line-height: 31px; font-size: 15.5px; }
+  .d-row .k { font-weight: 700; }
+  .d-row .dots { flex: 1; border-bottom: 2px dotted var(--rule); transform: translateY(-5px); }
+  .d-row .v { font-family: Fraunces, serif; font-weight: 800; font-size: 19px; }
+  .d-row .v small { font-family: Karla; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+  .d-hm { padding: 6px 0 2px; position: relative; }
+  .d-margin { position: absolute; right: -6px; top: -26px; transform: rotate(2deg); color: var(--terra); font-family: Caveat, cursive; font-size: 18px; }
+  .d-margin svg { display: block; margin: 0 auto -2px 18px; width: 30px; height: 20px; }
+  .d-most .m-row { display: flex; align-items: baseline; gap: 12px; line-height: 31px; font-size: 15px; }
+  .d-most .m-row .t { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .d-most .m-row .tally { flex: 1; height: 12px; align-self: center; position: relative; }
+  .d-most .m-row .tally i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, rgba(217,164,65,.5), rgba(217,164,65,.28)); transform: skewX(-14deg); border-radius: 2px; }
+  .d-most .m-row .n { font-family: Fraunces, serif; font-weight: 800; }
+  .d-most .m-row .n small { font-family: Karla; font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
+
+  /* ============ E · ATTENDANCE CARD ============ */
+  .e-card {
+    position: relative; background: var(--card); border-radius: 6px; box-shadow: var(--shadow);
+    padding: 26px 30px; border-top: 1px solid var(--rule);
+  }
+  .e-head { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .e-head .lib { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); }
+  .e-streak { position: absolute; top: 18px; right: 26px; width: 92px; height: 92px; border: 2.5px solid var(--terra); border-radius: 50%; transform: rotate(-8deg); display: grid; place-items: center; text-align: center; color: var(--terra); opacity: .9; mix-blend-mode: multiply; }
+  .e-streak b { font-family: Fraunces, serif; font-size: 30px; font-weight: 900; line-height: 1; display: block; }
+  .e-streak span { font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .e-rows { border-bottom: 1px solid var(--rule); }
+  .e-r { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 10px 2px; border-top: 1px solid var(--rule); font-size: 14.5px; }
+  .e-r .k { font-weight: 700; color: var(--ink-soft); }
+  .e-r .v { font-family: Fraunces, serif; font-weight: 800; font-size: 16px; text-align: right; }
+  .e-grid-wrap { padding: 18px 0 4px; }
+  .e-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 22px 18px; margin-top: 6px; }
+  .e-mini {
+    position: relative; background: var(--card); border-radius: 6px; box-shadow: var(--shadow); padding: 16px 14px 12px;
+    background-image: repeating-linear-gradient(transparent, transparent 22px, var(--rule) 23px);
+  }
+  .e-mini:nth-child(3n+1) { transform: rotate(-.8deg); } .e-mini:nth-child(3n+2) { transform: rotate(.6deg); } .e-mini:nth-child(3n) { transform: rotate(-.3deg); }
+  .e-mini::before { content: ""; position: absolute; top: -9px; left: 50%; width: 58px; height: 16px; transform: translateX(-50%) rotate(-2deg); border-radius: 2px; background: var(--washi-1); opacity: .85; }
+  .e-mini:nth-child(2n)::before { background: var(--washi-2); transform: translateX(-50%) rotate(1.5deg); }
+  .e-mini h4 { font-family: Fraunces, serif; font-size: 14.5px; line-height: 1.3; margin: 4px 0 8px; }
+  .e-mini .visits { font-family: Caveat, cursive; font-size: 19px; color: var(--terra); }
+
+  /* ============ F · THE REGISTER ============ */
+  .f-wrap { font-size: 15px; }
+  .f-title { display: flex; align-items: baseline; gap: 14px; border-bottom: 2.5px solid var(--ink); padding-bottom: 12px; }
+  .f-title .hand { margin-left: auto; transform: rotate(-1.4deg); color: var(--sage); }
+  .f-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 44px; }
+  @media (max-width: 640px) { .f-cols { grid-template-columns: 1fr; } }
+  .f-stat { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 13px 2px; border-bottom: 1px solid var(--rule); }
+  .f-stat .k { font-weight: 700; color: var(--ink-soft); font-size: 13.5px; letter-spacing: .02em; }
+  .f-stat .v { font-family: Fraunces, serif; font-weight: 900; font-size: 24px; }
+  .f-stat .v small { font-size: 13px; font-weight: 600; color: var(--ink-soft); font-family: Karla; }
+  .f-stat.total .v { color: var(--terra-deep); border-bottom: 3px double var(--terra-deep); }
+  .f-most .row { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: baseline; padding: 11px 2px; border-bottom: 1px solid var(--rule); }
+  .f-most .row .i { font-family: Fraunces, serif; font-style: italic; color: var(--ink-soft); }
+  .f-most .row .t { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .f-most .row .t .stampchip { margin-left: 8px; transform: translateY(-1px); }
+  .f-most .row .n { font-family: Fraunces, serif; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<div class="switch">
+  <b>Stats, round 2</b>
+  <button class="on" data-o="d">D · Notebook page</button>
+  <button data-o="e">E · Attendance card</button>
+  <button data-o="f">F · The register</button>
+</div>
+
+<!-- ============ D · NOTEBOOK PAGE ============ -->
+<section class="option on" id="o-d">
+  <div class="page">
+    <div class="crumb"><a href="#">← Desk</a> · Study stats</div>
+    <div class="d-sheet">
+      <h1 class="title">Study log</h1>
+
+      <div class="d-ledger">
+        <div class="d-row"><span class="k">Current streak</span><span class="dots"></span><span class="v">6 <small>DAYS</small></span></div>
+        <div class="d-row"><span class="k">Longest streak</span><span class="dots"></span><span class="v">11 <small>DAYS</small></span></div>
+        <div class="d-row"><span class="k">Days studied, last 30</span><span class="dots"></span><span class="v">23 <small>OF 30</small></span></div>
+        <div class="d-row"><span class="k">Visits all time</span><span class="dots"></span><span class="v">148</span></div>
+      </div>
+
+      <div class="seclabel"><h3>The year</h3><div class="line"></div></div>
+      <div class="d-hm">
+        <div class="d-margin">
+          <svg viewBox="0 0 30 20" fill="none"><path d="M26 2 C18 14, 12 16, 3 17 M8 13 L3 17 L9 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          darker = busier day
+        </div>
+        <div class="graph" id="hm-d"></div>
+      </div>
+
+      <div class="seclabel"><h3>Most visited</h3><div class="line"></div></div>
+      <div class="d-most">
+        <div class="m-row"><span class="t">COMP 014 — Quantitative Methods</span><span class="tally"><i style="width:100%"></i></span><span class="n">41 <small>VISITS</small></span></div>
+        <div class="m-row"><span class="t">STAT 023 — Reviewer</span><span class="tally"><i style="width:78%"></i></span><span class="n">32</span></div>
+        <div class="m-row"><span class="t">GEED 010 — Finals Coverage</span><span class="tally"><i style="width:44%"></i></span><span class="n">18</span></div>
+        <div class="m-row"><span class="t">INTE 202 — Analytics Notes</span><span class="tally"><i style="width:29%"></i></span><span class="n">12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ E · ATTENDANCE CARD ============ -->
+<section class="option" id="o-e">
+  <div class="page">
+    <div class="crumb"><a href="#">← Desk</a> · Study stats</div>
+    <div class="e-card">
+      <div class="e-streak"><div><b>6</b><span>day streak</span></div></div>
+      <div class="e-head">
+        <h1 class="title">Attendance</h1>
+        <span class="lib">Repaso · study record</span>
+      </div>
+
+      <div class="e-rows">
+        <div class="e-r"><span class="k">Longest streak</span><span class="v">11 days</span></div>
+        <div class="e-r"><span class="k">Days studied, last 30</span><span class="v">23 of 30</span></div>
+        <div class="e-r"><span class="k">Visits all time</span><span class="v">148</span></div>
+      </div>
+
+      <div class="e-grid-wrap">
+        <div class="graph" id="hm-e" title="One cell per day, darker means more visits"></div>
+      </div>
+    </div>
+
+    <div class="seclabel"><h3>Most visited</h3><div class="line"></div><span class="count">TOP 4</span></div>
+    <div class="e-stack">
+      <div class="e-mini"><h4>COMP 014 — Quantitative Methods</h4><span class="visits">41 visits ✎</span></div>
+      <div class="e-mini"><h4>STAT 023 — Reviewer</h4><span class="visits">32 visits</span></div>
+      <div class="e-mini"><h4>GEED 010 — Finals Coverage</h4><span class="visits">18 visits</span></div>
+      <div class="e-mini"><h4>INTE 202 — Analytics Notes</h4><span class="visits">12 visits</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ F · THE REGISTER ============ -->
+<section class="option" id="o-f">
+  <div class="page">
+    <div class="crumb"><a href="#">← Desk</a> · Study stats</div>
+    <div class="f-wrap">
+      <div class="f-title">
+        <h1 class="title">Study register</h1>
+        <span class="hand">since July 14 ✎</span>
+      </div>
+
+      <div class="f-cols">
+        <div>
+          <div class="f-stat"><span class="k">CURRENT STREAK</span><span class="v">6 <small>days</small></span></div>
+          <div class="f-stat"><span class="k">LONGEST STREAK</span><span class="v">11 <small>days</small></span></div>
+        </div>
+        <div>
+          <div class="f-stat"><span class="k">DAYS STUDIED · LAST 30</span><span class="v">23 <small>of 30</small></span></div>
+          <div class="f-stat total"><span class="k">VISITS ALL TIME</span><span class="v">148</span></div>
+        </div>
+      </div>
+
+      <div class="seclabel"><h3>The year</h3><div class="line"></div></div>
+      <div class="graph" id="hm-f" title="One cell per day, darker means more visits"></div>
+
+      <div class="seclabel"><h3>Most visited</h3><div class="line"></div></div>
+      <div class="f-most">
+        <div class="row"><span class="i">1.</span><span class="t">COMP 014 — Quantitative Methods <span class="stampchip">COMP 014</span></span><span class="n">41 visits</span></div>
+        <div class="row"><span class="i">2.</span><span class="t">STAT 023 — Reviewer <span class="stampchip">STAT 023</span></span><span class="n">32</span></div>
+        <div class="row"><span class="i">3.</span><span class="t">GEED 010 — Finals Coverage <span class="stampchip">GEED 010</span></span><span class="n">18</span></div>
+        <div class="row"><span class="i">4.</span><span class="t">INTE 202 — Analytics Notes <span class="stampchip">INTE 202</span></span><span class="n">12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll(".switch button").forEach((b) => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".switch button").forEach((x) => x.classList.toggle("on", x === b));
+      document.querySelectorAll(".option").forEach((s) => s.classList.toggle("on", s.id === "o-" + b.dataset.o));
+    });
+  });
+  function fill(el, weeks) {
+    let html = "";
+    for (let i = 0; i < weeks * 7; i++) {
+      const r = Math.random();
+      const lvl = r > 0.93 ? "l3" : r > 0.8 ? "l2" : r > 0.58 ? "l1" : "";
+      html += `<i class="${lvl}"></i>`;
+    }
+    el.innerHTML = html;
+  }
+  fill(document.getElementById("hm-d"), 24);
+  fill(document.getElementById("hm-e"), 24);
+  fill(document.getElementById("hm-f"), 24);
+</script>
+</body>
+</html>
