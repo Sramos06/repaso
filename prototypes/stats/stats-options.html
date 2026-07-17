@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repaso · Stats — three directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Karla:wght@400;500;700;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f6f1e7; --card: #fffdf7; --ink: #2b2620; --ink-soft: #6b6257;
+    --terra: #c0603a; --gold: #b98a2e; --sage: #6a7d5c; --line: #e4dccb;
+    --shadow: 0 1px 2px rgba(43,38,32,.06), 0 8px 24px rgba(43,38,32,.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: Karla, sans-serif; }
+  .switch {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 8px; align-items: center;
+    padding: 10px 16px; background: rgba(246,241,231,.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line);
+  }
+  .switch b { font-family: Fraunces, serif; font-size: 15px; margin-right: 6px; }
+  .switch button {
+    font: 700 12px Karla, sans-serif; letter-spacing: .04em; padding: 7px 14px; border-radius: 999px;
+    border: 1.5px solid var(--line); background: var(--card); color: var(--ink-soft); cursor: pointer;
+  }
+  .switch button.on { border-color: var(--terra); color: var(--terra); background: #fdf3ee; }
+  .note { font-size: 11.5px; color: var(--ink-soft); margin-left: auto; }
+  section.option { display: none; min-height: calc(100vh - 46px); }
+  section.option.on { display: block; }
+  .page { max-width: 860px; margin: 0 auto; padding: 34px 22px 80px; }
+  .crumb { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); text-transform: uppercase; }
+  .crumb a { color: var(--terra); text-decoration: none; }
+  h1 { font-family: Fraunces, serif; font-weight: 900; font-size: 34px; margin: 6px 0 2px; }
+  h1 em { color: var(--terra); font-style: normal; }
+  .sub { color: var(--ink-soft); font-size: 14px; margin-bottom: 26px; }
+
+  /* ---------- shared heatmap ---------- */
+  .hm { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 12px); gap: 3px; overflow-x: auto; padding-bottom: 6px; }
+  .hm i { width: 12px; height: 12px; border-radius: 3px; background: #ece5d4; }
+  .hm i.l1 { background: #e4cfa6; } .hm i.l2 { background: #d3a55e; } .hm i.l3 { background: #c0603a; }
+  .hm-cap { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--ink-soft); margin-top: 8px; }
+  .hm-cap i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; background: #ece5d4; }
+  .hm-cap i.l1 { background: #e4cfa6; } .hm-cap i.l2 { background: #d3a55e; } .hm-cap i.l3 { background: #c0603a; }
+
+  /* ============ A · THE LEDGER ============ */
+  .a-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .a-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .a-card::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--terra); opacity: .75; }
+  .a-card.gold::after { background: var(--gold); } .a-card.sage::after { background: var(--sage); }
+  .a-num { font-family: Fraunces, serif; font-weight: 900; font-size: 34px; line-height: 1; }
+  .a-num small { font-size: 15px; font-weight: 600; color: var(--ink-soft); }
+  .a-lbl { font-size: 11.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; }
+  .a-panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; box-shadow: var(--shadow); margin-bottom: 18px; }
+  .a-panel h3 { font-family: Fraunces, serif; font-size: 17px; margin-bottom: 14px; }
+  .a-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px dashed var(--line); font-size: 14px; }
+  .a-row:first-of-type { border-top: 0; }
+  .a-row .t { font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .a-row .subj { font-size: 10.5px; font-weight: 800; color: var(--sage); letter-spacing: .05em; text-transform: uppercase; }
+  .a-bar { height: 7px; border-radius: 99px; background: #efe8d8; width: 140px; overflow: hidden; }
+  .a-bar i { display: block; height: 100%; background: var(--terra); border-radius: 99px; }
+  .a-n { font-weight: 800; font-size: 12.5px; color: var(--ink-soft); width: 64px; text-align: right; }
+
+  /* ============ B · THE ALMANAC ============ */
+  .b-hero { display: flex; gap: 26px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px 30px; box-shadow: var(--shadow); margin-bottom: 20px; flex-wrap: wrap; }
+  .b-flame { text-align: center; }
+  .b-flame .n { font-family: Fraunces, serif; font-weight: 900; font-size: 74px; line-height: .95; color: var(--terra); }
+  .b-flame .w { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  .b-copy { flex: 1; min-width: 240px; }
+  .b-copy h2 { font-family: Fraunces, serif; font-size: 22px; margin-bottom: 6px; }
+  .b-copy p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; }
+  .b-copy .hand { font-family: Caveat, cursive; font-size: 19px; color: var(--terra); margin-top: 8px; display: inline-block; transform: rotate(-1.2deg); }
+  .b-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+  @media (max-width: 700px) { .b-grid { grid-template-columns: 1fr; } }
+  .b-panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+  .b-panel h3 { font-family: Fraunces, serif; font-size: 16px; margin-bottom: 12px; }
+  .b-best { display: flex; flex-direction: column; gap: 10px; }
+  .b-best .item { display: flex; gap: 10px; align-items: baseline; }
+  .b-best .rank { font-family: Fraunces, serif; font-weight: 900; color: var(--gold); width: 22px; }
+  .b-best .t { font-weight: 700; font-size: 13.5px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .b-best .n { font-size: 12px; color: var(--ink-soft); font-weight: 800; }
+  .b-mini { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
+  .b-mini div b { font-family: Fraunces, serif; font-size: 20px; display: block; }
+  .b-mini div span { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+
+  /* ============ C · THE MARGINS ============ */
+  .c-page { max-width: 640px; }
+  .c-line { font-family: Fraunces, serif; font-size: 24px; line-height: 1.55; margin-bottom: 22px; }
+  .c-line b { color: var(--terra); font-weight: 900; }
+  .c-line .u { border-bottom: 3px solid var(--gold); }
+  .c-strip { display: grid; grid-auto-flow: column; grid-template-rows: repeat(1, 16px); gap: 3px; margin: 8px 0 26px; }
+  .c-strip i { width: 16px; height: 16px; border-radius: 4px; background: #ece5d4; }
+  .c-strip i.l1 { background: #e4cfa6; } .c-strip i.l2 { background: #d3a55e; } .c-strip i.l3 { background: #c0603a; }
+  .c-cap { font-size: 12px; color: var(--ink-soft); margin-top: -20px; margin-bottom: 26px; }
+  .c-fav { border-left: 3px solid var(--line); padding-left: 16px; margin: 4px 0 26px; }
+  .c-fav p { font-size: 15px; padding: 5px 0; }
+  .c-fav p b { font-weight: 800; }
+  .c-fav p span { color: var(--ink-soft); font-size: 13px; }
+  .c-hand { font-family: Caveat, cursive; font-size: 21px; color: var(--sage); transform: rotate(-1deg); display: inline-block; }
+</style>
+</head>
+<body>
+
+<div class="switch">
+  <b>Stats — pick a direction</b>
+  <button class="on" data-o="a">A · The Ledger</button>
+  <button data-o="b">B · The Almanac</button>
+  <button data-o="c">C · The Margins</button>
+  <span class="note">Same data, three personalities. All four themes apply automatically in the real build.</span>
+</div>
+
+<!-- ============ OPTION A ============ -->
+<section class="option on" id="o-a">
+  <div class="page">
+    <div class="crumb"><a href="#">← Desk</a> · Study stats</div>
+    <h1>Your <em>ledger</em></h1>
+    <p class="sub">Every time you open a reviewer counts as a study visit. Recorded since July 14.</p>
+
+    <div class="a-cards">
+      <div class="a-card"><div class="a-num">6<small> days</small></div><div class="a-lbl">Current streak</div></div>
+      <div class="a-card gold"><div class="a-num">11<small> days</small></div><div class="a-lbl">Longest streak</div></div>
+      <div class="a-card sage"><div class="a-num">23<small> / 30</small></div><div class="a-lbl">Days studied · last 30</div></div>
+      <div class="a-card"><div class="a-num">148</div><div class="a-lbl">Visits all time</div></div>
+    </div>
+
+    <div class="a-panel">
+      <h3>The year so far</h3>
+      <div class="hm" id="hm-a"></div>
+      <div class="hm-cap">less <i></i><i class="l1"></i><i class="l2"></i><i class="l3"></i> more · one cell = one day</div>
+    </div>
+
+    <div class="a-panel">
+      <h3>Most visited</h3>
+      <div class="a-row"><span class="t">COMP 014 — Quantitative Methods Reviewer</span><span class="subj">COMP 014</span><span class="a-bar"><i style="width:100%"></i></span><span class="a-n">41 visits</span></div>
+      <div class="a-row"><span class="t">STAT 023 — Reviewer</span><span class="subj">STAT 023</span><span class="a-bar"><i style="width:78%"></i></span><span class="a-n">32 visits</span></div>
+      <div class="a-row"><span class="t">GEED 010 — Finals Coverage</span><span class="subj">GEED 010</span><span class="a-bar"><i style="width:44%"></i></span><span class="a-n">18 visits</span></div>
+      <div class="a-row"><span class="t">INTE 202 — Analytics Notes</span><span class="subj">INTE 202</span><span class="a-bar"><i style="width:29%"></i></span><span class="a-n">12 visits</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OPTION B ============ -->
+<section class="option" id="o-b">
+  <div class="page">
+    <div class="crumb"><a href="#">← Desk</a> · Study stats</div>
+    <h1>Your <em>almanac</em></h1>
+    <p class="sub">A little home page for your studying self.</p>
+
+    <div class="b-hero">
+      <div class="b-flame"><div class="n">6</div><div class="w">day streak 🔥</div></div>
+      <div class="b-copy">
+        <h2>You showed up 23 of the last 30 days.</h2>
+        <p>Longest streak so far: <b>11 days</b> · 148 study visits all time · busiest day: <b>Tuesdays</b>.</p>
+        <span class="hand">keep the flame alive, one open a day ✎</span>
+      </div>
+    </div>
+
+    <div class="b-grid">
+      <div class="b-panel">
+        <h3>The year</h3>
+        <div class="hm" id="hm-b"></div>
+        <div class="hm-cap">less <i></i><i class="l1"></i><i class="l2"></i><i class="l3"></i> more</div>
+        <div class="b-mini">
+          <div><b>148</b><span>visits</span></div>
+          <div><b>37</b><span>study days</span></div>
+          <div><b>4.0</b><span>visits / day</span></div>
+        </div>
+      </div>
+      <div class="b-panel">
+        <h3>Favorites</h3>
+        <div class="b-best">
+          <div class="item"><span class="rank">1</span><span class="t">COMP 014 — Quantitative Methods</span><span class="n">41</span></div>
+          <div class="item"><span class="rank">2</span><span class="t">STAT 023 — Reviewer</span><span class="n">32</span></div>
+          <div class="item"><span class="rank">3</span><span class="t">GEED 010 — Finals Coverage</span><span class="n">18</span></div>
+          <div class="item"><span class="rank">4</span><span class="t">INTE 202 — Analytics Notes</span><span class="n">12</span></div>
+          <div class="item"><span class="rank">5</span><span class="t">Pasted reviewer (Kreyszig)</span><span class="n">9</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OPTION C ============ -->
+<section class="option" id="o-c">
+  <div class="page c-page">
+    <div class="crumb"><a href="#">← Desk</a> · Study stats</div>
+    <h1>In the <em>margins</em></h1>
+    <p class="sub">Your studying, written out plainly.</p>
+
+    <p class="c-line">You're on a <b>6 day streak</b>, and you've studied <b>23 of the last 30 days</b>. Your longest run so far is <span class="u">11 days straight</span>.</p>
+
+    <div class="c-strip" id="hm-c"></div>
+    <p class="c-cap">The last eight weeks, one square a day.</p>
+
+    <p class="c-line">You keep coming back to:</p>
+    <div class="c-fav">
+      <p><b>COMP 014 — Quantitative Methods</b> <span>· 41 visits</span></p>
+      <p><b>STAT 023 — Reviewer</b> <span>· 32 visits</span></p>
+      <p><b>GEED 010 — Finals Coverage</b> <span>· 18 visits</span></p>
+    </div>
+
+    <p class="c-line"><b>148 study visits</b> since July, mostly on <b>Tuesday evenings</b>.</p>
+    <span class="c-hand">not bad at all ✎</span>
+  </div>
+</section>
+
+<script>
+  // switcher
+  document.querySelectorAll(".switch button").forEach((b) => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".switch button").forEach((x) => x.classList.toggle("on", x === b));
+      document.querySelectorAll(".option").forEach((s) => s.classList.toggle("on", s.id === "o-" + b.dataset.o));
+    });
+  });
+  // fake heatmaps: 26 weeks (A/B), 8 weeks strip (C)
+  function fill(el, cells, density) {
+    let html = "";
+    for (let i = 0; i < cells; i++) {
+      const r = Math.random();
+      const lvl = r > 0.92 ? "l3" : r > 0.78 ? "l2" : r > 0.55 ? "l1" : "";
+      html += `<i class="${density && r < 0.35 ? "" : lvl}"></i>`;
+    }
+    el.innerHTML = html;
+  }
+  fill(document.getElementById("hm-a"), 26 * 7);
+  fill(document.getElementById("hm-b"), 26 * 7);
+  fill(document.getElementById("hm-c"), 8 * 7, true);
+</script>
+</body>
+</html>
