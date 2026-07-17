@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repaso · Scrollbar library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Karla:wght@400;500;700;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F7EFE2; --card: #FFFDF6;
+    --ink: #2B2118; --ink-soft: #6B5D4F; --terra: #C4552D; --terra-deep: #A03E1C;
+    --sage: #7A8B6F; --gold: #D9A441; --rule: #E3D5BC;
+    --washi-1: rgba(122,139,111,.55); --washi-2: rgba(217,164,65,.55); --washi-3: rgba(196,85,45,.45);
+    --shadow: 0 1px 2px rgba(43,33,24,.05), 0 10px 26px rgba(43,33,24,.09);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Karla, sans-serif; color: var(--ink); min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(217,164,65,.14), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(122,139,111,.12), transparent 55%),
+      var(--paper);
+  }
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 22px 90px; }
+  h1 { font-family: Fraunces, serif; font-weight: 700; font-size: 30px; }
+  .lead { color: var(--ink-soft); font-size: 14px; margin: 6px 0 30px; }
+  .seclabel { display: flex; align-items: center; gap: 14px; margin: 34px 0 18px; }
+  .seclabel h3 { font-family: Fraunces, serif; font-style: italic; font-weight: 520; font-size: 22px; }
+  .seclabel .line { flex: 1; height: 1px; background: var(--rule); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 26px 20px; }
+  .demo { }
+  .demo .name { font-family: Fraunces, serif; font-weight: 700; font-size: 16px; margin-bottom: 2px; }
+  .demo .name b { color: var(--terra); font-family: Karla; font-size: 11px; font-weight: 800; letter-spacing: .1em; margin-right: 8px; vertical-align: 2px; }
+  .demo .why { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 10px; min-height: 34px; }
+
+  /* the vertical demo pane: a ruled note sheet that overflows */
+  .pane {
+    height: 210px; overflow-y: scroll; background: var(--card); border-radius: 6px;
+    box-shadow: var(--shadow); padding: 16px 14px 16px 18px;
+    background-image: repeating-linear-gradient(transparent, transparent 24px, var(--rule) 25px);
+    font-size: 13.5px; line-height: 25px;
+  }
+  .pane h5 { font-family: Fraunces, serif; font-size: 15px; line-height: 25px; }
+  .pane p { color: var(--ink-soft); }
+  .pane .hand { font-family: Caveat, cursive; font-size: 18px; color: var(--terra); }
+
+  /* the horizontal demo pane: a mini month strip that overflows */
+  .hpane { overflow-x: scroll; background: var(--card); border-radius: 6px; box-shadow: var(--shadow); padding: 14px 14px 10px; }
+  .strip { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 13px); gap: 1px; background: var(--rule); padding: 1px; width: max-content; }
+  .strip i { width: 13px; height: 13px; background: var(--card); display: block; }
+  .strip i.l1 { background: #EBD9AF; } .strip i.l2 { background: #DDA45E; } .strip i.l3 { background: var(--terra); }
+
+  /* =====================================================================
+     V1 · GRAPHITE — a pencil laid in the margin: wood body, graphite tip
+     ===================================================================== */
+  .v1 { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
+  .v1::-webkit-scrollbar { width: 10px; }
+  .v1::-webkit-scrollbar-track { background: transparent; }
+  .v1::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background: /* wood shaft with side facets + graphite tip */
+      linear-gradient(180deg, transparent 84%, #6B5D4F 92%, #2B2118 100%),
+      linear-gradient(90deg, #C98F2E 0 22%, #E8C97F 22% 45%, #D9A441 45% 78%, #B37E22 78%);
+  }
+  .v1::-webkit-scrollbar-thumb:hover { filter: brightness(1.06); }
+
+  /* =====================================================================
+     V2 · INK STROKE — a calm brushed ink line on a hairline rule
+     ===================================================================== */
+  .v2 { scrollbar-width: thin; scrollbar-color: var(--ink-soft) transparent; }
+  .v2::-webkit-scrollbar { width: 8px; }
+  .v2::-webkit-scrollbar-track { background: linear-gradient(90deg, transparent 0 45%, var(--rule) 45% 55%, transparent 55%); }
+  .v2::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: linear-gradient(90deg, transparent 0 12%, rgba(43,33,24,.78) 12% 88%, transparent 88%);
+  }
+  .v2::-webkit-scrollbar-thumb:hover { background: linear-gradient(90deg, transparent 0 6%, rgba(43,33,24,.92) 6% 94%, transparent 94%); }
+
+  /* =====================================================================
+     V3 · WASHI — a strip of tape you slide along the paper's edge
+     ===================================================================== */
+  .v3 { scrollbar-width: thin; scrollbar-color: var(--sage) var(--paper); }
+  .v3::-webkit-scrollbar { width: 13px; }
+  .v3::-webkit-scrollbar-track { background: var(--paper); border-left: 1px solid var(--rule); }
+  .v3::-webkit-scrollbar-thumb {
+    border-radius: 2px; border: 2px solid var(--paper);
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 4px, transparent 4px 8px),
+      var(--washi-1);
+  }
+  .v3::-webkit-scrollbar-thumb:hover {
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 4px, transparent 4px 8px),
+      rgba(122,139,111,.75);
+  }
+
+  /* =====================================================================
+     V4 · RIBBON — the terracotta bookmark ribbon of a hardbound book
+     ===================================================================== */
+  .v4 { scrollbar-width: thin; scrollbar-color: var(--terra) transparent; }
+  .v4::-webkit-scrollbar { width: 9px; }
+  .v4::-webkit-scrollbar-track { background: transparent; }
+  .v4::-webkit-scrollbar-thumb {
+    border-radius: 0 0 3px 3px;
+    background: linear-gradient(90deg, var(--terra-deep), var(--terra) 40%, #D26A41 60%, var(--terra-deep));
+    border-left: 2px solid transparent; border-right: 2px solid transparent; background-clip: padding-box;
+  }
+  .v4::-webkit-scrollbar-thumb:hover { border-left-width: 1px; border-right-width: 1px; }
+
+  /* =====================================================================
+     V5 · STITCH — a sewn seam: dotted thread track, ink knot thumb
+     ===================================================================== */
+  .v5 { scrollbar-width: thin; scrollbar-color: var(--ink) transparent; }
+  .v5::-webkit-scrollbar { width: 11px; }
+  .v5::-webkit-scrollbar-track {
+    background: repeating-linear-gradient(180deg, var(--rule) 0 6px, transparent 6px 14px);
+    background-size: 3px 100%; background-repeat: no-repeat; background-position: center;
+  }
+  .v5::-webkit-scrollbar-thumb {
+    border-radius: 6px; border: 3px solid transparent; background-clip: padding-box;
+    background-color: var(--ink);
+  }
+  .v5::-webkit-scrollbar-thumb:hover { border-width: 2px; }
+
+  /* =====================================================================
+     H1 · RULER — tick marks along the track, a brass slider for a thumb
+     ===================================================================== */
+  .h1x { scrollbar-width: thin; scrollbar-color: var(--gold) var(--paper); }
+  .h1x::-webkit-scrollbar { height: 14px; }
+  .h1x::-webkit-scrollbar-track {
+    background:
+      repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px 8px),
+      repeating-linear-gradient(90deg, var(--ink-soft) 0 1px, transparent 1px 40px),
+      var(--paper);
+    background-size: 100% 45%, 100% 80%, 100% 100%; background-repeat: no-repeat; background-position: bottom, bottom, center;
+    border-top: 1px solid var(--rule);
+  }
+  .h1x::-webkit-scrollbar-thumb {
+    border-radius: 3px; border: 2px solid rgba(43,33,24,.25);
+    background: linear-gradient(180deg, #E8C97F, var(--gold) 55%, #B37E22);
+  }
+  .h1x::-webkit-scrollbar-thumb:hover { filter: brightness(1.05); }
+
+  /* =====================================================================
+     H2 · MARKER — a gold highlighter stroke gliding under the content
+     ===================================================================== */
+  .h2x { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
+  .h2x::-webkit-scrollbar { height: 10px; }
+  .h2x::-webkit-scrollbar-track { background: linear-gradient(180deg, transparent 0 45%, var(--rule) 45% 55%, transparent 55%); }
+  .h2x::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+    background: linear-gradient(180deg, transparent 0 15%, rgba(217,164,65,.55) 15% 85%, transparent 85%);
+    box-shadow: inset -6px 0 6px -6px rgba(179,126,34,.8), inset 6px 0 6px -6px rgba(179,126,34,.8);
+  }
+  .h2x::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, transparent 0 10%, rgba(217,164,65,.75) 10% 90%, transparent 90%); }
+
+  /* =====================================================================
+     H3 · TAPE — a piece of terra washi slid along a dashed guide line
+     ===================================================================== */
+  .h3x { scrollbar-width: thin; scrollbar-color: var(--terra) transparent; }
+  .h3x::-webkit-scrollbar { height: 13px; }
+  .h3x::-webkit-scrollbar-track {
+    background: repeating-linear-gradient(90deg, var(--rule) 0 8px, transparent 8px 16px);
+    background-size: 100% 2px; background-repeat: no-repeat; background-position: center;
+  }
+  .h3x::-webkit-scrollbar-thumb {
+    border-radius: 2px; border: 2px solid var(--paper);
+    background:
+      repeating-linear-gradient(-45deg, rgba(255,255,255,.25) 0 5px, transparent 5px 10px),
+      var(--washi-3);
+  }
+  .h3x::-webkit-scrollbar-thumb:hover {
+    background:
+      repeating-linear-gradient(-45deg, rgba(255,255,255,.25) 0 5px, transparent 5px 10px),
+      rgba(196,85,45,.65);
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Scrollbar library</h1>
+    <p class="lead">Live and scrollable. Pick one vertical (the whole app: desk, settings, notes drawer) and one horizontal (the stats calendar, and anything wide that comes later). The rest stay in this file as the bench for future features.</p>
+
+    <div class="seclabel"><h3>Vertical</h3><div class="line"></div></div>
+    <div class="grid">
+      <div class="demo">
+        <div class="name"><b>V1</b>Graphite</div>
+        <div class="why">A pencil resting in the margin: wooden shaft, graphite tip at the bottom. The most playful of the five.</div>
+        <div class="pane v1">
+          <h5>Hypothesis testing</h5>
+          <p>State the null and alternative. Choose the level of significance. Compute the test statistic and compare against the critical region.</p>
+          <span class="hand">review the z vs t choice ✎</span>
+          <p>Reject the null when the statistic falls in the rejection region. Otherwise, fail to reject. Interpret in context of the problem, never in isolation.</p>
+          <p>For proportions use the normal approximation when np and nq are both at least five.</p>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="name"><b>V2</b>Ink stroke</div>
+        <div class="why">A quiet brushed ink line over a hairline rule. The most restrained; disappears into the design.</div>
+        <div class="pane v2">
+          <h5>Measures of dispersion</h5>
+          <p>Range, variance, standard deviation. The standard deviation speaks the same units as the data, which is why it is the one you quote.</p>
+          <p>Chebyshev holds for any distribution; the empirical rule needs the bell.</p>
+          <span class="hand">memorize 68 95 99.7</span>
+          <p>Coefficient of variation compares spread across different scales.</p>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="name"><b>V3</b>Washi</div>
+        <div class="why">A strip of sage tape you slide along the paper's edge, textured like the tape on the desk cards.</div>
+        <div class="pane v3">
+          <h5>Sampling distributions</h5>
+          <p>The mean of the sampling distribution equals the population mean. The standard error shrinks with the square root of n.</p>
+          <p>Central limit theorem: for large n, the sampling distribution of the mean is approximately normal regardless of the population.</p>
+          <span class="hand">n at least 30, usually ✎</span>
+          <p>Finite population correction applies when sampling without replacement from a small population.</p>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="name"><b>V4</b>Ribbon</div>
+        <div class="why">The terracotta bookmark ribbon of a hardbound notebook, hanging down the page edge.</div>
+        <div class="pane v4">
+          <h5>Correlation and regression</h5>
+          <p>Pearson's r measures linear association between minus one and one. Correlation is not causation, ever, on the exam and in life.</p>
+          <p>The least squares line minimizes the sum of squared residuals.</p>
+          <span class="hand">r squared = explained share</span>
+          <p>Extrapolating beyond the observed range of x is how predictions go wrong.</p>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="name"><b>V5</b>Stitch</div>
+        <div class="why">A sewn seam: dotted thread for the track, a smooth ink knot for the thumb. Bookbinding energy.</div>
+        <div class="pane v5">
+          <h5>Probability rules</h5>
+          <p>Addition rule for unions, multiplication rule for intersections, complements for at-least-one problems.</p>
+          <p>Conditional probability rescales the sample space to what is known.</p>
+          <span class="hand">independence: P(A|B) = P(A)</span>
+          <p>Bayes' theorem reverses the conditioning, which is where intuition usually fails.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="seclabel"><h3>Horizontal</h3><div class="line"></div></div>
+    <div class="grid">
+      <div class="demo">
+        <div class="name"><b>H1</b>Ruler</div>
+        <div class="why">Tick marks along the track like a wooden ruler, with a brass slider. Fits the calendar's measured feel.</div>
+        <div class="hpane h1x"><div class="strip" data-strip></div></div>
+      </div>
+
+      <div class="demo">
+        <div class="name"><b>H2</b>Marker</div>
+        <div class="why">A gold highlighter stroke gliding under the weeks, soft edges like a real marker swipe.</div>
+        <div class="hpane h2x"><div class="strip" data-strip></div></div>
+      </div>
+
+      <div class="demo">
+        <div class="name"><b>H3</b>Tape</div>
+        <div class="why">A piece of terra washi slid along a dashed guide line. The most Repaso of the three.</div>
+        <div class="hpane h3x"><div class="strip" data-strip></div></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // fill the horizontal demo strips with a fake half-year of days
+  document.querySelectorAll("[data-strip]").forEach((el) => {
+    let html = "";
+    for (let i = 0; i < 40 * 7; i++) {
+      const r = Math.random();
+      const lvl = r > 0.93 ? "l3" : r > 0.8 ? "l2" : r > 0.58 ? "l1" : "";
+      html += `<i class="${lvl}"></i>`;
+    }
+    el.innerHTML = html;
+  });
+</script>
+</body>
+</html>
