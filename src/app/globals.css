@@ -9,6 +9,8 @@
   --sage: #7A8B6F;
   --gold: #D9A441;
   --rule: #E4D5BC;
+  --heat-1: #EBD9AF;
+  --heat-2: #DDA45E;
   --shadow: 0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
   /* lifted out of hardcoded rules so themes (esp. dark) read correctly */
   --shadow-hover: 0 2px 4px rgba(43,33,24,.1), 0 16px 30px -8px rgba(43,33,24,.28);
@@ -36,6 +38,8 @@
   --sage: #94A883;
   --gold: #E5B84F;
   --rule: #382D22;
+  --heat-1: #4A3220;
+  --heat-2: #8A5A2E;
   --shadow: 0 1px 2px rgba(0,0,0,.45), 0 8px 22px -6px rgba(0,0,0,.6);
   --shadow-hover: 0 2px 4px rgba(0,0,0,.5), 0 16px 30px -8px rgba(0,0,0,.65);
   --shadow-pop: 0 4px 8px rgba(0,0,0,.5), 0 14px 34px -8px rgba(0,0,0,.7);
@@ -60,6 +64,8 @@
   --sage: #9C8A61;
   --gold: #C99A4B;
   --rule: #D8C4A4;
+  --heat-1: #E3CFA6;
+  --heat-2: #C08A4A;
   --shadow: 0 1px 2px rgba(58,42,29,.10), 0 6px 18px -6px rgba(58,42,29,.24);
   --shadow-hover: 0 2px 4px rgba(58,42,29,.12), 0 16px 30px -8px rgba(58,42,29,.3);
   --shadow-pop: 0 4px 8px rgba(58,42,29,.14), 0 14px 34px -8px rgba(58,42,29,.34);
@@ -84,6 +90,8 @@
   --sage: #88A86B;
   --gold: #CBA94F;
   --rule: #D5DBBF;
+  --heat-1: #D9E0BC;
+  --heat-2: #9FB36E;
   --shadow: 0 1px 2px rgba(43,52,42,.09), 0 6px 18px -6px rgba(43,52,42,.20);
   --shadow-hover: 0 2px 4px rgba(43,52,42,.11), 0 16px 30px -8px rgba(43,52,42,.26);
   --shadow-pop: 0 4px 8px rgba(43,52,42,.12), 0 14px 34px -8px rgba(43,52,42,.3);
@@ -693,4 +701,69 @@ a.card { color: inherit; text-decoration: none; }
     width: auto; flex-direction: row; justify-content: center; gap: 10px;
     border-left: none; border-top: 2px dashed color-mix(in srgb, var(--terra) 55%, var(--rule)); padding: 11px;
   }
+}
+
+/* ---------- stats (v2.1) ---------- */
+.stx .crumb { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 18px; }
+.stx .crumb a { color: var(--terra); text-decoration: none; }
+
+/* the attendance card */
+.stx-card {
+  background: var(--card); border-radius: 6px; box-shadow: var(--shadow);
+  padding: 26px 30px 24px; border-top: 1px solid var(--rule);
+}
+/* header row: title block left, streak stamp right — real layout, no overlap */
+.stx-top { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+.stx-who { flex: 1; min-width: 0; }
+.stx-who h1 { font-family: var(--font-display); font-weight: 700; font-size: 32px; letter-spacing: -.01em; }
+.stx-lib { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); margin-top: 4px; display: block; }
+.stx-streak {
+  flex: none; width: 96px; height: 96px; border: 2.5px solid var(--terra); border-radius: 50%;
+  transform: rotate(-7deg); display: grid; place-items: center; text-align: center;
+  color: var(--terra); mix-blend-mode: multiply;
+}
+.stx-streak b { font-family: var(--font-display); font-size: 32px; font-weight: 900; line-height: 1; display: block; }
+.stx-streak span { font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.stx-r { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 11px 2px; border-bottom: 1px solid var(--rule); font-size: 14.5px; }
+.stx-r .k { font-weight: 700; color: var(--ink-soft); }
+.stx-r .v { font-family: var(--font-display); font-weight: 800; font-size: 16px; text-align: right; }
+
+/* calendar grid with real date bearings */
+.stx-cal { padding: 20px 0 4px; overflow-x: auto; }
+.stx-cal-inner { display: inline-block; min-width: 0; }
+.stx-months { display: grid; grid-auto-flow: column; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; color: var(--ink-soft); text-transform: uppercase; margin: 0 0 5px 34px; }
+.stx-body { display: flex; gap: 6px; }
+.stx-days { display: grid; grid-template-rows: repeat(7, 15px); gap: 1px; font-size: 9.5px; font-weight: 800; color: var(--ink-soft); width: 28px; }
+.stx-days span { line-height: 15px; text-align: right; padding-right: 2px; letter-spacing: .04em; }
+.stx-grid { display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(7, 15px); background: var(--rule); gap: 1px; padding: 1px; }
+.stx-grid i { width: 15px; height: 15px; background: var(--card); font-style: normal; }
+.stx-grid i.off { background: transparent; }
+.stx-grid i.l1 { background: var(--heat-1); }
+.stx-grid i.l2 { background: var(--heat-2); }
+.stx-grid i.l3 { background: var(--terra); }
+
+/* most visited: top 3, warmth = work */
+.stx-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 22px 18px; margin-top: 6px; }
+.stx-mini {
+  position: relative; border-radius: 6px; box-shadow: var(--shadow); padding: 16px 14px 12px;
+  background-image: repeating-linear-gradient(transparent, transparent 22px, var(--rule) 23px);
+}
+/* the harder you work it, the warmer the card */
+.stx-mini.hot  { background-color: color-mix(in srgb, var(--terra) 12%, var(--card)); transform: rotate(-.8deg); }
+.stx-mini.warm { background-color: color-mix(in srgb, var(--gold) 12%, var(--card)); transform: rotate(.6deg); }
+.stx-mini.mild { background-color: var(--card); transform: rotate(-.3deg); }
+.stx-mini::before { content: ""; position: absolute; top: -9px; left: 50%; width: 58px; height: 16px; transform: translateX(-50%) rotate(-2deg); border-radius: 2px; opacity: .85; }
+.stx-mini.hot::before { background: var(--washi-3); }
+.stx-mini.warm::before { background: var(--washi-2); transform: translateX(-50%) rotate(1.5deg); }
+.stx-mini.mild::before { background: var(--washi-1); }
+.stx-mini h4 { font-family: var(--font-display); font-size: 14.5px; line-height: 1.3; margin: 4px 0 8px; }
+.stx-mini .visits { font-family: var(--font-accent); font-size: 19px; }
+.stx-mini.hot .visits { color: var(--terra-deep); }
+.stx-mini.warm .visits { color: var(--terra); }
+.stx-mini.mild .visits { color: var(--ink-soft); }
+.stx-mini.hot .flame { position: absolute; top: 8px; right: 10px; font-size: 14px; }
+
+/* mobile: card padding tightens, calendar scrolls (themed H scrollbar via Task 4) */
+@media (max-width: 640px) {
+  .stx-card { padding: 18px 16px 16px; }
 }

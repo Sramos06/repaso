@@ -24,6 +24,7 @@ export default function AvatarMenu({ email }: { email: string }) {
       {open && (
         <div className="menu">
           <div className="who"><b>Signed in</b><span>{email}</span></div>
+          <Link href="/stats" className="menu-link" onClick={() => setOpen(false)}>📊 Study stats</Link>
           <Link href="/settings" className="menu-link" onClick={() => setOpen(false)}>⚙ Settings</Link>
           <form action={signOutAction}>
             <button type="submit" className="out">Log out</button>
