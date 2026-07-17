@@ -1,12 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { exportBackup } from "@/lib/export-backup";
 import { importBackup } from "@/lib/import-backup";
+import { runSync } from "@/lib/sync";
 
 export default function DataTools() {
-  const router = useRouter();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -29,7 +28,7 @@ export default function DataTools() {
       if (r.skipped.length) bits.push(`${r.skipped.length} already there`);
       if (r.failed.length) bits.push(`${r.failed.length} failed`);
       setMsg(bits.join(" · "));
-      if (r.added) router.refresh();
+      if (r.added) await runSync();
     } catch (e) { setMsg(e instanceof Error ? e.message : "Import failed. Try again."); }
     finally { setImporting(false); }
   }

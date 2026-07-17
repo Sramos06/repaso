@@ -1,23 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { reviewers } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { notes, reviewers } from "@/db/schema";
+import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
 import { requireUser } from "@/lib/require-user";
 import { validateUpload, MAX_BYTES, MAX_WIRE_BYTES, WIRE_LIMIT_REASON } from "@/lib/validate-upload";
 import { parseUploadBody } from "@/lib/upload-body";
 import { decodeContentBounded, utf8Bytes } from "@/lib/content-codec";
 import { stripHtml } from "@/lib/strip-html";
 
-// GET — unchanged from before this version.
+// GET — the full desk metadata the local store mirrors (sync pull reads this).
 export async function GET() {
   try {
     const user = await requireUser();
     const rows = await db
-      .select({ id: reviewers.id, title: reviewers.title, createdAt: reviewers.createdAt })
+      .select({
+        id: reviewers.id, title: reviewers.title, subject: reviewers.subject, pinned: reviewers.pinned,
+        archivedAt: reviewers.archivedAt, createdAt: reviewers.createdAt, updatedAt: reviewers.updatedAt,
+        lastOpenedAt: reviewers.lastOpenedAt, sizeBytes: reviewers.sizeBytes,
+      })
       .from(reviewers)
       .where(eq(reviewers.userId, user.id))
       .orderBy(desc(reviewers.createdAt));
-    return NextResponse.json({ reviewers: rows });
+    const noteRows = await db
+      .select({ rid: notes.reviewerId })
+      .from(notes)
+      .where(and(eq(notes.userId, user.id), isNotNull(notes.reviewerId), ne(notes.contentMd, "")));
+    const withNotes = new Set(noteRows.map((n) => n.rid));
+    return NextResponse.json({
+      reviewers: rows.map((r) => ({
+        id: r.id, title: r.title, subject: r.subject, pinned: r.pinned,
+        archivedAt: r.archivedAt ? r.archivedAt.toISOString() : null,
+        createdAt: r.createdAt.toISOString(), updatedAt: r.updatedAt.toISOString(),
+        lastOpenedAt: r.lastOpenedAt ? r.lastOpenedAt.toISOString() : null,
+        sizeBytes: r.sizeBytes, hasNotes: withNotes.has(r.id),
+      })),
+    });
   } catch (e) {
     if (e instanceof Response) return e;
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });

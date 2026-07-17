@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { pasteTitle } from "@/lib/paste-title";
-import { uploadOne } from "@/lib/upload-one";
+import { localCreate, localPatch } from "@/lib/local-reviewers";
 import { MAX_BYTES } from "@/lib/validate-upload";
 
 export default function PasteModal({ onClose, onSaved }: { onClose: () => void; onSaved: (message: string) => void }) {
@@ -26,15 +26,11 @@ export default function PasteModal({ onClose, onSaved }: { onClose: () => void; 
     try {
       const finalTitle = (title.trim() || "Pasted reviewer").slice(0, 200);
       const safeName = (finalTitle.replace(/[^\w\- ]+/g, "").trim() || "pasted-reviewer") + ".html";
-      const result = await uploadOne(safeName, body);
+      const result = await localCreate(safeName, body);
       if (!result.ok) { setErr(result.reason); return; }
       // The server names it from the pasted <title>; the edited field wins.
       if (result.title !== finalTitle) {
-        await fetch(`/api/reviewers/${result.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: finalTitle }),
-        }).catch(() => {});
+        await localPatch(result.id, { title: finalTitle }).catch(() => {});
       }
       onSaved(`Added "${finalTitle}" to your desk`);
       onClose();

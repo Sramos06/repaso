@@ -352,6 +352,7 @@ a.card { color: inherit; text-decoration: none; }
 .notes-preview ul { padding-left: 20px; margin: 6px 0; }
 .notes-preview code { background: var(--paper); border-radius: 4px; padding: 1px 5px; font-size: 13px; }
 .notes > .save { font-size: 11px; color: var(--sage); font-weight: 700; letter-spacing: .08em; padding: 0 18px 14px; }
+.notes .save.merged { position: absolute; left: 18px; right: 18px; bottom: 34px; color: var(--gold); }
 
 /* ---------- signin ---------- */
 .signin-wrap {
@@ -454,7 +455,10 @@ a.card { color: inherit; text-decoration: none; }
 .card .snippet mark { background: rgba(217,164,65,.4); color: inherit; border-radius: 2px; padding: 0 1px; }
 
 /* ---------- offline badge ---------- */
-.card .offflag { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--sage); }
+
+/* ---------- sync flags: card badge + "On the desk" waiting pill ---------- */
+.syncflag { color: var(--gold); font-weight: 700; white-space: nowrap; }
+.seclabel .syncflag { font-size: 11px; letter-spacing: .04em; }
 
 /* ---------- command palette ---------- */
 .palette-overlay { align-items: flex-start; }

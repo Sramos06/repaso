@@ -7,7 +7,7 @@ type Props = {
   contentHit?: boolean;
   snippet?: string;
   term?: string;
-  offline?: boolean;
+  pendingSync?: boolean;
   managing?: boolean;
   selected?: boolean;
   onToggleSelect: () => void;
@@ -46,7 +46,7 @@ function highlight(text: string, term: string) {
   return out;
 }
 
-export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, offline, managing, selected, onToggleSelect, onMenuToggle, onPin, onRename, onDuplicate, onSend, onArchive, onDelete }: Props) {
+export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, pendingSync, managing, selected, onToggleSelect, onMenuToggle, onPin, onRename, onDuplicate, onSend, onArchive, onDelete }: Props) {
   return (
     <Link
       href={`/viewer/${r.id}`}
@@ -75,7 +75,7 @@ export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, o
         <span>{r.date}</span>
         <span className="flags">
           {contentHit && <span className="hitflag">found inside</span>}
-          {offline && <span className="offflag" title="Available offline">● offline</span>}
+          {pendingSync && <span className="syncflag" title="Backs up when online">☁ backing up</span>}
           {r.archived && <span className="archflag">archived</span>}
           {r.hasNotes && (
             <span className="noteflag">

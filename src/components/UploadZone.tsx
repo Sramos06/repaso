@@ -1,14 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { validateUpload } from "@/lib/validate-upload";
-import { uploadOne } from "@/lib/upload-one";
+import { localCreate } from "@/lib/local-reviewers";
 import StagingTray, { type StagedFile } from "./StagingTray";
 import PasteModal from "./PasteModal";
 
 export default function UploadZone() {
-  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [staged, setStaged] = useState<StagedFile[]>([]);
   const [busy, setBusy] = useState(false);
@@ -49,14 +47,14 @@ export default function UploadZone() {
       const failed = new Map<string, string>();
       let ok = 0;
       for (const item of valid) {
-        const result = await uploadOne(item.name, item.content);
+        const result = await localCreate(item.name, item.content);
         if (result.ok) ok++;
         else failed.set(item.key, result.reason);
       }
       if (failed.size === 0) {
         // full success: the confirmed batch clears itself (keeps anything staged mid-flight)
         setStaged((prev) => prev.filter((s) => !batch.has(s.key)));
-        setMsg(`Added ${ok} to your desk`);
+        setMsg(navigator.onLine ? `Added ${ok} to your desk` : `Added ${ok}. They back up when you're online.`);
       } else {
         // Honest results: drop the successes, keep failures (retryable) with the server's reason.
         setStaged((prev) =>
@@ -66,7 +64,6 @@ export default function UploadZone() {
         );
         setMsg(ok ? `Added ${ok} of ${valid.length}. The rest stayed below.` : "Nothing was added. See the reasons below.");
       }
-      if (ok) router.refresh();
     } finally {
       setBusy(false);
     }
@@ -123,7 +120,7 @@ export default function UploadZone() {
       {pasteOpen && (
         <PasteModal
           onClose={() => setPasteOpen(false)}
-          onSaved={(m) => { setMsg(m); router.refresh(); }}
+          onSaved={(m) => setMsg(m)}
         />
       )}
     </>

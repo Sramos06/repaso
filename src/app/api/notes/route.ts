@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { notes } from "@/db/schema";
+import { notes, reviewers } from "@/db/schema";
 import { requireUser } from "@/lib/require-user";
 import { resolveNoteTarget } from "@/lib/note-target";
 import { whereForNote } from "@/lib/note-where";
 import { snapshotNote } from "@/lib/note-snapshot";
+import { noteConflict } from "@/lib/note-conflict";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,7 +14,7 @@ export async function GET(req: NextRequest) {
     const target = resolveNoteTarget(req.nextUrl.searchParams.get("reviewerId"));
     if ("error" in target) return NextResponse.json({ error: target.error }, { status: 400 });
     const row = await db.query.notes.findFirst({ where: whereForNote(user.id, target.reviewerId) });
-    return NextResponse.json({ contentMd: row?.contentMd ?? "" });
+    return NextResponse.json({ contentMd: row?.contentMd ?? "", updatedAt: row?.updatedAt ? row.updatedAt.toISOString() : null });
   } catch (e) {
     if (e instanceof Response) return e;
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
@@ -28,18 +30,35 @@ export async function PUT(req: NextRequest) {
     if (typeof body.contentMd !== "string" || body.contentMd.length > 100_000)
       return NextResponse.json({ error: "Invalid note content." }, { status: 400 });
 
-    // History: keep what's being replaced (policy-gated), BEFORE overwriting it.
+    if (target.reviewerId !== null) {
+      const owner = await db.query.reviewers.findFirst({
+        where: and(eq(reviewers.id, target.reviewerId), eq(reviewers.userId, user.id)),
+        columns: { id: true },
+      });
+      // Deleted (or never yours): a permanent verdict the sync queue can drop,
+      // never a 500 it would retry forever.
+      if (!owner) return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+
     const existing = await db.query.notes.findFirst({ where: whereForNote(user.id, target.reviewerId) });
+    if (existing && noteConflict(existing.updatedAt, existing.contentMd, body.baseUpdatedAt)) {
+      return NextResponse.json(
+        { contentMd: existing.contentMd, updatedAt: existing.updatedAt.toISOString() },
+        { status: 409 }
+      );
+    }
+    // History: keep what's being replaced (policy-gated), BEFORE overwriting it.
     if (existing) await snapshotNote(existing.id, user.id, existing.contentMd, body.contentMd);
 
+    const stamp = new Date();
     await db
       .insert(notes)
-      .values({ userId: user.id, reviewerId: target.reviewerId, contentMd: body.contentMd })
+      .values({ userId: user.id, reviewerId: target.reviewerId, contentMd: body.contentMd, updatedAt: stamp })
       .onConflictDoUpdate({
         target: [notes.userId, notes.reviewerId],
-        set: { contentMd: body.contentMd, updatedAt: new Date() },
+        set: { contentMd: body.contentMd, updatedAt: stamp },
       });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, updatedAt: stamp.toISOString() });
   } catch (e) {
     if (e instanceof Response) return e;
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });

@@ -1,110 +1,89 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { renderMarkdown } from "@/lib/render-md";
+import { getLocalNote, saveNoteLocal, adoptServerNote } from "@/lib/local-reviewers";
+import { onLocalChange } from "@/lib/local-db";
 
 type Revision = { id: string; createdAt: string; contentMd: string };
 
 export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: string | null; open: boolean; onClose?: () => void }) {
-  const key = `repaso-draft-${reviewerId ?? "scratchpad"}`;
+  const target = reviewerId ?? "scratchpad";
+  const draftKey = `repaso-draft-${target}`; // legacy adoption only
   const [text, setText] = useState("");
-  const [state, setState] = useState<"loading" | "saved" | "saving" | "offline">("loading");
+  const [state, setState] = useState<"loading" | "saved" | "saving" | "pending" | "offline">("loading");
   const [view, setView] = useState<"write" | "preview" | "history">("write");
   const [revisions, setRevisions] = useState<Revision[] | null>(null);
   const [revError, setRevError] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [merged, setMerged] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  // Tracks whether the user has typed since mount, so the in-flight mount GET
-  // knows to discard its result instead of clobbering newer keystrokes.
-  const dirtyRef = useRef(false);
-  // Monotonic counter — each save's completion checks it's still the latest
-  // in-flight save before touching localStorage/state, so a stale save (from
-  // the draft-resync or an earlier debounce) can't clobber a newer one.
-  const saveSeq = useRef(0);
+  // Latest typed text, so a note switch mid-debounce can flush instead of discard.
+  const textRef = useRef("");
+  // True from the first keystroke until the debounce fires — guards external
+  // refreshes (other tab, merge) from clobbering text the user is mid-typing.
+  const editingRef = useRef(false);
 
-  // Shared by the debounced keystroke save and the mount-time draft resync —
-  // only clears the localStorage draft once the server has actually confirmed it.
-  async function save(v: string, seq: number) {
-    if (seq !== saveSeq.current) return; // stale before it even fired — don't touch the server
-    try {
-      const res = await fetch("/api/notes", {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reviewerId, contentMd: v }),
-      });
-      if (seq !== saveSeq.current) return;
-      if (res.ok) { localStorage.removeItem(key); setState("saved"); }
-      else setState("offline");
-    } catch {
-      if (seq !== saveSeq.current) return;
-      setState("offline");
-    }
+  async function readFromStore(preserveEditing: boolean) {
+    if (preserveEditing && editingRef.current) return; // never clobber mid-typing
+    const n = await getLocalNote(target);
+    if (n) { setText(n.contentMd); setState(n.dirty ? "pending" : "saved"); return true; }
+    return false;
   }
 
   useEffect(() => {
     let cancelled = false;
-    dirtyRef.current = false;
-    saveSeq.current++;
-    setText("");
-    setState("loading");
-    setView("write");
+    editingRef.current = false;
+    setText(""); setState("loading"); setView("write"); setMerged(false);
 
     async function load() {
-      const draft = localStorage.getItem(key);
-      let ok = false;
-      let contentMd = "";
+      // one-time adoption of the retired localStorage draft system
+      const legacy = localStorage.getItem(draftKey);
+      if (legacy != null) {
+        await saveNoteLocal(target, legacy);
+        localStorage.removeItem(draftKey);
+      }
+      if (await readFromStore(false)) return;
+      if (cancelled) return;
+      // nothing local yet: live fetch (new device, store still hydrating)
       try {
-        const res = await fetch(`/api/notes?reviewerId=${reviewerId ?? "scratchpad"}`);
-        ok = res.ok;
-        // Only trust the body on 2xx — on 4xx/5xx it's shaped { error }, and
-        // reading contentMd off that would silently seed state with undefined.
-        if (ok) contentMd = (await res.json()).contentMd ?? "";
-      } catch {
-        ok = false;
-      }
-
-      // The user already typed (and may have already saved) while this GET
-      // was in flight — never let a late-arriving response overwrite it.
-      if (cancelled || dirtyRef.current) return;
-
-      if (draft != null) {
-        // A leftover draft is unsynced by definition — show it, but don't
-        // call it "saved" until we've actually round-tripped it to the server.
-        setText(draft);
-        setState("saving");
-        const seq = ++saveSeq.current;
-        await save(draft, seq);
-        return;
-      }
-
-      if (ok) { setText(contentMd); setState("saved"); }
-      else { setText(""); setState("offline"); }
+        const res = await fetch(`/api/notes?reviewerId=${target}`);
+        if (res.ok) {
+          const d = await res.json();
+          await adoptServerNote(target, d.contentMd ?? "", d.updatedAt ?? null);
+          if (!cancelled && !editingRef.current) { setText(d.contentMd ?? ""); setState("saved"); }
+          return;
+        }
+      } catch { /* offline with no local copy */ }
+      // Nothing local and the live fetch failed: an honest badge, not "SAVED".
+      if (!cancelled && !editingRef.current) { setText(""); setState("offline"); }
     }
+    void load();
 
-    load();
-    return () => { cancelled = true; clearTimeout(timer.current); };
-  }, [reviewerId]);
-
-  // When the connection returns, push any locally-kept draft to the server.
-  useEffect(() => {
-    function onOnline() {
-      const draft = localStorage.getItem(key);
-      if (draft == null) return;
-      const seq = ++saveSeq.current;
-      setState("saving");
-      save(draft, seq);
-    }
-    window.addEventListener("online", onOnline);
-    return () => window.removeEventListener("online", onOnline);
+    const off = onLocalChange((msg) => {
+      if (msg.type === "note-merged" && msg.target === target) { setMerged(true); setTimeout(() => setMerged(false), 6000); }
+      void readFromStore(true);
+    });
+    return () => {
+      cancelled = true; off();
+      clearTimeout(timer.current);
+      // Switching notes mid-debounce persists the keystrokes to the OLD target
+      // (this closure's target) instead of discarding up to 500ms of typing.
+      if (editingRef.current) { editingRef.current = false; void saveNoteLocal(target, textRef.current); }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reviewerId]);
 
   function onChange(v: string) {
-    dirtyRef.current = true;
-    const seq = ++saveSeq.current; // keystroke immediately invalidates any in-flight save
+    editingRef.current = true;
+    textRef.current = v;
     setText(v); setState("saving");
-    localStorage.setItem(key, v); // draft survives session expiry / network loss
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => { save(v, seq); }, 500);
+    timer.current = setTimeout(async () => {
+      await saveNoteLocal(target, v);
+      editingRef.current = false;
+      setState("pending"); // outbox confirmation flips it to saved via onLocalChange
+    }, 500);
   }
 
   async function openHistory() {
@@ -120,6 +99,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
   async function restore(rev: Revision) {
     if (restoring) return;
     clearTimeout(timer.current); // kill any pending pre-restore autosave
+    editingRef.current = false; // that autosave is dead; nothing left to guard
     setRestoring(true);
     try {
       const res = await fetch("/api/notes/revisions", {
@@ -128,13 +108,13 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      // Adopt the restored text as the new saved state; anything in flight is stale now.
-      saveSeq.current++;
-      dirtyRef.current = false;
-      localStorage.removeItem(key);
-      setText(data.contentMd ?? rev.contentMd);
+      const restored = data.contentMd ?? rev.contentMd;
+      setText(restored);
       setState("saved");
       setView("write");
+      // Adopt into the local store too, so every tab (and the outbox) sees the
+      // restored text. The restore PUT above is the unguarded legacy path.
+      await saveNoteLocal(target, restored);
     } catch { setRevError(true); }
     finally { setRestoring(false); }
   }
@@ -194,7 +174,8 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
         // Safe: renderMarkdown escapes ALL input before adding its own tags.
         <div className="notes-preview" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
       )}
-      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", offline: "KEPT LOCALLY · will sync" }[state]}</span>
+      {merged && <span className="save merged">Notes from two places were combined.</span>}
+      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", pending: "SAVED · BACKS UP ONLINE", offline: "OFFLINE · NOTHING LOADED YET" }[state]}</span>
     </aside>
   );
 }
