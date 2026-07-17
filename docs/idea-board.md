@@ -2,7 +2,7 @@
 
 Running list of feature ideas, grouped by *when/how* they should be built, not just liked/disliked.
 
-_Last updated: 2026-07-16 (post-v1.12 ship)._
+_Last updated: 2026-07-17 (post-v2.0 ship)._
 
 ## Shipped
 - **v1.5** (2026-07-11): search desk, pins, rename/delete, export, logout, focus viewer, offline tier.
@@ -13,14 +13,20 @@ _Last updated: 2026-07-16 (post-v1.12 ship)._
 - **v1.10** (2026-07-14): five-item ⋯ menu (Rename/Duplicate/Send/Archive/Delete) with **Send sheet** · replace-file removed (Shawn's call) · **manage mode** (bulk archive/export/delete) · **duplicate** · **offline storage readout** in Settings · `open_events` accruing for future stats · UI copy fully em-dash free. Settings-bundle DONE except the stats screen itself.
 - **v1.11** (2026-07-14): **upload makeover** · split zone (drop files / paste-HTML door, folds under on phones) · **staging tray** (validate + preview before saving, honest per-file results, self-clearing) · **paste HTML** capture with auto-filled editable title. Upload-makeover bundle DONE. Cap stays 4 MB until v1.12.
 - **v1.12** (2026-07-16): **big files** · compressed-at-rest storage (client gzips via native CompressionStream, server stores gzip, all readers decode) lifts the cap to **15 MB raw** · decompression-bomb guard server-side · backups stay raw HTML (export decodes) · existing rows migrated (~63% smaller stored) · Neon's free 512 MB now stretches ~4-5x.
+- **v2.0** (2026-07-17): **LOCAL-FIRST.** The device's IndexedDB copy is the primary copy: desk/viewer/notes render instantly online or not · every write (notes, uploads, rename/pin/archive/delete, duplicate) works offline and backs up through an ordered, crash-safe outbox · note conflicts keep BOTH texts, never drop either · multi-tab safe (Web Locks + BroadcastChannel) · offline-created reviewers open offline (viewer app shell) · SW v4 slims to shell duty · zero DB schema changes, cloud stays the backup-of-record. Built in ONE version (13 tasks); first Fable-reviewed release (caught an outbox-poisoning Critical the task gates missed).
 
-## Next major — full local-first offline (promoted 2026-07-12)
-**Why it moved up:** PUP often has no internet and Shawn's data signal is slow/unreliable — reading (and ideally editing) reviewers offline is a real need, not a nice-to-have.
-**Why it's its own dedicated version, not bundled:** true offline = a sync engine + conflict resolution, which is exactly where data-loss bugs hide (we already spent 3 review rounds on notes-autosave races in v1.5; full sync is that, for everything). It gets its own brainstorm + spec + careful TDD, not a rushed add-on. This is Shawn's precious "never disappears" data.
-**Sequencing:** v1.7 ships the cheap, low-risk stepping stone — **all reviewers *readable* offline** (precache every reviewer's content, not just opened ones). This version then adds true offline *editing/uploads* + the sync engine: IndexedDB as source of truth, a mutation queue with per-row `updatedAt` version stamps, push-when-online, conflict = keep-both-never-drop. Route doc: `local-first-upgrade-path.md`.
+## ~~Next major — full local-first offline~~ — SHIPPED v2.0
+The route doc `local-first-upgrade-path.md` now describes the shipped architecture. The "never disappears" promise is enforced by design: ordered never-drop outbox, keep-both conflicts, guarded clears, revision-history backstop.
 
-## Near-term — standalone, buildable now (no new host surface needed)
-_Empty — everything on this shelf shipped in v1.7 (continue-studying, palette, snippets, download, offline reading) and v1.9 (replace-file, shortcuts, wake-lock, notes history, notes→print). New small ideas land here._
+## Near-term — standalone, buildable now (v2.1 candidates, from the v2.0 final-review backlog)
+- **Offline `/continue`** — the PWA shortcut still resolves server-side; offline it lands on the SW fallback page instead of the most recent local reviewer. Small client rework.
+- **First-run "Preparing your offline copy" state** — a brand-new device briefly shows the empty-desk copy while hydration runs; `isHydrated()` already exists, just unconsumed.
+- **Viewer-side storage honesty** — a PWA deep link into the viewer bypasses the desk's "this browser can't store data" banner; NotesPanel should consult `localStoreAvailable()` before showing optimistic save badges.
+- **Zombie pending-row surfacing** — a permanently rejected offline upload keeps its local row + "backing up" badge forever; surface "couldn't back up, download a copy" instead.
+- **Pre-hydration open tracking** — opens via network fall-through (row not local yet) skip lastOpenedAt/open-events.
+- **Waiting-pill polish** — the "to back up" count includes open events, which reads oddly.
+- **Fake-IDB test harness for outbox/sync** — every real v2.0 finding lived in the untested orchestration seams; highest-value test investment of the next version.
+- **Save from a URL** (parked since v1.11) — paste a link instead of HTML.
 
 ## Settings-bundle status (post-v1.10)
 - ~~**Bulk actions**~~ — **SHIPPED v1.10** (manage mode on the desk with Select + bottom bar).
