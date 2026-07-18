@@ -9,10 +9,10 @@ export function makeLocalId(): string {
   return `local-${crypto.randomUUID()}`;
 }
 
-export type PullPlan = { fetchIds: string[]; metaOnly: ServerRow[]; deleteIds: string[] };
+type PullPlan = { fetchIds: string[]; metaOnly: ServerRow[]; deleteIds: string[] };
 
-// Content never changes after upload (replace-file was removed in v1.10), so
-// only NEW ids need a content fetch; a changed updatedAt is metadata-only.
+// Content never changes after upload, so only NEW ids need a content fetch;
+// a changed updatedAt is metadata-only.
 export function diffRows(server: ServerRow[], local: LocalReviewer[]): PullPlan {
   const localById = new Map(local.map((r) => [r.id, r]));
   const serverIds = new Set(server.map((r) => r.id));

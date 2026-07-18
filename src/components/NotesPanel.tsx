@@ -2,15 +2,18 @@
 import { useEffect, useRef, useState } from "react";
 import { renderMarkdown } from "@/lib/render-md";
 import { getLocalNote, saveNoteLocal, adoptServerNote } from "@/lib/local-reviewers";
-import { onLocalChange } from "@/lib/local-db";
+import { onLocalChange, localStoreAvailable } from "@/lib/local-db";
 
 type Revision = { id: string; createdAt: string; contentMd: string };
+type NoteBadgeState = "loading" | "saved" | "saving" | "pending" | "offline" | "nostore";
 
 export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: string | null; open: boolean; onClose?: () => void }) {
   const target = reviewerId ?? "scratchpad";
   const draftKey = `repaso-draft-${target}`; // legacy adoption only
   const [text, setText] = useState("");
   const [state, setState] = useState<"loading" | "saved" | "saving" | "pending" | "offline">("loading");
+  // Checked once: this browser either has IndexedDB or it doesn't, for the whole session.
+  const [storeOk, setStoreOk] = useState(true);
   const [view, setView] = useState<"write" | "preview" | "history">("write");
   const [revisions, setRevisions] = useState<Revision[] | null>(null);
   const [revError, setRevError] = useState(false);
@@ -32,8 +35,17 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
   }
 
   useEffect(() => {
+    localStoreAvailable().then((ok) => setStoreOk(ok));
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     editingRef.current = false;
+    // Not movable to render time: this effect's own cleanup (below) checks
+    // editingRef.current to decide whether the OLD target's mid-typing text
+    // needs flushing before the switch. Resetting it during render would run
+    // before that cleanup fires and make it see the wrong target's state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setText(""); setState("loading"); setView("write"); setMerged(false);
 
     async function load() {
@@ -75,6 +87,7 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
   }, [reviewerId]);
 
   function onChange(v: string) {
+    if (!storeOk) return; // nothing persists in this browser: skip the save pipeline entirely
     editingRef.current = true;
     textRef.current = v;
     setText(v); setState("saving");
@@ -169,13 +182,15 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
           )}
         </div>
       ) : view === "write" ? (
-        <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading"} placeholder="Write anything. It autosaves…" />
+        <textarea value={text} onChange={(e) => onChange(e.target.value)} disabled={state === "loading" || !storeOk} placeholder="Write anything. It autosaves…" />
       ) : (
         // Safe: renderMarkdown escapes ALL input before adding its own tags.
         <div className="notes-preview" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
       )}
       {merged && <span className="save merged">Notes from two places were combined.</span>}
-      <span className="save">{{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", pending: "SAVED · BACKS UP ONLINE", offline: "OFFLINE · NOTHING LOADED YET" }[state]}</span>
+      <span className="save">
+        {{ loading: "…", saved: "SAVED ✓", saving: "SAVING…", pending: "SAVED · BACKS UP ONLINE", offline: "OFFLINE · NOTHING LOADED YET", nostore: "THIS BROWSER CAN’T SAVE NOTES" }[(storeOk ? state : "nostore") as NoteBadgeState]}
+      </span>
     </aside>
   );
 }

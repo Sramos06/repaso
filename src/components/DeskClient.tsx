@@ -9,13 +9,13 @@ import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
 import { exportBackup } from "@/lib/export-backup";
 import { getDeskRows, localPatch, localDelete, localDuplicate, localToggle, getContent } from "@/lib/local-reviewers";
-import { startSync, outboxCount } from "@/lib/sync";
+import { startSync, pendingWorkCount, isHydrated } from "@/lib/sync";
 import { onLocalChange, localStoreAvailable } from "@/lib/local-db";
 import type { LocalReviewer } from "@/lib/local-types";
 
 export type DeskReviewer = {
   id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
-  lastOpenedAt: string | null; date: string; hasNotes: boolean; pendingSync: boolean;
+  lastOpenedAt: string | null; date: string; hasNotes: boolean; pendingSync: boolean; uploadFailed: boolean;
 };
 
 type Dialog =
@@ -42,6 +42,7 @@ export default function DeskClient({ email }: { email: string }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [rows, setRows] = useState<LocalReviewer[] | null>(null); // null = first IDB read pending
   const [waiting, setWaiting] = useState(0); // outbox depth
+  const [hydrated, setHydrated] = useState(true); // default true: returning users never flash "preparing"
   const [storeAvailable, setStoreAvailable] = useState<boolean | null>(null); // null = check pending
   const searchSeq = useRef(0);
   const shareSeq = useRef(0);
@@ -50,11 +51,16 @@ export default function DeskClient({ email }: { email: string }) {
   const term = query.trim();
   const matchTS = (r: DeskReviewer) => r.title.toLowerCase().includes(q) || (r.subject ?? "").toLowerCase().includes(q);
 
+  // Below the 3-char content-search floor, drop any stale hits from a longer
+  // query the user just backspaced out of — computed during render (not an
+  // effect) so it can't outrace the debounced fetch below.
+  if (term.length < 3 && contentHits.size > 0) setContentHits(new Map());
+
   // Content search → id→snippet map. title/subject stays instant; ≥3 chars hits the API.
   useEffect(() => {
     const t = query.trim();
     const seq = ++searchSeq.current;
-    if (t.length < 3) { setContentHits(new Map()); return; }
+    if (t.length < 3) return; // clearing is handled during render above
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(t)}`);
@@ -83,8 +89,8 @@ export default function DeskClient({ email }: { email: string }) {
   useEffect(() => {
     let cancelled = false;
     async function readLocal() {
-      const [r, w] = await Promise.all([getDeskRows(), outboxCount()]);
-      if (!cancelled) { setRows(r); setWaiting(w); }
+      const [r, w] = await Promise.all([getDeskRows(), pendingWorkCount()]);
+      if (!cancelled) { setRows(r); setWaiting(w); setHydrated(await isHydrated()); }
     }
     readLocal();
     startSync();
@@ -98,7 +104,7 @@ export default function DeskClient({ email }: { email: string }) {
       id: r.id, title: r.title, subject: r.subject, pinned: r.pinned,
       archived: r.archivedAt !== null, lastOpenedAt: r.lastOpenedAt,
       date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      hasNotes: r.hasNotes, pendingSync: r.pending,
+      hasNotes: r.hasNotes, pendingSync: r.pending, uploadFailed: r.uploadFailed ?? false,
     })),
     [rows]
   );
@@ -175,6 +181,7 @@ export default function DeskClient({ email }: { email: string }) {
   };
 
   async function openSend(r: DeskReviewer) {
+    if (r.uploadFailed) { say("This file couldn’t back up. Download a copy and add it again."); return; }
     if (r.pendingSync) { say("This file hasn’t backed up yet. Try again once it has."); return; }
     const seq = ++shareSeq.current;
     setDialog({ kind: "send", r }); setShareUrl(null); setShareStatus("loading");
@@ -204,6 +211,7 @@ export default function DeskClient({ email }: { email: string }) {
   const menuProps = (r: DeskReviewer) => ({
     menuOpen: menuFor === r.id,
     pendingSync: r.pendingSync,
+    uploadFailed: r.uploadFailed,
     managing,
     selected: selected.has(r.id),
     onToggleSelect: () => toggleSelect(r.id),
@@ -270,7 +278,7 @@ export default function DeskClient({ email }: { email: string }) {
             {rows === null ? (
               <p className="empty">Opening your desk…</p>
             ) : active.length === 0 ? (
-              <p className="empty">{navigator.onLine ? "Drop your first reviewer above ↑" : "Nothing on this device yet. Go online once and your desk downloads itself."}</p>
+              <p className="empty">{!hydrated && navigator.onLine ? "Preparing your offline copy…" : navigator.onLine ? "Drop your first reviewer above ↑" : "Nothing on this device yet. Go online once and your desk downloads itself."}</p>
             ) : null}
           </div>
 

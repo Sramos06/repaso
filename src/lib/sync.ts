@@ -5,7 +5,7 @@
 import type { LocalReviewer, LocalNote, ServerRow } from "./local-types";
 import { diffRows } from "./sync-plan";
 import { dbGet, dbGetAll, dbPut, dbDel, dbClear, notifyChange } from "./local-db";
-import { flushOutbox, outboxCount, scheduleFlush } from "./outbox";
+import { flushOutbox, outboxCount, pendingWorkCount } from "./outbox";
 
 let started = false;
 export function startSync(): void {
@@ -71,7 +71,7 @@ async function pull(): Promise<void> {
       const d = await res.json();
       const s = metaById.get(id);
       if (!s || typeof d.htmlContent !== "string") return;
-      if (typeof s.updatedAt !== "string") return; // stale tab against a rolled-back v1.12 server
+      if (typeof s.updatedAt !== "string") return; // guards a stale tab against a rolled-back server missing updatedAt
       await dbPut("reviewers", {
         ...s, payload: d.htmlContent, encoding: d.encoding ?? "plain", pending: false,
       } satisfies LocalReviewer);
@@ -80,7 +80,7 @@ async function pull(): Promise<void> {
   notifyChange(); // paint fetched content as soon as it lands, don't wait for notes below
   for (const s of plan.metaOnly) {
     if (locallyAhead.has(s.id)) continue; // this device is ahead of the server here; adopt after the flush lands
-    if (typeof s.updatedAt !== "string") continue; // stale tab against a rolled-back v1.12 server
+    if (typeof s.updatedAt !== "string") continue; // guards a stale tab against a rolled-back server missing updatedAt
     const row = await dbGet<LocalReviewer>("reviewers", s.id);
     if (row) await dbPut("reviewers", { ...row, ...s, payload: row.payload, encoding: row.encoding, pending: false });
   }
@@ -113,6 +113,12 @@ async function pull(): Promise<void> {
 // the local store must never eat unsynced work.
 export async function clearLocalAndRehydrate(): Promise<{ ok: boolean; reason?: string }> {
   if ((await outboxCount()) > 0) return { ok: false, reason: "You have changes waiting to back up. Go online first, then try again." };
+  // A failed-upload row exists ONLY on this device (no cloud copy, no queue
+  // entry): clearing would destroy its last copy with one click.
+  const rows = await dbGetAll<LocalReviewer>("reviewers");
+  if (rows.some((r) => r.uploadFailed)) {
+    return { ok: false, reason: "A file that couldn't back up is still on this device. Download a copy or delete it first." };
+  }
   if (typeof navigator !== "undefined" && !navigator.onLine) return { ok: false, reason: "You're offline. Clearing now would leave nothing to read." };
   await dbClear("reviewers");
   await dbClear("notes");
@@ -122,4 +128,4 @@ export async function clearLocalAndRehydrate(): Promise<{ ok: boolean; reason?: 
   return { ok: true };
 }
 
-export { outboxCount, scheduleFlush };
+export { pendingWorkCount };

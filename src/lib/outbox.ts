@@ -13,6 +13,12 @@ export async function outboxCount(): Promise<number> {
   return (await dbGetAll<QueuedMutation>("outbox")).length;
 }
 
+// What the user thinks of as "waiting to back up": real content and edits,
+// not open-event pings.
+export async function pendingWorkCount(): Promise<number> {
+  return (await dbGetAll<QueuedMutation>("outbox")).filter((m) => m.kind !== "open").length;
+}
+
 export async function enqueue(m: Mutation): Promise<void> {
   const body = async () => {
     if (m.kind === "note") {
@@ -35,7 +41,7 @@ export async function enqueue(m: Mutation): Promise<void> {
 }
 
 let flushTimer: ReturnType<typeof setTimeout> | undefined;
-export function scheduleFlush(delayMs = 0): void {
+function scheduleFlush(delayMs = 0): void {
   clearTimeout(flushTimer);
   flushTimer = setTimeout(() => { void flushOutbox(); }, delayMs);
 }
@@ -162,7 +168,12 @@ async function send(m: QueuedMutation): Promise<SendResult> {
     await adoptRealId(m.tempId, realId);
     return { status: "done" };
   }
-  return res.status === 400 ? { status: "drop" } : { status: "retry" };
+  if (res.status === 400) {
+    const row = await dbGet<LocalReviewer>("reviewers", m.tempId);
+    if (row) { await dbPut("reviewers", { ...row, uploadFailed: true }); notifyChange(); }
+    return { status: "drop" };
+  }
+  return { status: "retry" };
 }
 
 // After a confirmed save: record the server stamp; clear dirty ONLY if the

@@ -5,18 +5,45 @@ export type Theme = "warm" | "night" | "coffee" | "matcha";
 
 export const DEFAULT_THEME: Theme = "warm";
 
-export type ThemeMeta = {
+type ThemePreview = {
+  paper: string; // chip background
+  ink: string; // chip text color
+  accent: string; // selection stamp color
+  washi: string; // tape strip color
+};
+
+type ThemeMeta = {
   id: Theme;
   label: string;
-  swatch: string; // representative color for the picker chip
+  preview: ThemePreview; // real palette snapshot for the picker chip
   note: string; // one-line description
 };
 
 export const THEMES: ThemeMeta[] = [
-  { id: "warm", label: "Warm Paper", swatch: "#C4552D", note: "Cream & terracotta" },
-  { id: "night", label: "Night Library", swatch: "#241C15", note: "Espresso & warm lamp" },
-  { id: "coffee", label: "Coffee", swatch: "#A25C2C", note: "Latte & caramel" },
-  { id: "matcha", label: "Matcha", swatch: "#6E9457", note: "Rice paper & tea" },
+  {
+    id: "warm",
+    label: "Warm Paper",
+    preview: { paper: "#F7EFE2", ink: "#2B2118", accent: "#C4552D", washi: "rgba(217,164,65,.55)" },
+    note: "Cream & terracotta",
+  },
+  {
+    id: "night",
+    label: "Night Library",
+    preview: { paper: "#17130F", ink: "#EFE5D4", accent: "#E4854B", washi: "rgba(148,168,131,.30)" },
+    note: "Espresso & warm lamp",
+  },
+  {
+    id: "coffee",
+    label: "Coffee",
+    preview: { paper: "#ECE0CE", ink: "#3A2A1D", accent: "#A25C2C", washi: "rgba(201,154,75,.50)" },
+    note: "Latte & caramel",
+  },
+  {
+    id: "matcha",
+    label: "Matcha",
+    preview: { paper: "#EFF0E0", ink: "#2B342A", accent: "#6E9457", washi: "rgba(122,139,111,.45)" },
+    note: "Rice paper & tea",
+  },
 ];
 
 const IDS = new Set<string>(THEMES.map((t) => t.id));

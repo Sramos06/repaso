@@ -19,7 +19,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     session({ session, token }) {
-      if (token.googleSub) (session as any).googleSub = token.googleSub;
+      // Narrow cast (not `any`): stamps the JWT's googleSub onto the session
+      // object so requireUser/getUserTheme can read it without a DB round trip.
+      if (token.googleSub) (session as { googleSub?: unknown }).googleSub = token.googleSub;
       return session;
     },
     authorized({ auth }) {

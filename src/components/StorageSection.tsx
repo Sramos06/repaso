@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { LocalReviewer } from "@/lib/local-types";
 import { getDeskRows } from "@/lib/local-reviewers";
-import { clearLocalAndRehydrate, outboxCount } from "@/lib/sync";
+import { clearLocalAndRehydrate, pendingWorkCount } from "@/lib/sync";
 import { onLocalChange } from "@/lib/local-db";
 import { formatBytes } from "@/lib/format-bytes";
 
@@ -19,7 +19,7 @@ export default function StorageSection() {
   useEffect(() => {
     let cancelled = false;
     async function readLocal() {
-      const [r, w] = await Promise.all([getDeskRows(), outboxCount()]);
+      const [r, w] = await Promise.all([getDeskRows(), pendingWorkCount()]);
       if (!cancelled) { setRows(r); setWaiting(w); }
       try {
         const est = await navigator.storage?.estimate?.();
@@ -56,7 +56,7 @@ export default function StorageSection() {
           ? `Your browser allows about ${formatBytes(quota)} here. Reviewers will never come close.`
           : "Your browser allows far more space here than reviewers will ever need."}
       </p>
-      {waiting > 0 && <p className="stor-cap">☁ {waiting} change{waiting === 1 ? "" : "s"} waiting to back up. They send automatically when you're online.</p>}
+      {waiting > 0 && <p className="stor-cap">☁ {waiting} change{waiting === 1 ? "" : "s"} waiting to back up. They send automatically when you&rsquo;re online.</p>}
       {rows === null ? (
         <p className="stor-empty">Checking this device…</p>
       ) : items.length === 0 ? (
@@ -65,7 +65,7 @@ export default function StorageSection() {
         <>
           {items.slice(0, SHOWN).map((r) => (
             <div className="stor-row" key={r.id}>
-              <span className="nm">{r.title} {r.pending ? <span className="off">☁ backing up</span> : <span className="off">● on device</span>}</span>
+              <span className="nm">{r.title} {r.uploadFailed ? <span className="off">⚠ couldn&rsquo;t back up</span> : r.pending ? <span className="off">☁ backing up</span> : <span className="off">● on device</span>}</span>
               <span className="sz">{formatBytes(r.sizeBytes)}</span>
             </div>
           ))}

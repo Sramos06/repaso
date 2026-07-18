@@ -9,6 +9,8 @@
   --sage: #7A8B6F;
   --gold: #D9A441;
   --rule: #E4D5BC;
+  --heat-1: #EBD9AF;
+  --heat-2: #DDA45E;
   --shadow: 0 1px 2px rgba(43,33,24,.08), 0 6px 18px -6px rgba(43,33,24,.18);
   /* lifted out of hardcoded rules so themes (esp. dark) read correctly */
   --shadow-hover: 0 2px 4px rgba(43,33,24,.1), 0 16px 30px -8px rgba(43,33,24,.28);
@@ -36,6 +38,8 @@
   --sage: #94A883;
   --gold: #E5B84F;
   --rule: #382D22;
+  --heat-1: #4A3220;
+  --heat-2: #8A5A2E;
   --shadow: 0 1px 2px rgba(0,0,0,.45), 0 8px 22px -6px rgba(0,0,0,.6);
   --shadow-hover: 0 2px 4px rgba(0,0,0,.5), 0 16px 30px -8px rgba(0,0,0,.65);
   --shadow-pop: 0 4px 8px rgba(0,0,0,.5), 0 14px 34px -8px rgba(0,0,0,.7);
@@ -60,6 +64,8 @@
   --sage: #9C8A61;
   --gold: #C99A4B;
   --rule: #D8C4A4;
+  --heat-1: #E3CFA6;
+  --heat-2: #C08A4A;
   --shadow: 0 1px 2px rgba(58,42,29,.10), 0 6px 18px -6px rgba(58,42,29,.24);
   --shadow-hover: 0 2px 4px rgba(58,42,29,.12), 0 16px 30px -8px rgba(58,42,29,.3);
   --shadow-pop: 0 4px 8px rgba(58,42,29,.14), 0 14px 34px -8px rgba(58,42,29,.34);
@@ -84,6 +90,8 @@
   --sage: #88A86B;
   --gold: #CBA94F;
   --rule: #D5DBBF;
+  --heat-1: #D9E0BC;
+  --heat-2: #9FB36E;
   --shadow: 0 1px 2px rgba(43,52,42,.09), 0 6px 18px -6px rgba(43,52,42,.20);
   --shadow-hover: 0 2px 4px rgba(43,52,42,.11), 0 16px 30px -8px rgba(43,52,42,.26);
   --shadow-pop: 0 4px 8px rgba(43,52,42,.12), 0 14px 34px -8px rgba(43,52,42,.3);
@@ -187,12 +195,6 @@ a.card { color: inherit; text-decoration: none; }
   margin-bottom: 14px; min-height: 48px; background: var(--card);
 }
 .card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--ink-soft); background: var(--card); }
-.card .meta .open {
-  font-weight: 700; color: var(--terra); display: flex; align-items: center; gap: 4px;
-}
-.card .meta .open svg { width: 13px; height: 13px; transition: transform .2s; }
-.card:hover .meta .open svg { transform: translateX(3px); }
-.card .pinflag { position: absolute; top: 8px; right: 10px; font-size: 15px; }
 .card .meta .noteflag { display: flex; align-items: center; gap: 4px; color: var(--sage); font-weight: 700; }
 .card .meta .noteflag svg { width: 12px; height: 12px; }
 .empty { color: var(--ink-soft); font-size: 14px; padding: 24px 4px; font-style: italic; font-family: var(--font-display); }
@@ -238,7 +240,6 @@ a.card { color: inherit; text-decoration: none; }
 .menu button:disabled { opacity: .55; cursor: default; }
 .menu button.out { color: var(--terra-deep); }
 .menu form { margin: 0; }
-.menu-err { font-size: 12px; color: var(--terra-deep); padding: 4px 12px 6px; }
 
 /* ---------- modals + toast ---------- */
 .overlay { position: fixed; inset: 0; z-index: 150; background: var(--scrim); display: grid; place-items: center; padding: 20px; }
@@ -304,14 +305,9 @@ a.card { color: inherit; text-decoration: none; }
   box-shadow: var(--shadow); padding: 44px 48px; line-height: 1.65; font-size: 15.5px;
 }
 .docpage h1 { font-family: var(--font-display); font-size: 28px; margin-bottom: 4px; }
-.docpage .doc-sub { color: var(--ink-soft); font-size: 13px; margin-bottom: 26px; letter-spacing: .05em; }
 .docpage h2 { font-family: var(--font-display); font-size: 20px; margin: 26px 0 10px; color: var(--terra-deep); }
 .docpage ol { padding-left: 22px; }
 .docpage li { margin-bottom: 6px; }
-.docpage .formula {
-  font-family: Georgia, serif; font-style: italic; text-align: center; font-size: 18px;
-  background: var(--paper); border-radius: 8px; padding: 16px; margin: 14px 0;
-}
 .docpage table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
 .docpage th, .docpage td { border: 1px solid var(--rule); padding: 8px 10px; text-align: left; }
 .docpage th { background: var(--paper); }
@@ -454,10 +450,9 @@ a.card { color: inherit; text-decoration: none; }
 }
 .card .snippet mark { background: rgba(217,164,65,.4); color: inherit; border-radius: 2px; padding: 0 1px; }
 
-/* ---------- offline badge ---------- */
-
 /* ---------- sync flags: card badge + "On the desk" waiting pill ---------- */
 .syncflag { color: var(--gold); font-weight: 700; white-space: nowrap; }
+.syncflag.fail { color: var(--terra-deep); }
 .seclabel .syncflag { font-size: 11px; letter-spacing: .04em; }
 
 /* ---------- command palette ---------- */
@@ -505,19 +500,21 @@ a.card { color: inherit; text-decoration: none; }
 .set-note.err { color: var(--terra-deep); }
 
 /* theme picker grid */
-.themegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-.themecard {
-  position: relative; display: flex; align-items: center; gap: 12px; text-align: left; cursor: pointer;
-  background: var(--card); border: 1.5px solid var(--rule); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow);
-  font-family: var(--font-body); color: var(--ink); transition: border-color .15s, transform .15s;
+.themegrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 560px; }
+.tchip {
+  position: relative; text-align: left; cursor: pointer; border: 1px solid var(--rule);
+  border-radius: 6px; padding: 26px 16px 14px; box-shadow: var(--shadow);
+  background-image: repeating-linear-gradient(transparent, transparent 20px, rgba(0,0,0,.05) 21px);
+  transition: transform .18s ease, box-shadow .18s ease;
 }
-.themecard:hover { transform: translateY(-2px); }
-.themecard.sel { border-color: var(--terra); box-shadow: 0 0 0 3px color-mix(in srgb, var(--terra) 22%, transparent), var(--shadow); }
-.tswatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--card); box-shadow: var(--shadow); flex: none; }
-.tmeta { display: flex; flex-direction: column; gap: 2px; }
-.tname { font-weight: 700; font-size: 14px; }
-.tnote { font-size: 12px; color: var(--ink-soft); }
-.tcheck { position: absolute; top: 10px; right: 12px; color: var(--terra); font-weight: 800; }
+.tchip:hover { transform: translateY(-3px) rotate(-.4deg); box-shadow: var(--shadow-hover); }
+.tchip-tape { position: absolute; top: -8px; left: 18px; width: 54px; height: 15px; border-radius: 2px; transform: rotate(-2.5deg); opacity: .9; }
+.tchip:nth-child(2n) .tchip-tape { left: auto; right: 18px; transform: rotate(2deg); }
+.tchip-name { display: block; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
+.tchip-note { display: block; font-size: 12px; opacity: .72; margin-top: 2px; }
+.tchip-stamp { position: absolute; inset: auto 8px 6px auto; width: 92px; height: 46px; mix-blend-mode: multiply; pointer-events: none; }
+[data-theme="night"] .tchip-stamp { mix-blend-mode: screen; }
+@media (max-width: 430px) { .themegrid { grid-template-columns: 1fr 1fr; gap: 12px; } .tchip { padding: 20px 12px 12px; } }
 
 /* ---------- printable notes sheet ---------- */
 .printsheet {
@@ -583,7 +580,7 @@ a.card { color: inherit; text-decoration: none; }
 .managing .card .tick { display: grid; }
 .managing .card.sel { outline: 2.5px solid var(--terra); outline-offset: 2px; }
 .managing .card.sel .tick { background: var(--terra); border-color: var(--terra); color: #FFF4E8; }
-.managing .card .more, .managing .card .pin, .managing .card .pinflag { visibility: hidden; }
+.managing .card .more, .managing .card .pin { visibility: hidden; }
 .bulkbar {
   position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 130%); transition: transform .25s ease;
   display: flex; align-items: center; gap: 8px; z-index: 95;
@@ -693,4 +690,203 @@ a.card { color: inherit; text-decoration: none; }
     width: auto; flex-direction: row; justify-content: center; gap: 10px;
     border-left: none; border-top: 2px dashed color-mix(in srgb, var(--terra) 55%, var(--rule)); padding: 11px;
   }
+}
+
+/* ---------- stats (v2.1) ---------- */
+.stx .crumb { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 18px; }
+.stx .crumb a { color: var(--terra); text-decoration: none; }
+
+/* the attendance card */
+.stx-card {
+  background: var(--card); border-radius: 6px; box-shadow: var(--shadow);
+  padding: 26px 30px 24px; border-top: 1px solid var(--rule);
+}
+/* header row: title block left, streak stamp right — real layout, no overlap */
+.stx-top { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+.stx-who { flex: 1; min-width: 0; }
+.stx-who h1 { font-family: var(--font-display); font-weight: 700; font-size: 32px; letter-spacing: -.01em; }
+.stx-lib { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); margin-top: 4px; display: block; }
+.stx-streak {
+  flex: none; width: 96px; height: 96px; border: 2.5px solid var(--terra); border-radius: 50%;
+  transform: rotate(-7deg); display: grid; place-items: center; text-align: center;
+  color: var(--terra); mix-blend-mode: multiply;
+}
+/* Multiply goes muddy on the dark night card; screen keeps the stamp readable. */
+[data-theme="night"] .stx-streak { mix-blend-mode: screen; }
+.stx-streak b { font-family: var(--font-display); font-size: 32px; font-weight: 900; line-height: 1; display: block; }
+.stx-streak span { font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.stx-r { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 11px 2px; border-bottom: 1px solid var(--rule); font-size: 14.5px; }
+.stx-r .k { font-weight: 700; color: var(--ink-soft); }
+.stx-r .v { font-family: var(--font-display); font-weight: 800; font-size: 16px; text-align: right; }
+
+/* calendar grid with real date bearings */
+.stx-cal { padding: 20px 0 4px; overflow-x: auto; }
+.stx-cal-inner { display: inline-block; min-width: 0; }
+.stx-months { display: grid; grid-auto-flow: column; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; color: var(--ink-soft); text-transform: uppercase; margin: 0 0 5px 34px; }
+.stx-body { display: flex; gap: 6px; }
+.stx-days { display: grid; grid-template-rows: repeat(7, 15px); gap: 1px; font-size: 9.5px; font-weight: 800; color: var(--ink-soft); width: 28px; }
+.stx-days span { line-height: 15px; text-align: right; padding-right: 2px; letter-spacing: .04em; }
+.stx-grid { display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(7, 15px); background: var(--rule); gap: 1px; padding: 1px; }
+.stx-grid i { width: 15px; height: 15px; background: var(--card); font-style: normal; }
+.stx-grid i.off { background: transparent; }
+.stx-grid i.l1 { background: var(--heat-1); }
+.stx-grid i.l2 { background: var(--heat-2); }
+.stx-grid i.l3 { background: var(--terra); }
+
+/* most visited: top 3, warmth = work */
+.stx-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 22px 18px; margin-top: 6px; }
+.stx-mini {
+  position: relative; border-radius: 6px; box-shadow: var(--shadow); padding: 16px 14px 12px;
+  background-image: repeating-linear-gradient(transparent, transparent 22px, var(--rule) 23px);
+}
+/* the harder you work it, the warmer the card */
+.stx-mini.hot  { background-color: color-mix(in srgb, var(--terra) 12%, var(--card)); transform: rotate(-.8deg); }
+.stx-mini.warm { background-color: color-mix(in srgb, var(--gold) 12%, var(--card)); transform: rotate(.6deg); }
+.stx-mini.mild { background-color: var(--card); transform: rotate(-.3deg); }
+.stx-mini::before { content: ""; position: absolute; top: -9px; left: 50%; width: 58px; height: 16px; transform: translateX(-50%) rotate(-2deg); border-radius: 2px; opacity: .85; }
+.stx-mini.hot::before { background: var(--washi-3); }
+.stx-mini.warm::before { background: var(--washi-2); transform: translateX(-50%) rotate(1.5deg); }
+.stx-mini.mild::before { background: var(--washi-1); }
+.stx-mini h4 { font-family: var(--font-display); font-size: 14.5px; line-height: 1.3; margin: 4px 0 8px; }
+.stx-mini .visits { font-family: var(--font-accent); font-size: 19px; }
+.stx-mini.hot .visits { color: var(--terra-deep); }
+.stx-mini.warm .visits { color: var(--terra); }
+.stx-mini.mild .visits { color: var(--ink-soft); }
+.stx-mini.hot .flame { position: absolute; top: 8px; right: 10px; font-size: 14px; }
+
+/* mobile: card padding tightens, calendar scrolls (themed horizontal scrollbar) */
+@media (max-width: 640px) {
+  .stx-card { padding: 18px 16px 16px; }
+}
+
+/* ---------- themed scrollbars (v2.1) ----------
+   Each theme carries its own scrollbar pair (see prototypes/scrollbars/
+   scrollbar-library.html, the permanent bench). Vertical rides every
+   scroll container; horizontal is scoped to the two spots that actually
+   scroll sideways (.stx-cal, .recent-row) — this build's Chromium drops
+   ::-webkit-scrollbar-thumb/-track:vertical/:horizontal as an invalid
+   selector, so direction here is expressed via scoping + cascade order
+   instead of those pseudo-classes. Separately: this Chromium also treats
+   the standard scrollbar-color/-width properties as fully overriding any
+   ::-webkit-scrollbar-* pseudo-elements the moment both are set on the
+   same reach (verified with a minimal repro) — so the Firefox baseline
+   below is gated to engines that don't understand ::-webkit-scrollbar at
+   all, letting Chromium use the custom thumbs exclusively. */
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: var(--sb-thumb, var(--ink-soft)) transparent; }
+}
+:root { --sb-thumb: var(--gold); }
+[data-theme="night"] { --sb-thumb: var(--terra); }
+[data-theme="coffee"] { --sb-thumb: var(--ink-soft); }
+[data-theme="matcha"] { --sb-thumb: var(--sage); }
+
+*::-webkit-scrollbar { width: 10px; height: 14px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-corner { background: transparent; }
+
+/* warm (default) vertical · V1 Graphite */
+*::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background: /* wood shaft with side facets + graphite tip */
+    linear-gradient(180deg, transparent 84%, #6B5D4F 92%, #2B2118 100%),
+    linear-gradient(90deg, #C98F2E 0 22%, #E8C97F 22% 45%, #D9A441 45% 78%, #B37E22 78%);
+}
+*::-webkit-scrollbar-thumb:hover { filter: brightness(1.06); }
+
+/* night vertical · V4 Ribbon */
+[data-theme="night"] *::-webkit-scrollbar-thumb {
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, var(--terra-deep), var(--terra) 40%, #D26A41 60%, var(--terra-deep));
+  border-left: 2px solid transparent; border-right: 2px solid transparent; background-clip: padding-box;
+}
+[data-theme="night"] *::-webkit-scrollbar-thumb:hover { border-left-width: 1px; border-right-width: 1px; filter: none; }
+
+/* coffee vertical · V5 Stitch (knot + thread flow from coffee's own --ink/--rule).
+   background (not background-color): the warm base rule above sets an opaque
+   two-layer background-image on the same longhand, and background-color alone
+   wouldn't clear it — the shorthand resets both so the ink knot isn't hidden
+   under Graphite's wood-grain layer. */
+[data-theme="coffee"] *::-webkit-scrollbar-thumb {
+  border-radius: 6px; border: 3px solid transparent; background-clip: padding-box;
+  background: var(--ink);
+}
+[data-theme="coffee"] *::-webkit-scrollbar-thumb:hover { border-width: 2px; filter: none; }
+[data-theme="coffee"] *::-webkit-scrollbar-track {
+  background: repeating-linear-gradient(180deg, var(--rule) 0 6px, transparent 6px 14px);
+  background-size: 3px 100%; background-repeat: no-repeat; background-position: center;
+}
+
+/* matcha vertical · V3 Washi */
+[data-theme="matcha"] *::-webkit-scrollbar-thumb {
+  border-radius: 2px; border: 2px solid var(--paper);
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 4px, transparent 4px 8px),
+    var(--washi-1);
+}
+[data-theme="matcha"] *::-webkit-scrollbar-thumb:hover {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 4px, transparent 4px 8px),
+    color-mix(in srgb, var(--sage) 75%, transparent);
+  filter: none;
+}
+[data-theme="matcha"] *::-webkit-scrollbar-track { background: var(--paper); border-left: 1px solid var(--rule); }
+
+/* warm + coffee horizontal (calendar strip, recent-studies row) · H1 Ruler
+   .stx-cal/.recent-row ties the coffee vertical override above on specificity
+   (both are one attribute-or-class selector deep) — placed after it, so this
+   wins the tie and coffee keeps the shared Ruler instead of inheriting Stitch. */
+.stx-cal::-webkit-scrollbar-track, .recent-row::-webkit-scrollbar-track {
+  background:
+    repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, var(--ink-soft) 0 1px, transparent 1px 40px),
+    var(--paper);
+  background-size: 100% 45%, 100% 80%, 100% 100%; background-repeat: no-repeat; background-position: bottom, bottom, center;
+  border-top: 1px solid var(--rule);
+}
+.stx-cal::-webkit-scrollbar-thumb, .recent-row::-webkit-scrollbar-thumb {
+  border-radius: 3px; border: 2px solid rgba(43,33,24,.25);
+  background: linear-gradient(180deg, #E8C97F, var(--gold) 55%, #B37E22);
+}
+.stx-cal::-webkit-scrollbar-thumb:hover, .recent-row::-webkit-scrollbar-thumb:hover { filter: brightness(1.05); }
+
+/* night horizontal · H2 Marker (a class selector under [data-theme="night"] always
+   outranks the plain-attribute vertical rule above, so no ordering trick needed here).
+   The explicit background-size/-repeat/-position + border resets clear everything the
+   shared Ruler rule sets — Marker is a full-height single gradient with no ticks,
+   no bottom-pinned sizing, and no border ring (its edges come from inset shadows). */
+[data-theme="night"] .stx-cal::-webkit-scrollbar-track, [data-theme="night"] .recent-row::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, transparent 0 45%, var(--rule) 45% 55%, transparent 55%);
+  background-size: auto; background-repeat: repeat; background-position: 0% 0%;
+  border-top: 0;
+}
+[data-theme="night"] .stx-cal::-webkit-scrollbar-thumb, [data-theme="night"] .recent-row::-webkit-scrollbar-thumb {
+  border-radius: 2px; border: 0;
+  background: linear-gradient(180deg, transparent 0 15%, color-mix(in srgb, var(--gold) 55%, transparent) 15% 85%, transparent 85%);
+  box-shadow:
+    inset -6px 0 6px -6px color-mix(in srgb, color-mix(in srgb, var(--gold) 65%, black) 80%, transparent),
+    inset 6px 0 6px -6px color-mix(in srgb, color-mix(in srgb, var(--gold) 65%, black) 80%, transparent);
+}
+[data-theme="night"] .stx-cal::-webkit-scrollbar-thumb:hover, [data-theme="night"] .recent-row::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, transparent 0 10%, color-mix(in srgb, var(--gold) 75%, transparent) 10% 90%, transparent 90%);
+  filter: none;
+}
+
+/* matcha horizontal · H3 Tape (border-top: 0 clears the Ruler rule's top hairline —
+   the library's .h3x track has no border) */
+[data-theme="matcha"] .stx-cal::-webkit-scrollbar-track, [data-theme="matcha"] .recent-row::-webkit-scrollbar-track {
+  background: repeating-linear-gradient(90deg, var(--rule) 0 8px, transparent 8px 16px);
+  background-size: 100% 2px; background-repeat: no-repeat; background-position: center;
+  border-top: 0; border-left: 0; /* both hairlines leak from other track rules otherwise */
+}
+[data-theme="matcha"] .stx-cal::-webkit-scrollbar-thumb, [data-theme="matcha"] .recent-row::-webkit-scrollbar-thumb {
+  border-radius: 2px; border: 2px solid var(--paper);
+  background:
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.25) 0 5px, transparent 5px 10px),
+    var(--washi-3);
+}
+[data-theme="matcha"] .stx-cal::-webkit-scrollbar-thumb:hover, [data-theme="matcha"] .recent-row::-webkit-scrollbar-thumb:hover {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.25) 0 5px, transparent 5px 10px),
+    color-mix(in srgb, var(--terra) 65%, transparent);
+  filter: none;
 }

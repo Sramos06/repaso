@@ -8,6 +8,7 @@ type Props = {
   snippet?: string;
   term?: string;
   pendingSync?: boolean;
+  uploadFailed?: boolean;
   managing?: boolean;
   selected?: boolean;
   onToggleSelect: () => void;
@@ -46,7 +47,7 @@ function highlight(text: string, term: string) {
   return out;
 }
 
-export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, pendingSync, managing, selected, onToggleSelect, onMenuToggle, onPin, onRename, onDuplicate, onSend, onArchive, onDelete }: Props) {
+export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, pendingSync, uploadFailed, managing, selected, onToggleSelect, onMenuToggle, onPin, onRename, onDuplicate, onSend, onArchive, onDelete }: Props) {
   return (
     <Link
       href={`/viewer/${r.id}`}
@@ -75,7 +76,9 @@ export default function ReviewerCard({ r, menuOpen, contentHit, snippet, term, p
         <span>{r.date}</span>
         <span className="flags">
           {contentHit && <span className="hitflag">found inside</span>}
-          {pendingSync && <span className="syncflag" title="Backs up when online">☁ backing up</span>}
+          {pendingSync && (uploadFailed
+            ? <span className="syncflag fail" title="The cloud rejected this file">⚠ couldn&rsquo;t back up</span>
+            : <span className="syncflag" title="Backs up when online">☁ backing up</span>)}
           {r.archived && <span className="archflag">archived</span>}
           {r.hasNotes && (
             <span className="noteflag">

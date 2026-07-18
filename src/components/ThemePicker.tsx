@@ -36,13 +36,20 @@ export default function ThemePicker({ current }: { current: Theme }) {
           <button
             key={t.id}
             type="button"
-            className={`themecard${sel === t.id ? " sel" : ""}`}
+            className={`tchip${sel === t.id ? " on" : ""}`}
             aria-pressed={sel === t.id}
             onClick={() => pick(t.id)}
+            style={{ backgroundColor: t.preview.paper, color: t.preview.ink }}
           >
-            <span className="tswatch" style={{ background: t.swatch }} />
-            <span className="tmeta"><span className="tname">{t.label}</span><span className="tnote">{t.note}</span></span>
-            {sel === t.id && <span className="tcheck" aria-hidden>✓</span>}
+            <span className="tchip-tape" style={{ background: t.preview.washi }} />
+            <span className="tchip-name">{t.label}</span>
+            <span className="tchip-note">{t.note}</span>
+            {sel === t.id && (
+              <svg className="tchip-stamp" viewBox="0 0 120 60" aria-hidden style={{ color: t.preview.accent }}>
+                <ellipse cx="60" cy="30" rx="54" ry="24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" transform="rotate(-4 60 30)" />
+                <ellipse cx="60" cy="30" rx="51" ry="21" fill="none" stroke="currentColor" strokeWidth="1.4" opacity=".5" transform="rotate(3 60 30)" />
+              </svg>
+            )}
           </button>
         ))}
       </div>
