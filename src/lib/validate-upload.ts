@@ -4,6 +4,8 @@ export const MAX_WIRE_BYTES = 4 * 1024 * 1024; // payload cap (Vercel body limit
 export const WIRE_LIMIT_REASON =
   "This file doesn't compress small enough to store. Keep it under 15 MB of mostly text.";
 
+import { decodeEntities } from "./decode-entities";
+
 type UploadCheck = { ok: true; title: string } | { ok: false; reason: string };
 
 export function validateUpload(filename: string, sizeBytes: number, content: string): UploadCheck {
@@ -11,7 +13,8 @@ export function validateUpload(filename: string, sizeBytes: number, content: str
   if (sizeBytes > MAX_BYTES) return { ok: false, reason: "File is over the 15 MB limit." };
   if (!content.trim()) return { ok: false, reason: "File is empty." };
   const m = content.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  const fromTitle = m?.[1]?.trim();
+  // Decode entities so a file's escaped <title> (e.g. "&amp;") stores as real text.
+  const fromTitle = m?.[1] ? decodeEntities(m[1]).trim() : undefined;
   const fromName = filename.replace(/\.html?$/i, "").trim();
   const title = (fromTitle || fromName).slice(0, 200);
   return { ok: true, title };

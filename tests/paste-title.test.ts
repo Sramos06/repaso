@@ -17,6 +17,10 @@ describe("pasteTitle", () => {
   it("skips a whitespace-only title and uses the h1", () => {
     expect(pasteTitle("<title>   </title><h1>H</h1>")).toBe("H");
   });
+  it("decodes entities in the title and in an h1 fallback", () => {
+    expect(pasteTitle("<title>Modeling &amp; Simulation</title>")).toBe("Modeling & Simulation");
+    expect(pasteTitle("<h1>Q &amp; A <em>Review</em></h1>")).toBe("Q & A Review");
+  });
   it("defaults when neither exists", () => {
     expect(pasteTitle("<p>hello</p>")).toBe("Pasted reviewer");
   });

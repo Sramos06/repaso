@@ -22,6 +22,10 @@ describe("validateUpload", () => {
     const r = validateUpload("empty.html", 0, "   ");
     expect(r).toEqual({ ok: false, reason: "File is empty." });
   });
+  it("decodes HTML entities in the extracted title", () => {
+    const r = validateUpload("comp.html", 500, "<title>Modeling &amp; Simulation</title>");
+    expect(r).toEqual({ ok: true, title: "Modeling & Simulation" });
+  });
   it("trims and caps extracted titles at 200 chars", () => {
     const long = "x".repeat(300);
     const r = validateUpload("a.html", 500, `<title>  ${long}  </title>`);
