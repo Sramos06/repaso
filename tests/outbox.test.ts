@@ -26,6 +26,21 @@ describe("outbox flush", () => {
     expect(mem._stores.outbox.size).toBe(0);
   });
 
+  it("a crash-resumed upload adopts from the remap record without re-posting", async () => {
+    // A prior run got its 2xx and wrote the remap marker, then died before
+    // finishing adoption: the resend must resume adoption, never re-upload.
+    mem._stores.meta.set("remap:local-1", { key: "remap:local-1", value: "real-9" });
+    mem._stores.reviewers.set("local-1", { id: "local-1", pending: true, title: "T" });
+    const posts: string[] = [];
+    vi.stubGlobal("fetch", (url: string, init?: RequestInit) => { if (init?.method === "POST") posts.push(url); return respond(200, {}); });
+    await enqueue({ kind: "upload", tempId: "local-1", name: "t.html", payload: "p", encoding: "gzip" });
+    await flushOutbox();
+    expect(posts.filter((u) => u === "/api/reviewers").length).toBe(0); // no duplicate upload
+    expect(mem._stores.reviewers.get("real-9")).toBeTruthy();
+    expect(mem._stores.reviewers.get("local-1")).toBeUndefined();
+    expect(mem._stores.outbox.size).toBe(0);
+  });
+
   it("drops on 404 (permanent verdict) but retries on 500", async () => {
     vi.stubGlobal("fetch", () => respond(404));
     await enqueue({ kind: "note", target: "gone", contentMd: "x", baseUpdatedAt: null });
