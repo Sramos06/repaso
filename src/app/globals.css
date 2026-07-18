@@ -808,7 +808,7 @@ a.card { color: inherit; text-decoration: none; }
   background: linear-gradient(90deg, var(--terra-deep), var(--terra) 40%, #D26A41 60%, var(--terra-deep));
   border-left: 2px solid transparent; border-right: 2px solid transparent; background-clip: padding-box;
 }
-[data-theme="night"] *::-webkit-scrollbar-thumb:hover { border-left-width: 1px; border-right-width: 1px; }
+[data-theme="night"] *::-webkit-scrollbar-thumb:hover { border-left-width: 1px; border-right-width: 1px; filter: none; }
 
 /* coffee vertical · V5 Stitch (knot + thread flow from coffee's own --ink/--rule).
    background (not background-color): the warm base rule above sets an opaque
@@ -819,7 +819,7 @@ a.card { color: inherit; text-decoration: none; }
   border-radius: 6px; border: 3px solid transparent; background-clip: padding-box;
   background: var(--ink);
 }
-[data-theme="coffee"] *::-webkit-scrollbar-thumb:hover { border-width: 2px; }
+[data-theme="coffee"] *::-webkit-scrollbar-thumb:hover { border-width: 2px; filter: none; }
 [data-theme="coffee"] *::-webkit-scrollbar-track {
   background: repeating-linear-gradient(180deg, var(--rule) 0 6px, transparent 6px 14px);
   background-size: 3px 100%; background-repeat: no-repeat; background-position: center;
@@ -836,6 +836,7 @@ a.card { color: inherit; text-decoration: none; }
   background:
     repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 4px, transparent 4px 8px),
     color-mix(in srgb, var(--sage) 75%, transparent);
+  filter: none;
 }
 [data-theme="matcha"] *::-webkit-scrollbar-track { background: var(--paper); border-left: 1px solid var(--rule); }
 
@@ -858,12 +859,17 @@ a.card { color: inherit; text-decoration: none; }
 .stx-cal::-webkit-scrollbar-thumb:hover, .recent-row::-webkit-scrollbar-thumb:hover { filter: brightness(1.05); }
 
 /* night horizontal · H2 Marker (a class selector under [data-theme="night"] always
-   outranks the plain-attribute vertical rule above, so no ordering trick needed here) */
+   outranks the plain-attribute vertical rule above, so no ordering trick needed here).
+   The explicit background-size/-repeat/-position + border resets clear everything the
+   shared Ruler rule sets — Marker is a full-height single gradient with no ticks,
+   no bottom-pinned sizing, and no border ring (its edges come from inset shadows). */
 [data-theme="night"] .stx-cal::-webkit-scrollbar-track, [data-theme="night"] .recent-row::-webkit-scrollbar-track {
   background: linear-gradient(180deg, transparent 0 45%, var(--rule) 45% 55%, transparent 55%);
+  background-size: auto; background-repeat: repeat; background-position: 0% 0%;
+  border-top: 0;
 }
 [data-theme="night"] .stx-cal::-webkit-scrollbar-thumb, [data-theme="night"] .recent-row::-webkit-scrollbar-thumb {
-  border-radius: 2px;
+  border-radius: 2px; border: 0;
   background: linear-gradient(180deg, transparent 0 15%, color-mix(in srgb, var(--gold) 55%, transparent) 15% 85%, transparent 85%);
   box-shadow:
     inset -6px 0 6px -6px color-mix(in srgb, color-mix(in srgb, var(--gold) 65%, black) 80%, transparent),
@@ -871,12 +877,15 @@ a.card { color: inherit; text-decoration: none; }
 }
 [data-theme="night"] .stx-cal::-webkit-scrollbar-thumb:hover, [data-theme="night"] .recent-row::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, transparent 0 10%, color-mix(in srgb, var(--gold) 75%, transparent) 10% 90%, transparent 90%);
+  filter: none;
 }
 
-/* matcha horizontal · H3 Tape */
+/* matcha horizontal · H3 Tape (border-top: 0 clears the Ruler rule's top hairline —
+   the library's .h3x track has no border) */
 [data-theme="matcha"] .stx-cal::-webkit-scrollbar-track, [data-theme="matcha"] .recent-row::-webkit-scrollbar-track {
   background: repeating-linear-gradient(90deg, var(--rule) 0 8px, transparent 8px 16px);
   background-size: 100% 2px; background-repeat: no-repeat; background-position: center;
+  border-top: 0;
 }
 [data-theme="matcha"] .stx-cal::-webkit-scrollbar-thumb, [data-theme="matcha"] .recent-row::-webkit-scrollbar-thumb {
   border-radius: 2px; border: 2px solid var(--paper);
@@ -888,4 +897,5 @@ a.card { color: inherit; text-decoration: none; }
   background:
     repeating-linear-gradient(-45deg, rgba(255,255,255,.25) 0 5px, transparent 5px 10px),
     color-mix(in srgb, var(--terra) 65%, transparent);
+  filter: none;
 }
