@@ -8,7 +8,8 @@ import { eq } from "drizzle-orm";
 // unauthenticated or off the allow-list; callers (API routes) catch it.
 export async function requireUser(): Promise<{ id: string; email: string }> {
   const session = await auth();
-  const googleSub = (session as any)?.googleSub as string | undefined;
+  // Narrow cast (not `any`): the session is augmented with googleSub in auth callbacks.
+  const googleSub = (session as { googleSub?: string } | null)?.googleSub;
   const email = session?.user?.email?.toLowerCase();
   const allowed = process.env.ALLOWED_EMAIL?.toLowerCase();
   if (!session || !googleSub || !email || !allowed || email !== allowed) {

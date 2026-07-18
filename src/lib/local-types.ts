@@ -10,7 +10,7 @@ export type LocalReviewer = {
   createdAt: string; // ISO
   updatedAt: string; // ISO; server stamp once synced, local stamp while pending
   lastOpenedAt: string | null;
-  sizeBytes: number; // RAW size (v1.12 rule)
+  sizeBytes: number; // RAW size, not the compressed payload size below
   payload: string; // compressed-at-rest content, same bytes the server stores
   encoding: Encoding;
   hasNotes: boolean;
@@ -36,7 +36,7 @@ export type Mutation =
 
 export type QueuedMutation = Mutation & { seq: number; attempts: number };
 
-// What the upgraded GET /api/reviewers returns per row (Task 3).
+// Row shape returned by GET /api/reviewers.
 export type ServerRow = {
   id: string; title: string; subject: string | null; pinned: boolean;
   archivedAt: string | null; createdAt: string; updatedAt: string;

@@ -5,14 +5,14 @@ export type Theme = "warm" | "night" | "coffee" | "matcha";
 
 export const DEFAULT_THEME: Theme = "warm";
 
-export type ThemePreview = {
+type ThemePreview = {
   paper: string; // chip background
   ink: string; // chip text color
   accent: string; // selection stamp color
   washi: string; // tape strip color
 };
 
-export type ThemeMeta = {
+type ThemeMeta = {
   id: Theme;
   label: string;
   preview: ThemePreview; // real palette snapshot for the picker chip

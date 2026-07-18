@@ -56,7 +56,7 @@ export default function StorageSection() {
           ? `Your browser allows about ${formatBytes(quota)} here. Reviewers will never come close.`
           : "Your browser allows far more space here than reviewers will ever need."}
       </p>
-      {waiting > 0 && <p className="stor-cap">☁ {waiting} change{waiting === 1 ? "" : "s"} waiting to back up. They send automatically when you're online.</p>}
+      {waiting > 0 && <p className="stor-cap">☁ {waiting} change{waiting === 1 ? "" : "s"} waiting to back up. They send automatically when you&rsquo;re online.</p>}
       {rows === null ? (
         <p className="stor-empty">Checking this device…</p>
       ) : items.length === 0 ? (

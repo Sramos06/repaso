@@ -51,11 +51,16 @@ export default function DeskClient({ email }: { email: string }) {
   const term = query.trim();
   const matchTS = (r: DeskReviewer) => r.title.toLowerCase().includes(q) || (r.subject ?? "").toLowerCase().includes(q);
 
+  // Below the 3-char content-search floor, drop any stale hits from a longer
+  // query the user just backspaced out of — computed during render (not an
+  // effect) so it can't outrace the debounced fetch below.
+  if (term.length < 3 && contentHits.size > 0) setContentHits(new Map());
+
   // Content search → id→snippet map. title/subject stays instant; ≥3 chars hits the API.
   useEffect(() => {
     const t = query.trim();
     const seq = ++searchSeq.current;
-    if (t.length < 3) { setContentHits(new Map()); return; }
+    if (t.length < 3) return; // clearing is handled during render above
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(t)}`);

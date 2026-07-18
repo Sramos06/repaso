@@ -19,7 +19,10 @@ export default function CommandPalette({ items, onClose }: { items: Item[]; onCl
     return list.slice(0, 8);
   }, [q, items]);
 
-  useEffect(() => { setActive(0); }, [q]);
+  // Re-pick the highlighted row whenever the query changes, computed during
+  // render (not an effect) so the very first paint after a keystroke is right.
+  const [lastQ, setLastQ] = useState(q);
+  if (q !== lastQ) { setLastQ(q); setActive(0); }
 
   function go(i: Item | undefined) { if (i) { router.push(`/viewer/${i.id}`); onClose(); } }
 

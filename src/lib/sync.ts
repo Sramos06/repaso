@@ -5,7 +5,7 @@
 import type { LocalReviewer, LocalNote, ServerRow } from "./local-types";
 import { diffRows } from "./sync-plan";
 import { dbGet, dbGetAll, dbPut, dbDel, dbClear, notifyChange } from "./local-db";
-import { flushOutbox, outboxCount, pendingWorkCount, scheduleFlush } from "./outbox";
+import { flushOutbox, outboxCount, pendingWorkCount } from "./outbox";
 
 let started = false;
 export function startSync(): void {
@@ -71,7 +71,7 @@ async function pull(): Promise<void> {
       const d = await res.json();
       const s = metaById.get(id);
       if (!s || typeof d.htmlContent !== "string") return;
-      if (typeof s.updatedAt !== "string") return; // stale tab against a rolled-back v1.12 server
+      if (typeof s.updatedAt !== "string") return; // guards a stale tab against a rolled-back server missing updatedAt
       await dbPut("reviewers", {
         ...s, payload: d.htmlContent, encoding: d.encoding ?? "plain", pending: false,
       } satisfies LocalReviewer);
@@ -80,7 +80,7 @@ async function pull(): Promise<void> {
   notifyChange(); // paint fetched content as soon as it lands, don't wait for notes below
   for (const s of plan.metaOnly) {
     if (locallyAhead.has(s.id)) continue; // this device is ahead of the server here; adopt after the flush lands
-    if (typeof s.updatedAt !== "string") continue; // stale tab against a rolled-back v1.12 server
+    if (typeof s.updatedAt !== "string") continue; // guards a stale tab against a rolled-back server missing updatedAt
     const row = await dbGet<LocalReviewer>("reviewers", s.id);
     if (row) await dbPut("reviewers", { ...row, ...s, payload: row.payload, encoding: row.encoding, pending: false });
   }
@@ -122,4 +122,4 @@ export async function clearLocalAndRehydrate(): Promise<{ ok: boolean; reason?: 
   return { ok: true };
 }
 
-export { outboxCount, pendingWorkCount, scheduleFlush };
+export { pendingWorkCount };

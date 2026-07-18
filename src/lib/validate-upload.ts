@@ -4,7 +4,7 @@ export const MAX_WIRE_BYTES = 4 * 1024 * 1024; // payload cap (Vercel body limit
 export const WIRE_LIMIT_REASON =
   "This file doesn't compress small enough to store. Keep it under 15 MB of mostly text.";
 
-export type UploadCheck = { ok: true; title: string } | { ok: false; reason: string };
+type UploadCheck = { ok: true; title: string } | { ok: false; reason: string };
 
 export function validateUpload(filename: string, sizeBytes: number, content: string): UploadCheck {
   if (!/\.html?$/i.test(filename)) return { ok: false, reason: "Only .html or .htm files are allowed." };

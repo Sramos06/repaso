@@ -41,6 +41,11 @@ export default function NotesPanel({ reviewerId, open, onClose }: { reviewerId: 
   useEffect(() => {
     let cancelled = false;
     editingRef.current = false;
+    // Not movable to render time: this effect's own cleanup (below) checks
+    // editingRef.current to decide whether the OLD target's mid-typing text
+    // needs flushing before the switch. Resetting it during render would run
+    // before that cleanup fires and make it see the wrong target's state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setText(""); setState("loading"); setView("write"); setMerged(false);
 
     async function load() {

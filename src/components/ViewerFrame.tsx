@@ -20,10 +20,17 @@ export default function ViewerFrame() {
   const [hasNotes, setHasNotes] = useState(false);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(reviewerId === null ? "ready" : "loading");
 
+  // Reset to loading (or ready, for the scratchpad) the moment the route's
+  // reviewer id changes, computed during render so the switch is instant.
+  const [lastReviewerId, setLastReviewerId] = useState(reviewerId);
+  if (reviewerId !== lastReviewerId) {
+    setLastReviewerId(reviewerId);
+    setStatus(reviewerId === null ? "ready" : "loading");
+  }
+
   useEffect(() => {
     if (reviewerId === null) return;
     let cancelled = false;
-    setStatus("loading");
     startSync();
     async function load() {
       const html = await getContent(reviewerId!);

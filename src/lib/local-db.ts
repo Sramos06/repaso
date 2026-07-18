@@ -5,7 +5,7 @@
 
 const DB_NAME = "repaso-local";
 const DB_VERSION = 1;
-export type StoreName = "reviewers" | "notes" | "outbox" | "meta";
+type StoreName = "reviewers" | "notes" | "outbox" | "meta";
 
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 
@@ -51,7 +51,7 @@ export const dbGetAll = <T>(store: StoreName) => request<T[]>(store, "readonly",
 export const dbClear = (store: StoreName) => request<undefined>(store, "readwrite", (s) => s.clear());
 
 // ---- cross-tab + same-tab change notifications ----
-export type LocalMsg = { type: "changed" } | { type: "note-merged"; target: string };
+type LocalMsg = { type: "changed" } | { type: "note-merged"; target: string };
 
 const listeners = new Set<(msg: LocalMsg) => void>();
 let channel: BroadcastChannel | null = null;

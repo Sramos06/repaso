@@ -1,7 +1,7 @@
 // Pure, testable shape-check for the JSON upload body. Size and content
 // validation happen later, after decode, in the route.
 
-export type UploadBody = { ok: true; name: string; encoding: "plain" | "gzip"; payload: string } | { ok: false; reason: string };
+type UploadBody = { ok: true; name: string; encoding: "plain" | "gzip"; payload: string } | { ok: false; reason: string };
 
 export function parseUploadBody(body: unknown): UploadBody {
   if (typeof body !== "object" || body === null) return { ok: false, reason: "Bad upload request." };

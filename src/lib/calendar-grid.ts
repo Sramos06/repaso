@@ -3,8 +3,8 @@
 // in the stats page.
 import { dayKey, addDays } from "./stats-calc";
 
-export type GridCell = { key: string; inYear: boolean; future: boolean };
-export type YearGrid = { weeks: number; cells: GridCell[]; monthLabels: { col: number; label: string }[] };
+type GridCell = { key: string; inYear: boolean; future: boolean };
+type YearGrid = { weeks: number; cells: GridCell[]; monthLabels: { col: number; label: string }[] };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 

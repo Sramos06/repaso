@@ -1,10 +1,10 @@
 import { uploadOne } from "./upload-one";
 
-export type BackupReviewer = {
+type BackupReviewer = {
   title: string; subject: string | null; pinned: boolean; archived: boolean; htmlContent: string; noteMd: string;
 };
-export type Backup = { scratchpad: string; reviewers: BackupReviewer[] };
-export type ImportResult = { added: number; skipped: string[]; failed: string[] };
+type Backup = { scratchpad: string; reviewers: BackupReviewer[] };
+type ImportResult = { added: number; skipped: string[]; failed: string[] };
 
 // Pure, testable: validates a parsed backup object and normalizes v1 → v2 shape.
 export function parseBackup(json: unknown): { ok: true; data: Backup } | { ok: false; reason: string } {

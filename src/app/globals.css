@@ -195,12 +195,6 @@ a.card { color: inherit; text-decoration: none; }
   margin-bottom: 14px; min-height: 48px; background: var(--card);
 }
 .card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--ink-soft); background: var(--card); }
-.card .meta .open {
-  font-weight: 700; color: var(--terra); display: flex; align-items: center; gap: 4px;
-}
-.card .meta .open svg { width: 13px; height: 13px; transition: transform .2s; }
-.card:hover .meta .open svg { transform: translateX(3px); }
-.card .pinflag { position: absolute; top: 8px; right: 10px; font-size: 15px; }
 .card .meta .noteflag { display: flex; align-items: center; gap: 4px; color: var(--sage); font-weight: 700; }
 .card .meta .noteflag svg { width: 12px; height: 12px; }
 .empty { color: var(--ink-soft); font-size: 14px; padding: 24px 4px; font-style: italic; font-family: var(--font-display); }
@@ -246,7 +240,6 @@ a.card { color: inherit; text-decoration: none; }
 .menu button:disabled { opacity: .55; cursor: default; }
 .menu button.out { color: var(--terra-deep); }
 .menu form { margin: 0; }
-.menu-err { font-size: 12px; color: var(--terra-deep); padding: 4px 12px 6px; }
 
 /* ---------- modals + toast ---------- */
 .overlay { position: fixed; inset: 0; z-index: 150; background: var(--scrim); display: grid; place-items: center; padding: 20px; }
@@ -312,14 +305,9 @@ a.card { color: inherit; text-decoration: none; }
   box-shadow: var(--shadow); padding: 44px 48px; line-height: 1.65; font-size: 15.5px;
 }
 .docpage h1 { font-family: var(--font-display); font-size: 28px; margin-bottom: 4px; }
-.docpage .doc-sub { color: var(--ink-soft); font-size: 13px; margin-bottom: 26px; letter-spacing: .05em; }
 .docpage h2 { font-family: var(--font-display); font-size: 20px; margin: 26px 0 10px; color: var(--terra-deep); }
 .docpage ol { padding-left: 22px; }
 .docpage li { margin-bottom: 6px; }
-.docpage .formula {
-  font-family: Georgia, serif; font-style: italic; text-align: center; font-size: 18px;
-  background: var(--paper); border-radius: 8px; padding: 16px; margin: 14px 0;
-}
 .docpage table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
 .docpage th, .docpage td { border: 1px solid var(--rule); padding: 8px 10px; text-align: left; }
 .docpage th { background: var(--paper); }
@@ -461,8 +449,6 @@ a.card { color: inherit; text-decoration: none; }
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; background: var(--card);
 }
 .card .snippet mark { background: rgba(217,164,65,.4); color: inherit; border-radius: 2px; padding: 0 1px; }
-
-/* ---------- offline badge ---------- */
 
 /* ---------- sync flags: card badge + "On the desk" waiting pill ---------- */
 .syncflag { color: var(--gold); font-weight: 700; white-space: nowrap; }
@@ -766,7 +752,7 @@ a.card { color: inherit; text-decoration: none; }
 .stx-mini.mild .visits { color: var(--ink-soft); }
 .stx-mini.hot .flame { position: absolute; top: 8px; right: 10px; font-size: 14px; }
 
-/* mobile: card padding tightens, calendar scrolls (themed H scrollbar via Task 4) */
+/* mobile: card padding tightens, calendar scrolls (themed horizontal scrollbar) */
 @media (max-width: 640px) {
   .stx-card { padding: 18px 16px 16px; }
 }

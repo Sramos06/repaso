@@ -41,7 +41,7 @@ export async function enqueue(m: Mutation): Promise<void> {
 }
 
 let flushTimer: ReturnType<typeof setTimeout> | undefined;
-export function scheduleFlush(delayMs = 0): void {
+function scheduleFlush(delayMs = 0): void {
   clearTimeout(flushTimer);
   flushTimer = setTimeout(() => { void flushOutbox(); }, delayMs);
 }

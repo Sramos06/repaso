@@ -1,4 +1,4 @@
-export type ReviewerPatch = { title?: string; subject?: string | null; pinned?: boolean; archivedAt?: Date | null };
+type ReviewerPatch = { title?: string; subject?: string | null; pinned?: boolean; archivedAt?: Date | null };
 
 // Whitelist parser: only title/subject/pinned may change via PATCH —
 // htmlContent and ownership fields are deliberately unreachable.

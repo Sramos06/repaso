@@ -22,7 +22,7 @@ export async function getDeskRows(): Promise<LocalReviewer[]> {
 }
 
 // A temp id may have been adopted while this tab still holds the old URL.
-export async function resolveId(id: string): Promise<string> {
+async function resolveId(id: string): Promise<string> {
   if (!isLocalId(id)) return id;
   const remap = await dbGet<{ key: string; value: string }>("meta", `remap:${id}`);
   return remap?.value ?? id;
