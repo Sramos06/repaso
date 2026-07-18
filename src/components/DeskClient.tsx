@@ -9,13 +9,13 @@ import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
 import { exportBackup } from "@/lib/export-backup";
 import { getDeskRows, localPatch, localDelete, localDuplicate, localToggle, getContent } from "@/lib/local-reviewers";
-import { startSync, outboxCount, isHydrated } from "@/lib/sync";
+import { startSync, pendingWorkCount, isHydrated } from "@/lib/sync";
 import { onLocalChange, localStoreAvailable } from "@/lib/local-db";
 import type { LocalReviewer } from "@/lib/local-types";
 
 export type DeskReviewer = {
   id: string; title: string; subject: string | null; pinned: boolean; archived: boolean;
-  lastOpenedAt: string | null; date: string; hasNotes: boolean; pendingSync: boolean;
+  lastOpenedAt: string | null; date: string; hasNotes: boolean; pendingSync: boolean; uploadFailed: boolean;
 };
 
 type Dialog =
@@ -84,7 +84,7 @@ export default function DeskClient({ email }: { email: string }) {
   useEffect(() => {
     let cancelled = false;
     async function readLocal() {
-      const [r, w] = await Promise.all([getDeskRows(), outboxCount()]);
+      const [r, w] = await Promise.all([getDeskRows(), pendingWorkCount()]);
       if (!cancelled) { setRows(r); setWaiting(w); setHydrated(await isHydrated()); }
     }
     readLocal();
@@ -99,7 +99,7 @@ export default function DeskClient({ email }: { email: string }) {
       id: r.id, title: r.title, subject: r.subject, pinned: r.pinned,
       archived: r.archivedAt !== null, lastOpenedAt: r.lastOpenedAt,
       date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      hasNotes: r.hasNotes, pendingSync: r.pending,
+      hasNotes: r.hasNotes, pendingSync: r.pending, uploadFailed: r.uploadFailed ?? false,
     })),
     [rows]
   );
@@ -176,6 +176,7 @@ export default function DeskClient({ email }: { email: string }) {
   };
 
   async function openSend(r: DeskReviewer) {
+    if (r.uploadFailed) { say("This file couldn’t back up. Download a copy and add it again."); return; }
     if (r.pendingSync) { say("This file hasn’t backed up yet. Try again once it has."); return; }
     const seq = ++shareSeq.current;
     setDialog({ kind: "send", r }); setShareUrl(null); setShareStatus("loading");
@@ -205,6 +206,7 @@ export default function DeskClient({ email }: { email: string }) {
   const menuProps = (r: DeskReviewer) => ({
     menuOpen: menuFor === r.id,
     pendingSync: r.pendingSync,
+    uploadFailed: r.uploadFailed,
     managing,
     selected: selected.has(r.id),
     onToggleSelect: () => toggleSelect(r.id),

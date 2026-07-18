@@ -15,6 +15,7 @@ export type LocalReviewer = {
   encoding: Encoding;
   hasNotes: boolean;
   pending: boolean; // true until the row exists on the server
+  uploadFailed?: boolean; // set when the server permanently rejected this upload (400)
 };
 
 export type LocalNote = {

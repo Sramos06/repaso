@@ -5,7 +5,7 @@
 import type { LocalReviewer, LocalNote, ServerRow } from "./local-types";
 import { diffRows } from "./sync-plan";
 import { dbGet, dbGetAll, dbPut, dbDel, dbClear, notifyChange } from "./local-db";
-import { flushOutbox, outboxCount, scheduleFlush } from "./outbox";
+import { flushOutbox, outboxCount, pendingWorkCount, scheduleFlush } from "./outbox";
 
 let started = false;
 export function startSync(): void {
@@ -122,4 +122,4 @@ export async function clearLocalAndRehydrate(): Promise<{ ok: boolean; reason?: 
   return { ok: true };
 }
 
-export { outboxCount, scheduleFlush };
+export { outboxCount, pendingWorkCount, scheduleFlush };

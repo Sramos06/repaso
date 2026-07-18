@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { LocalReviewer } from "@/lib/local-types";
 import { getDeskRows } from "@/lib/local-reviewers";
-import { clearLocalAndRehydrate, outboxCount } from "@/lib/sync";
+import { clearLocalAndRehydrate, pendingWorkCount } from "@/lib/sync";
 import { onLocalChange } from "@/lib/local-db";
 import { formatBytes } from "@/lib/format-bytes";
 
@@ -19,7 +19,7 @@ export default function StorageSection() {
   useEffect(() => {
     let cancelled = false;
     async function readLocal() {
-      const [r, w] = await Promise.all([getDeskRows(), outboxCount()]);
+      const [r, w] = await Promise.all([getDeskRows(), pendingWorkCount()]);
       if (!cancelled) { setRows(r); setWaiting(w); }
       try {
         const est = await navigator.storage?.estimate?.();
@@ -65,7 +65,7 @@ export default function StorageSection() {
         <>
           {items.slice(0, SHOWN).map((r) => (
             <div className="stor-row" key={r.id}>
-              <span className="nm">{r.title} {r.pending ? <span className="off">☁ backing up</span> : <span className="off">● on device</span>}</span>
+              <span className="nm">{r.title} {r.uploadFailed ? <span className="off">⚠ couldn&rsquo;t back up</span> : r.pending ? <span className="off">☁ backing up</span> : <span className="off">● on device</span>}</span>
               <span className="sz">{formatBytes(r.sizeBytes)}</span>
             </div>
           ))}
