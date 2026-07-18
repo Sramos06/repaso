@@ -2,7 +2,7 @@
 
 Running list of feature ideas, grouped by *when/how* they should be built, not just liked/disliked.
 
-_Last updated: 2026-07-17 (post-v2.0 ship)._
+_Last updated: 2026-07-18 (post-v2.1 ship)._
 
 ## Shipped
 - **v1.5** (2026-07-11): search desk, pins, rename/delete, export, logout, focus viewer, offline tier.
@@ -14,26 +14,23 @@ _Last updated: 2026-07-17 (post-v2.0 ship)._
 - **v1.11** (2026-07-14): **upload makeover** · split zone (drop files / paste-HTML door, folds under on phones) · **staging tray** (validate + preview before saving, honest per-file results, self-clearing) · **paste HTML** capture with auto-filled editable title. Upload-makeover bundle DONE. Cap stays 4 MB until v1.12.
 - **v1.12** (2026-07-16): **big files** · compressed-at-rest storage (client gzips via native CompressionStream, server stores gzip, all readers decode) lifts the cap to **15 MB raw** · decompression-bomb guard server-side · backups stay raw HTML (export decodes) · existing rows migrated (~63% smaller stored) · Neon's free 512 MB now stretches ~4-5x.
 - **v2.0** (2026-07-17): **LOCAL-FIRST.** The device's IndexedDB copy is the primary copy: desk/viewer/notes render instantly online or not · every write (notes, uploads, rename/pin/archive/delete, duplicate) works offline and backs up through an ordered, crash-safe outbox · note conflicts keep BOTH texts, never drop either · multi-tab safe (Web Locks + BroadcastChannel) · offline-created reviewers open offline (viewer app shell) · SW v4 slims to shell duty · zero DB schema changes, cloud stays the backup-of-record. Built in ONE version (13 tasks); first Fable-reviewed release (caught an outbox-poisoning Critical the task gates missed).
+- **v2.1** (2026-07-18): **STATS & SHINE** — the finale. **Study stats** (`/stats`): the paper "Attendance card" with streaks, days studied, visits-this-year, a GitHub-style year calendar (month/day rails, hover-only day info) and warmth-ranked top-3 reviewers, all from `open_events` accruing since v1.10 · **theme-matched scrollbars** (each theme its own custom pair, library of 8 kept as a bench) · **2×2 theme picker** with per-theme paper swatch chips + stamped selection · offline `/continue`, first-run hydration state, honest failed-upload badge, no-store notes state · **sync test harness** (in-memory IndexedDB mock → 9 behavior tests over the real outbox/pull code) · **cleanup pass**: dead code/CSS swept, **lint driven to zero** for the first time. Second Fable-reviewed release (caught a data-loss clear-guard hole). 131 tests.
 
 ## ~~Next major — full local-first offline~~ — SHIPPED v2.0
-The route doc `local-first-upgrade-path.md` now describes the shipped architecture. The "never disappears" promise is enforced by design: ordered never-drop outbox, keep-both conflicts, guarded clears, revision-history backstop.
+The route doc `local-first-upgrade-path.md` describes the shipped architecture. The "never disappears" promise is enforced by design: ordered never-drop outbox, keep-both conflicts, guarded clears, revision-history backstop.
 
-## Near-term — standalone, buildable now (v2.1 candidates, from the v2.0 final-review backlog)
-- **Offline `/continue`** — the PWA shortcut still resolves server-side; offline it lands on the SW fallback page instead of the most recent local reviewer. Small client rework.
-- **First-run "Preparing your offline copy" state** — a brand-new device briefly shows the empty-desk copy while hydration runs; `isHydrated()` already exists, just unconsumed.
-- **Viewer-side storage honesty** — a PWA deep link into the viewer bypasses the desk's "this browser can't store data" banner; NotesPanel should consult `localStoreAvailable()` before showing optimistic save badges.
-- **Zombie pending-row surfacing** — a permanently rejected offline upload keeps its local row + "backing up" badge forever; surface "couldn't back up, download a copy" instead.
-- **Pre-hydration open tracking** — opens via network fall-through (row not local yet) skip lastOpenedAt/open-events.
-- **Waiting-pill polish** — the "to back up" count includes open events, which reads oddly.
-- **Fake-IDB test harness for outbox/sync** — every real v2.0 finding lived in the untested orchestration seams; highest-value test investment of the next version.
+## Near-term — the shelf is empty
+_Everything on the v2.1 backlog shipped. Repaso is now feature-complete for a single user. Shawn tests real-world performance before deciding on anything further._
+
+## v2.1 final-review backlog (small, post-ship, only if wanted)
+- **Local export of unbacked files** — a "download all files that couldn't back up" affordance, fully closing the failed-upload class (v2.1 surfaces + guards them; this would let you recover the content without the original on disk).
+- **Guard-branch harness test** — pin the new `uploadFailed` clear-guard with the in-memory mock (~5 lines).
+- **Clear-guard copy asymmetry** — with only `open` events queued, the desk pill says nothing but re-download refuses "waiting to back up"; cosmetic.
 - **Save from a URL** (parked since v1.11) — paste a link instead of HTML.
+- **More themes / custom-accent picker** — the picker now shows real palettes; adding themes or a custom accent is a natural extension.
 
-## Settings-bundle status (post-v1.10)
-- ~~**Bulk actions**~~ — **SHIPPED v1.10** (manage mode on the desk with Select + bottom bar).
-- ~~**Duplicate a reviewer**~~ — **SHIPPED v1.10.**
-- ~~**Themes / appearance**~~ — **SHIPPED v1.8.** Unpicked ideas remain: more themes, a custom-accent picker.
-- ~~**Offline storage readout**~~ — **SHIPPED v1.10.**
-- **Study stats / streaks** — the last one standing. `open_events` has been accruing since v1.10, so whenever this gets built it starts with real history. Time-per-reviewer, GitHub-style heatmap, a profile-ish home.
+## Settings-bundle status — COMPLETE
+- ~~Bulk actions~~ (v1.10) · ~~Duplicate~~ (v1.10) · ~~Themes~~ (v1.8) · ~~Offline storage readout~~ (v1.10) · ~~**Study stats / streaks**~~ (**SHIPPED v2.1** — the last one). The whole Settings bundle is done.
 
 ## Upload makeover — SHIPPED v1.11
 _All of Shawn's list landed: paste HTML, multi-file staging UX, preview, size display, confirmation step._
