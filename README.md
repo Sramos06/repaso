@@ -41,10 +41,10 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). Before running, copy `.env.example` to `.env.local` and fill in:
 
-- `DATABASE_URL` — a Neon Postgres connection string
-- `AUTH_SECRET` — any random secret for Auth.js
-- `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` — a Google OAuth client
-- `ALLOWED_EMAIL` — the one email allowed to sign in
+- `DATABASE_URL`: a Neon Postgres connection string
+- `AUTH_SECRET`: any random secret for Auth.js
+- `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET`: a Google OAuth client
+- `ALLOWED_EMAIL`: the one email allowed to sign in
 
 Useful scripts:
 
