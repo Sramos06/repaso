@@ -113,6 +113,12 @@ async function pull(): Promise<void> {
 // the local store must never eat unsynced work.
 export async function clearLocalAndRehydrate(): Promise<{ ok: boolean; reason?: string }> {
   if ((await outboxCount()) > 0) return { ok: false, reason: "You have changes waiting to back up. Go online first, then try again." };
+  // A failed-upload row exists ONLY on this device (no cloud copy, no queue
+  // entry): clearing would destroy its last copy with one click.
+  const rows = await dbGetAll<LocalReviewer>("reviewers");
+  if (rows.some((r) => r.uploadFailed)) {
+    return { ok: false, reason: "A file that couldn't back up is still on this device. Download a copy or delete it first." };
+  }
   if (typeof navigator !== "undefined" && !navigator.onLine) return { ok: false, reason: "You're offline. Clearing now would leave nothing to read." };
   await dbClear("reviewers");
   await dbClear("notes");

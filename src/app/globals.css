@@ -580,7 +580,7 @@ a.card { color: inherit; text-decoration: none; }
 .managing .card .tick { display: grid; }
 .managing .card.sel { outline: 2.5px solid var(--terra); outline-offset: 2px; }
 .managing .card.sel .tick { background: var(--terra); border-color: var(--terra); color: #FFF4E8; }
-.managing .card .more, .managing .card .pin, .managing .card .pinflag { visibility: hidden; }
+.managing .card .more, .managing .card .pin { visibility: hidden; }
 .bulkbar {
   position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 130%); transition: transform .25s ease;
   display: flex; align-items: center; gap: 8px; z-index: 95;
@@ -711,6 +711,8 @@ a.card { color: inherit; text-decoration: none; }
   transform: rotate(-7deg); display: grid; place-items: center; text-align: center;
   color: var(--terra); mix-blend-mode: multiply;
 }
+/* Multiply goes muddy on the dark night card; screen keeps the stamp readable. */
+[data-theme="night"] .stx-streak { mix-blend-mode: screen; }
 .stx-streak b { font-family: var(--font-display); font-size: 32px; font-weight: 900; line-height: 1; display: block; }
 .stx-streak span { font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .stx-r { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 11px 2px; border-bottom: 1px solid var(--rule); font-size: 14.5px; }
@@ -874,7 +876,7 @@ a.card { color: inherit; text-decoration: none; }
 [data-theme="matcha"] .stx-cal::-webkit-scrollbar-track, [data-theme="matcha"] .recent-row::-webkit-scrollbar-track {
   background: repeating-linear-gradient(90deg, var(--rule) 0 8px, transparent 8px 16px);
   background-size: 100% 2px; background-repeat: no-repeat; background-position: center;
-  border-top: 0;
+  border-top: 0; border-left: 0; /* both hairlines leak from other track rules otherwise */
 }
 [data-theme="matcha"] .stx-cal::-webkit-scrollbar-thumb, [data-theme="matcha"] .recent-row::-webkit-scrollbar-thumb {
   border-radius: 2px; border: 2px solid var(--paper);

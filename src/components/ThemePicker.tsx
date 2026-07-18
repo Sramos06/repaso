@@ -39,7 +39,7 @@ export default function ThemePicker({ current }: { current: Theme }) {
             className={`tchip${sel === t.id ? " on" : ""}`}
             aria-pressed={sel === t.id}
             onClick={() => pick(t.id)}
-            style={{ background: t.preview.paper, color: t.preview.ink }}
+            style={{ backgroundColor: t.preview.paper, color: t.preview.ink }}
           >
             <span className="tchip-tape" style={{ background: t.preview.washi }} />
             <span className="tchip-name">{t.label}</span>
