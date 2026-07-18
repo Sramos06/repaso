@@ -10,6 +10,7 @@ import { enqueue } from "./outbox";
 import { decodeContent, encodeContent, utf8Bytes } from "./content-codec";
 import { validateUpload, MAX_BYTES, MAX_WIRE_BYTES, WIRE_LIMIT_REASON } from "./validate-upload";
 import { copyTitle } from "./copy-title";
+import { isUuid } from "./note-target";
 
 export async function getDeskRows(): Promise<LocalReviewer[]> {
   const rows = await dbGetAll<LocalReviewer>("reviewers");
@@ -130,6 +131,8 @@ export async function recordOpen(id: string): Promise<void> {
   // outbox uploads first, then adoption remaps this open to the real id,
   // so lastOpenedAt survives the first sync instead of reverting to null.
   if (row) await enqueue({ kind: "open", id: rid });
+  // Not local yet (fresh device mid-hydration): the open still counts.
+  if (!row && !isLocalId(rid) && isUuid(rid)) await enqueue({ kind: "open", id: rid });
 }
 
 export async function getLocalNote(target: string): Promise<LocalNote | null> {

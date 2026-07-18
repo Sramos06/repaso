@@ -9,7 +9,7 @@ import CommandPalette from "./CommandPalette";
 import { downloadText, htmlFilename } from "@/lib/download-file";
 import { exportBackup } from "@/lib/export-backup";
 import { getDeskRows, localPatch, localDelete, localDuplicate, localToggle, getContent } from "@/lib/local-reviewers";
-import { startSync, outboxCount } from "@/lib/sync";
+import { startSync, outboxCount, isHydrated } from "@/lib/sync";
 import { onLocalChange, localStoreAvailable } from "@/lib/local-db";
 import type { LocalReviewer } from "@/lib/local-types";
 
@@ -42,6 +42,7 @@ export default function DeskClient({ email }: { email: string }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [rows, setRows] = useState<LocalReviewer[] | null>(null); // null = first IDB read pending
   const [waiting, setWaiting] = useState(0); // outbox depth
+  const [hydrated, setHydrated] = useState(true); // default true: returning users never flash "preparing"
   const [storeAvailable, setStoreAvailable] = useState<boolean | null>(null); // null = check pending
   const searchSeq = useRef(0);
   const shareSeq = useRef(0);
@@ -84,7 +85,7 @@ export default function DeskClient({ email }: { email: string }) {
     let cancelled = false;
     async function readLocal() {
       const [r, w] = await Promise.all([getDeskRows(), outboxCount()]);
-      if (!cancelled) { setRows(r); setWaiting(w); }
+      if (!cancelled) { setRows(r); setWaiting(w); setHydrated(await isHydrated()); }
     }
     readLocal();
     startSync();
@@ -270,7 +271,7 @@ export default function DeskClient({ email }: { email: string }) {
             {rows === null ? (
               <p className="empty">Opening your desk…</p>
             ) : active.length === 0 ? (
-              <p className="empty">{navigator.onLine ? "Drop your first reviewer above ↑" : "Nothing on this device yet. Go online once and your desk downloads itself."}</p>
+              <p className="empty">{!hydrated && navigator.onLine ? "Preparing your offline copy…" : navigator.onLine ? "Drop your first reviewer above ↑" : "Nothing on this device yet. Go online once and your desk downloads itself."}</p>
             ) : null}
           </div>
 
