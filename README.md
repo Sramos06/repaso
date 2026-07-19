@@ -66,4 +66,13 @@ Repaso grew one version at a time, from a first working upload-and-view app to a
 
 ## Screenshots
 
-_Coming soon._
+| | |
+|:--:|:--:|
+| **The desk** | **Study stats** |
+| ![The Repaso desk with pinned reviewers](docs/screenshots/desk.png) | ![The study stats attendance card](docs/screenshots/stats.png) |
+| **A reviewer, open** | **Margin notes** |
+| ![A reviewer open in the sandboxed viewer](docs/screenshots/viewer.png) | ![The notes drawer open beside a reviewer](docs/screenshots/notes.png) |
+
+**Themes and offline storage**
+
+![The theme picker and offline storage panel in settings](docs/screenshots/themes.png)

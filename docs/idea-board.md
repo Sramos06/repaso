@@ -22,6 +22,9 @@ The route doc `local-first-upgrade-path.md` describes the shipped architecture. 
 ## Near-term — the shelf is empty
 _Everything on the v2.1 backlog shipped. Repaso is now feature-complete for a single user. Shawn tests real-world performance before deciding on anything further._
 
+## Design polish (post-ship, only if wanted)
+- **Overhaul the Settings page** — the page runs long with a lot of wasted vertical space (surfaced 2026-07-18 while taking README screenshots; it needed two shots to capture). Tighten the layout so Appearance / Offline storage / Your data / Account read as a denser, more deliberate page rather than three tall stacked panels. Keep it in the paper language, no dashboard-card slop.
+
 ## v2.1 final-review backlog (small, post-ship, only if wanted)
 - **Local export of unbacked files** — a "download all files that couldn't back up" affordance, fully closing the failed-upload class (v2.1 surfaces + guards them; this would let you recover the content without the original on disk).
 - **Guard-branch harness test** — pin the new `uploadFailed` clear-guard with the in-memory mock (~5 lines).
